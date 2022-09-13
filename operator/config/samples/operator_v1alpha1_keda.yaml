@@ -1,0 +1,8 @@
+apiVersion: operator.kyma-project.io/v1alpha1
+kind: Keda
+metadata:
+  name: keda-sample
+spec:
+  logging:
+    operator:
+      level: "debug"

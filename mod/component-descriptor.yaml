@@ -1,0 +1,21 @@
+component:
+  componentReferences: []
+  name: kyma.project.io/module/keda
+  provider: internal
+  repositoryContexts:
+  - baseUrl: op-kcp-registry.localhost:50860/unsigned
+    componentNameMapping: urlPath
+    type: ociRegistry
+  resources:
+  - access:
+      filename: sha256:e3af49e853889f53d2601c8fa0904daa5e88c14bec7889518d34c794172a5ae8
+      mediaType: application/gzip
+      type: localFilesystemBlob
+    name: keda-manager
+    relation: local
+    type: helm-chart
+    version: 0.0.4
+  sources: []
+  version: 0.0.4
+meta:
+  schemaVersion: v2
