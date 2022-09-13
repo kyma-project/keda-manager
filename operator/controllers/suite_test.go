@@ -78,13 +78,11 @@ var _ = BeforeSuite(func() {
 	Expect(k8sClient).NotTo(BeNil())
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme.Scheme,
-		MetricsBindAddress: ":8080",
-		Port:               9443,
+		Scheme: scheme.Scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	chartPath := filepath.Join("..", "module-chart")
+	chartPath := filepath.Join(".", "testdata")
 
 	err = (&KedaReconciler{
 		Client:    k8sManager.GetClient(),
@@ -95,7 +93,11 @@ var _ = BeforeSuite(func() {
 
 	go func() {
 		defer GinkgoRecover()
-		err = k8sManager.Start(context.Background())
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		err = k8sManager.Start(ctx)
 		Expect(err).ToNot(HaveOccurred(), "failed to run manager")
 	}()
 
