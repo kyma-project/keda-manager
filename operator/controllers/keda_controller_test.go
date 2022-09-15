@@ -20,9 +20,9 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName = "keda"
-			kedaName      = "test"
-			saName        = "keda-manager"
+			namespaceName      = "keda"
+			kedaName           = "test"
+			serviceAccountName = "keda-manager"
 		)
 
 		var (
@@ -52,12 +52,12 @@ var _ = Describe("Keda controller", func() {
 
 			Expect(k8sClient.Create(ctx, &keda)).Should(Succeed())
 
-			var sa corev1.ServiceAccount
+			var serviceAccount corev1.ServiceAccount
 			Eventually(func() (bool, error) {
 				err := k8sClient.Get(ctx, types.NamespacedName{
-					Name:      saName,
+					Name:      serviceAccountName,
 					Namespace: namespaceName,
-				}, &sa)
+				}, &serviceAccount)
 
 				if err != nil {
 					return false, err
@@ -69,7 +69,7 @@ var _ = Describe("Keda controller", func() {
 				WithTimeout(time.Second * 10).
 				Should(BeTrue())
 
-			labelLen := len(sa.Labels)
+			labelLen := len(serviceAccount.Labels)
 			Expect(labelLen).Should(Equal(7))
 
 			Eventually(func() (rtypes.State, error) {
