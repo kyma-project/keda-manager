@@ -82,7 +82,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	chartPath := filepath.Join(".", "testdata")
+	chartPath := filepath.Join("..", "module-chart")
 
 	err = (&KedaReconciler{
 		Client:    k8sManager.GetClient(),

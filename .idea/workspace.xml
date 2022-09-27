@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="62cdce94-ebd1-4a7e-a26a-f41b7d7f49ba" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/operator/controllers/keda_controller_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/operator/controllers/keda_controller_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operator/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/operator/go.sum" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="GOROOT" url="file:///opt/homebrew/Cellar/go/1.19.1/libexec" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2F7EFdUM1FgOsZRqKZzTl7fvGrS" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/Users/I567085/src/2022jul/keda-manager/operator/controllers/testdata/templates"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/operator/controllers/testdata/templates" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Test.Test pio (1)">
+    <configuration name="Test pio (1)" type="GoTestRunConfiguration" factoryName="Go Test">
+      <module name="keda-manager" />
+      <working_directory value="$PROJECT_DIR$/operator/controllers" />
+      <envs>
+        <env name="KUBEBUILDER_ASSETS" value="$USER_HOME$/Library/Application Support/io.kubebuilder.envtest/k8s/1.24.2-darwin-arm64" />
+        <env name="KUBEBUILDER_CONTROLPLANE_START_TIMEOUT" value="2m" />
+        <env name="KUBEBUILDER_CONTROLPLANE_STOP_TIMEOUT" value="2m" />
+        <env name="ACK_GINKGO_DEPRECATIONS" value="1.16.5" />
+      </envs>
+      <root_directory value="$PROJECT_DIR$/operator" />
+      <kind value="PACKAGE" />
+      <package value="github.com/kyma-project/keda-manager/operator/controllers" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestAPIs\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestAPIs in github.com/kyma-project/keda-manager/operator/controllers" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="keda-manager" />
+      <working_directory value="$PROJECT_DIR$/operator/controllers" />
+      <root_directory value="$PROJECT_DIR$/operator" />
+      <kind value="PACKAGE" />
+      <package value="github.com/kyma-project/keda-manager/operator/controllers" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestAPIs\E$" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Go Test.Test pio (1)" />
+      <item itemvalue="Go Test.TestAPIs in github.com/kyma-project/keda-manager/operator/controllers" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Test.TestAPIs in github.com/kyma-project/keda-manager/operator/controllers" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/operator/controllers/keda_controller_test.go</url>
+          <line>99</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/operator/controllers/keda_controller_test.go</url>
+          <line>156</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/Go/pkg/mod/helm.sh/helm/v3@v3.9.4/pkg/kube/ready.go</url>
+          <line>125</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
