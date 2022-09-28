@@ -36,9 +36,17 @@ spec:
             description: KedaSpec defines the desired state of Keda
             properties:
               env:
-                additionalProperties:
-                  type: string
-                type: object
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
               logging:
                 properties:
                   metricsServer:

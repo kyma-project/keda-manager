@@ -51,11 +51,16 @@ type Resources struct {
 	MetricsServer *corev1.ResourceRequirements `json:"metricsServer,omitempty"`
 }
 
+type NameValue struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
-	Logging   *LoggingCfg        `json:"logging,omitempty"`
-	Resources *Resources         `json:"resources,omitempty"`
-	Env       *map[string]string `json:"env,omitempty"`
+	Logging   *LoggingCfg `json:"logging,omitempty"`
+	Resources *Resources  `json:"resources,omitempty"`
+	Env       []NameValue `json:"env,omitempty"`
 }
 
 //+kubebuilder:object:root=true
