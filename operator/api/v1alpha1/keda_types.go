@@ -22,6 +22,22 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	LogLevelDebug = LogLevel("debug")
+	LogLevelInfo  = LogLevel("info")
+	LogLevelError = LogLevel("error")
+
+	LogFormatJSON    = LogFormat("json")
+	LogFormatConsole = LogFormat("console")
+
+	TimeEncodingEpoch       = LogTimeEncoding("epoch")
+	TimeEncodingMillis      = LogTimeEncoding("millis")
+	TimeEncodingNano        = LogTimeEncoding("nano")
+	TimeEncodingISO8601     = LogTimeEncoding("iso8601")
+	TimeEncodingRFC3339     = LogTimeEncoding("rfc3339")
+	TimeEncodingRFC3339Nano = LogTimeEncoding("rfc3339nano")
+)
+
 // +kubebuilder:validation:Enum=debug;info;error
 type LogLevel string
 
