@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	LogLevelDebug = LogLevel("debug")
-	LogLevelInfo  = LogLevel("info")
-	LogLevelError = LogLevel("error")
+	OperatorLogLevelDebug = OperatorLogLevel("debug")
+	OperatorLogLevelInfo  = OperatorLogLevel("info")
+	OperatorLogLevelError = OperatorLogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")
@@ -36,10 +36,13 @@ const (
 	TimeEncodingISO8601     = LogTimeEncoding("iso8601")
 	TimeEncodingRFC3339     = LogTimeEncoding("rfc3339")
 	TimeEncodingRFC3339Nano = LogTimeEncoding("rfc3339nano")
+
+	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
+	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
-type LogLevel string
+type OperatorLogLevel string
 
 // +kubebuilder:validation:Enum=json;console
 type LogFormat string
@@ -48,13 +51,16 @@ type LogFormat string
 type LogTimeEncoding string
 
 type LoggingOperatorCfg struct {
-	Level        *LogLevel        `json:"level,omitempty"`
-	Format       *LogFormat       `json:"format,omitempty"`
-	TimeEncoding *LogTimeEncoding `json:"timeEncoding,omitempty"`
+	Level        *OperatorLogLevel `json:"level,omitempty"`
+	Format       *LogFormat        `json:"format,omitempty"`
+	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
 }
 
+// +kubebuilder:validation:Enum=0;4
+type MetricsServerLogLevel string
+
 type LoggingMetricsSrvCfg struct {
-	Level *LogLevel `json:"level,omitempty"`
+	Level *MetricsServerLogLevel `json:"level,omitempty"`
 }
 
 type LoggingCfg struct {

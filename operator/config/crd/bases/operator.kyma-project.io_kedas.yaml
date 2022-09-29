@@ -53,9 +53,8 @@ spec:
                     properties:
                       level:
                         enum:
-                        - debug
-                        - info
-                        - error
+                        - 0
+                        - 4
                         type: string
                     type: object
                   operator:
