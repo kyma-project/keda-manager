@@ -31,7 +31,7 @@ var _ = Describe("Keda controller", func() {
 		var (
 			metricsDeploymentName = fmt.Sprintf("%s-metrics-apiserver", operatorName)
 			kedaDeploymentName    = operatorName
-			debug                 = v1alpha1.LogLevel("debug")
+			debug                 = v1alpha1.LogLevelDebug
 			kedaSpec              = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
 					Operator: &v1alpha1.LoggingOperatorCfg{
@@ -61,7 +61,6 @@ var _ = Describe("Keda controller", func() {
 			//updateKedaAndCheckIfIsUpdated(h, kedaName, kedaDeploymentName)
 
 			deleteKedaAndCheckThatObjectsDisappear(h, kedaName, deploymentsCount)
-
 		})
 	})
 })
@@ -109,16 +108,14 @@ func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeployment
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	envs := map[string]string{}
-	if keda.Spec.Env != nil {
-		envs = *keda.Spec.Env
-	}
 	const (
 		envKey = "update-test-env-key"
 		envVal = "update-test-env-value"
 	)
-	envs[envKey] = envVal
-	keda.Spec.Env = &envs
+	keda.Spec.Env = append(keda.Spec.Env, v1alpha1.NameValue{
+		Name:  envKey,
+		Value: envVal,
+	})
 
 	// act
 	Expect(k8sClient.Update(h.ctx, &keda)).To(Succeed())
@@ -130,24 +127,15 @@ func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeployment
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	//containerIndex := -1
-	//for i, container := range deployment.Spec.Template.Spec.Containers {
-	//	if container.Name == operatorName {
-	//		containerIndex = i
-	//		break
-	//	}
-	//}
-	//Expect(containerIndex).To(Not(Equal(-1)))
-
 	envIndex := -1
-	for i, env := range deployment.Spec.Template.Spec.Containers[0 /*containerIndex*/].Env {
+	for i, env := range deployment.Spec.Template.Spec.Containers[0].Env {
 		if env.Name == envKey {
 			envIndex = i
 			break
 		}
 	}
 	Expect(envIndex).To(Not(Equal(-1)))
-	Expect(deployment.Spec.Template.Spec.Containers[0 /*containerIndex*/].Env[envIndex]).To(Equal(envVal))
+	Expect(deployment.Spec.Template.Spec.Containers[0].Env[envIndex]).To(Equal(envVal))
 }
 
 func checkIfServiceAccountExists(h testHelper, serviceAccountName string, expectedLabelCount int) {
@@ -171,7 +159,7 @@ func checkIfKedaCrdSpecIsPassedToObject(h testHelper, kedaName string, kedaDeplo
 
 	Expect(kedaDeployment.Spec.Template.Spec.Containers[0].Args).
 		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.Operator.Level)))
-	// TODO: check another fields
+	// TODO: check other fields
 }
 
 type testHelper struct {
