@@ -30,21 +30,21 @@ var _ = Describe("Keda controller", func() {
 		)
 
 		var (
-			metricsDeploymentName     = fmt.Sprintf("%s-metrics-apiserver", operatorName)
-			kedaDeploymentName        = operatorName
-			notDefaultLogLevel        = v1alpha1.LogLevelDebug
-			notDefaultLogFormat       = v1alpha1.LogFormatJSON
-			notDefaultLogTimeEncoding = v1alpha1.TimeEncodingEpoch
-			kedaSpec                  = v1alpha1.KedaSpec{
+			metricsDeploymentName           = fmt.Sprintf("%s-metrics-apiserver", operatorName)
+			kedaDeploymentName              = operatorName
+			notDefaultOperatorLogLevel      = v1alpha1.OperatorLogLevelDebug
+			notDefaultLogFormat             = v1alpha1.LogFormatJSON
+			notDefaultLogTimeEncoding       = v1alpha1.TimeEncodingEpoch
+			notDefaultMetricsServerLogLevel = v1alpha1.MetricsServerLogLevelDebug
+			kedaSpec                        = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
 					Operator: &v1alpha1.LoggingOperatorCfg{
-						Level:        &notDefaultLogLevel,
+						Level:        &notDefaultOperatorLogLevel,
 						Format:       &notDefaultLogFormat,
 						TimeEncoding: &notDefaultLogTimeEncoding,
 					},
 					MetricsServer: &v1alpha1.LoggingMetricsSrvCfg{
-						//TODO: in values.yaml there is level "0" - it's incompatible with LogLevel enum
-						Level: &notDefaultLogLevel,
+						Level: &notDefaultMetricsServerLogLevel,
 					},
 				},
 				Resources: &v1alpha1.Resources{
@@ -124,7 +124,6 @@ func startKedaAndCheckIfIsReady(h testHelper, kedaName, kedaDeploymentName, metr
 func deleteKedaAndCheckThatObjectsDisappear(h testHelper, kedaName string, startedDeploymentCount int) {
 	// initial assert
 	// maybe we should check also other kinds of kubernetes objects
-	// Service, CRD(keda), ServiceAccount, ClusterRole, ClusterRoleBinding
 	Expect(h.getKubernetesDeploymentCount()).To(Equal(startedDeploymentCount))
 
 	// act
@@ -150,14 +149,11 @@ func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeployment
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	const (
-		envKey = "update-test-env-key"
-		envVal = "update-test-env-value"
-	)
-	keda.Spec.Env = append(keda.Spec.Env, v1alpha1.NameValue{
-		Name:  envKey,
-		Value: envVal,
-	})
+	newTestEnv := v1alpha1.NameValue{
+		Name:  "update-test-env-key",
+		Value: "update-test-env-value",
+	}
+	keda.Spec.Env = append(keda.Spec.Env, newTestEnv)
 
 	// act
 	Expect(k8sClient.Update(h.ctx, &keda)).To(Succeed())
@@ -169,15 +165,8 @@ func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeployment
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	envIndex := -1
-	for i, env := range deployment.Spec.Template.Spec.Containers[0].Env {
-		if env.Name == envKey {
-			envIndex = i
-			break
-		}
-	}
-	Expect(envIndex).To(Not(Equal(-1)))
-	Expect(deployment.Spec.Template.Spec.Containers[0].Env[envIndex]).To(Equal(envVal))
+	expectedEnv := ToEnvVar(newTestEnv)
+	Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(expectedEnv))
 }
 
 func checkIfServiceAccountExists(h testHelper, serviceAccountName string, expectedLabelCount int) {
@@ -192,51 +181,65 @@ func checkIfServiceAccountExists(h testHelper, serviceAccountName string, expect
 }
 
 func checkIfKedaCrdSpecIsPassedToObject(h testHelper, kedaDeploymentName string, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+	checkIfKedaCrdSpecIsPassedToKedaDeployment(h, kedaDeploymentName, kedaSpec)
+	checkIfKedaCrdSpecIsPassedToMetricsDeployment(h, metricsDeploymentName, kedaSpec)
+}
+
+func checkIfKedaCrdSpecIsPassedToKedaDeployment(h testHelper, kedaDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
 	// act
 	var kedaDeployment appsv1.Deployment
 	Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &kedaDeployment)).
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
+
+	expectedEnvs := ToEnvVars(kedaSpec.Env)
+
+	// assert
+	firstContainer := kedaDeployment.Spec.Template.Spec.Containers[0]
+	Expect(firstContainer.Args).
+		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.Operator.Level)))
+	Expect(firstContainer.Args).
+		To(ContainElement(fmt.Sprintf("--zap-encoder=%s", *kedaSpec.Logging.Operator.Format)))
+	Expect(firstContainer.Args).
+		To(ContainElement(fmt.Sprintf("--zap-time-encoding=%s", *kedaSpec.Logging.Operator.TimeEncoding)))
+
+	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.Operator))
+
+	Expect(firstContainer.Env).To(ContainElements(expectedEnvs))
+}
+
+func checkIfKedaCrdSpecIsPassedToMetricsDeployment(h testHelper, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+	// act
 	var metricsDeployment appsv1.Deployment
 	Eventually(h.createGetKubernetesObjectFunc(metricsDeploymentName, &metricsDeployment)).
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	expectedEnvs := ToEnvVar(kedaSpec.Env)
+	expectedEnvs := ToEnvVars(kedaSpec.Env)
 
-	//assert
-	firstKedaContainer := kedaDeployment.Spec.Template.Spec.Containers[0]
-	Expect(firstKedaContainer.Args).
-		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.Operator.Level)))
-	Expect(firstKedaContainer.Args).
-		To(ContainElement(fmt.Sprintf("--zap-encoder=%s", *kedaSpec.Logging.Operator.Format)))
-	Expect(firstKedaContainer.Args).
-		To(ContainElement(fmt.Sprintf("--zap-time-encoding=%s", *kedaSpec.Logging.Operator.TimeEncoding)))
+	// assert
+	firstContainer := metricsDeployment.Spec.Template.Spec.Containers[0]
+	Expect(firstContainer.Args).
+		To(ContainElement(fmt.Sprintf("--v=%s", *kedaSpec.Logging.MetricsServer.Level)))
 
-	Expect(firstKedaContainer.Resources).To(Equal(*kedaSpec.Resources.Operator))
+	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.MetricsServer))
 
-	Expect(firstKedaContainer.Env).To(ContainElements(expectedEnvs))
-
-	firstMetricsContainer := metricsDeployment.Spec.Template.Spec.Containers[0]
-	//TODO: resolve it
-	// disabled because of bug (probably) - different enums 0-4 vs debug, info, error
-	//Expect(firstMetricsContainer.Args).
-	//	To(ContainElement(fmt.Sprintf("--v=%s", *kedaSpec.Logging.MetricsServer.Level)))
-
-	Expect(firstMetricsContainer.Resources).To(Equal(*kedaSpec.Resources.MetricsServer))
-
-	Expect(firstMetricsContainer.Env).To(ContainElements(expectedEnvs))
+	Expect(firstContainer.Env).To(ContainElements(expectedEnvs))
 }
 
-func ToEnvVar(nvs []v1alpha1.NameValue) []corev1.EnvVar {
+func ToEnvVar(nv v1alpha1.NameValue) corev1.EnvVar {
+	return corev1.EnvVar{
+		Name:  nv.Name,
+		Value: nv.Value,
+	}
+}
+
+func ToEnvVars(nvs []v1alpha1.NameValue) []corev1.EnvVar {
 	var result []corev1.EnvVar
 	for _, nv := range nvs {
-		result = append(result, corev1.EnvVar{
-			Name:  nv.Name,
-			Value: nv.Value,
-		})
+		result = append(result, ToEnvVar(nv))
 	}
 	return result
 }
