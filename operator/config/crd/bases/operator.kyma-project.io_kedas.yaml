@@ -53,8 +53,8 @@ spec:
                     properties:
                       level:
                         enum:
-                        - 0
-                        - 4
+                        - "0"
+                        - "4"
                         type: string
                     type: object
                   operator:
@@ -83,7 +83,7 @@ spec:
                 type: object
               resources:
                 properties:
-                  metricsServer:
+                  metricServer:
                     description: ResourceRequirements describes the compute resource
                       requirements.
                     properties:
