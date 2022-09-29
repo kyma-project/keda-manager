@@ -56,7 +56,7 @@ type LoggingOperatorCfg struct {
 	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=0;4
+// +kubebuilder:validation:Enum="0";"4"
 type MetricsServerLogLevel string
 
 type LoggingMetricsSrvCfg struct {
@@ -70,7 +70,7 @@ type LoggingCfg struct {
 
 type Resources struct {
 	Operator      *corev1.ResourceRequirements `json:"operator,omitempty"`
-	MetricsServer *corev1.ResourceRequirements `json:"metricsServer,omitempty"`
+	MetricsServer *corev1.ResourceRequirements `json:"metricServer,omitempty"`
 }
 
 type NameValue struct {
