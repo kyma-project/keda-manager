@@ -65,7 +65,7 @@ type LoggingMetricsSrvCfg struct {
 
 type LoggingCfg struct {
 	Operator      *LoggingOperatorCfg   `json:"operator,omitempty"`
-	MetricsServer *LoggingMetricsSrvCfg `json:"metricsServer,omitempty"`
+	MetricsServer *LoggingMetricsSrvCfg `json:"metricServer,omitempty"`
 }
 
 type Resources struct {
