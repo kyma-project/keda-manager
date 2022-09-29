@@ -145,7 +145,7 @@ func (in *LoggingMetricsSrvCfg) DeepCopyInto(out *LoggingMetricsSrvCfg) {
 	*out = *in
 	if in.Level != nil {
 		in, out := &in.Level, &out.Level
-		*out = new(LogLevel)
+		*out = new(MetricsServerLogLevel)
 		**out = **in
 	}
 }
@@ -165,7 +165,7 @@ func (in *LoggingOperatorCfg) DeepCopyInto(out *LoggingOperatorCfg) {
 	*out = *in
 	if in.Level != nil {
 		in, out := &in.Level, &out.Level
-		*out = new(LogLevel)
+		*out = new(OperatorLogLevel)
 		**out = **in
 	}
 	if in.Format != nil {
