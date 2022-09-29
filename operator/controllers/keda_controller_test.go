@@ -21,12 +21,10 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName            = "keda"
-			kedaName                 = "test"
-			operatorName             = "keda-manager"
-			serviceAccountName       = "keda-manager"
-			serviceAccountLabelCount = 7
-			deploymentsCount         = 2
+			namespaceName    = "keda"
+			kedaName         = "test"
+			operatorName     = "keda-manager"
+			deploymentsCount = 2
 		)
 
 		var (
@@ -91,22 +89,19 @@ var _ = Describe("Keda controller", func() {
 
 			// operations like C(R)UD can be tested in separated tests,
 			// but we have time-consuming flow and decided do it in one test
-			startKedaAndCheckIfIsReady(h, kedaName, kedaDeploymentName, metricsDeploymentName, kedaSpec)
+			shouldCreateKeda(h, kedaName, kedaDeploymentName, metricsDeploymentName, kedaSpec)
 
-			checkIfKedaCrdSpecIsPassedToObject(h, kedaDeploymentName, metricsDeploymentName, kedaSpec)
-
-			// we check one of kubernetes objects
-			checkIfServiceAccountExists(h, serviceAccountName, serviceAccountLabelCount)
+			shouldPropagateKedaCrdSpecProperties(h, kedaDeploymentName, metricsDeploymentName, kedaSpec)
 
 			//TODO: disabled because of bug in operator (https://github.com/kyma-project/module-manager/issues/94)
-			//updateKedaAndCheckIfIsUpdated(h, kedaName, kedaDeploymentName)
+			//shouldUpdateKeda(h, kedaName, kedaDeploymentName)
 
-			deleteKedaAndCheckThatObjectsDisappear(h, kedaName, deploymentsCount)
+			shouldDeleteKeda(h, kedaName, deploymentsCount)
 		})
 	})
 })
 
-func startKedaAndCheckIfIsReady(h testHelper, kedaName, kedaDeploymentName, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
 	// act
 	h.createKeda(kedaName, kedaSpec)
 
@@ -121,7 +116,7 @@ func startKedaAndCheckIfIsReady(h testHelper, kedaName, kedaDeploymentName, metr
 		Should(Equal(rtypes.StateReady))
 }
 
-func deleteKedaAndCheckThatObjectsDisappear(h testHelper, kedaName string, startedDeploymentCount int) {
+func shouldDeleteKeda(h testHelper, kedaName string, startedDeploymentCount int) {
 	// initial assert
 	// maybe we should check also other kinds of kubernetes objects
 	Expect(h.getKubernetesDeploymentCount()).To(Equal(startedDeploymentCount))
@@ -141,7 +136,7 @@ func deleteKedaAndCheckThatObjectsDisappear(h testHelper, kedaName string, start
 		Should(Equal(0))
 }
 
-func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeploymentName string) {
+func shouldUpdateKeda(h testHelper, kedaName string, kedaDeploymentName string) {
 	// arrange
 	var keda v1alpha1.Keda
 	Eventually(h.createGetKubernetesObjectFunc(kedaName, &keda)).
@@ -169,23 +164,12 @@ func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeployment
 	Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(expectedEnv))
 }
 
-func checkIfServiceAccountExists(h testHelper, serviceAccountName string, expectedLabelCount int) {
-	// assert
-	var serviceAccount corev1.ServiceAccount
-	Eventually(h.createGetKubernetesObjectFunc(serviceAccountName, &serviceAccount)).
-		WithPolling(time.Second * 2).
-		WithTimeout(time.Second * 10).
-		Should(BeTrue())
-
-	Expect(len(serviceAccount.Labels)).To(Equal(expectedLabelCount))
+func shouldPropagateKedaCrdSpecProperties(h testHelper, kedaDeploymentName string, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+	checkKedaCrdSpecPropertyPropagationToKedaDeployment(h, kedaDeploymentName, kedaSpec)
+	checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h, metricsDeploymentName, kedaSpec)
 }
 
-func checkIfKedaCrdSpecIsPassedToObject(h testHelper, kedaDeploymentName string, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
-	checkIfKedaCrdSpecIsPassedToKedaDeployment(h, kedaDeploymentName, kedaSpec)
-	checkIfKedaCrdSpecIsPassedToMetricsDeployment(h, metricsDeploymentName, kedaSpec)
-}
-
-func checkIfKedaCrdSpecIsPassedToKedaDeployment(h testHelper, kedaDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+func checkKedaCrdSpecPropertyPropagationToKedaDeployment(h testHelper, kedaDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
 	// act
 	var kedaDeployment appsv1.Deployment
 	Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &kedaDeployment)).
@@ -209,7 +193,7 @@ func checkIfKedaCrdSpecIsPassedToKedaDeployment(h testHelper, kedaDeploymentName
 	Expect(firstContainer.Env).To(ContainElements(expectedEnvs))
 }
 
-func checkIfKedaCrdSpecIsPassedToMetricsDeployment(h testHelper, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
 	// act
 	var metricsDeployment appsv1.Deployment
 	Eventually(h.createGetKubernetesObjectFunc(metricsDeploymentName, &metricsDeployment)).
