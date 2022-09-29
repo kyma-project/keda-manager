@@ -20,154 +20,169 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName      = "keda"
-			kedaName           = "test"
-			operatorName       = "keda-manager"
-			serviceAccountName = "keda-manager"
+			namespaceName            = "keda"
+			kedaName                 = "test"
+			operatorName             = "keda-manager"
+			serviceAccountName       = "keda-manager"
+			serviceAccountLabelCount = 7
+			deploymentsCount         = 2
 		)
 
 		var (
 			metricsDeploymentName = fmt.Sprintf("%s-metrics-apiserver", operatorName)
 			kedaDeploymentName    = operatorName
-		)
-
-		It("The status should be Success", func() {
-			ctx := context.Background()
-			h := testHelper{
-				ctx:           ctx,
-				namespaceName: namespaceName,
-			}
-
-			//TODO: add enum on LogLevel values
-			debug := v1alpha1.LogLevel("debug")
-			kedaSpec := v1alpha1.KedaSpec{
-				//TODO: test other properties
+			debug                 = v1alpha1.LogLevel("debug")
+			kedaSpec              = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
 					Operator: &v1alpha1.LoggingOperatorCfg{
 						Level: &debug,
 					},
-				},
-				Env: &map[string]string{
-					"blekota": "makota",
-					"ala":     "mela",
+					MetricsServer: nil,
 				},
 			}
+		)
 
+		It("The status should be Success", func() {
+			h := testHelper{
+				ctx:           context.Background(),
+				namespaceName: namespaceName,
+			}
 			h.createNamespace()
-			h.createKeda(kedaName, kedaSpec)
 
-			// check if some object started
-			var serviceAccount corev1.ServiceAccount
-			Eventually(h.createGetKubernetesObjectFunc(serviceAccountName, &serviceAccount)).
-				WithPolling(time.Second * 2).
-				WithTimeout(time.Second * 10).
-				Should(BeTrue())
+			// operations like C(R)UD can be tested in separated tests,
+			// but we have time-consuming flow and decided do it in one test
+			startKedaAndCheckIfIsReady(h, kedaName, kedaDeploymentName, metricsDeploymentName, kedaSpec)
 
-			labelLen := len(serviceAccount.Labels)
-			Expect(labelLen).Should(Equal(7))
+			checkIfKedaCrdSpecIsPassedToObject(h, kedaName, kedaDeploymentName, kedaSpec)
 
-			// we have to update deployment status manually
-			h.updateDeploymentStatus(metricsDeploymentName)
-			h.updateDeploymentStatus(kedaDeploymentName)
+			checkIfServiceAccountExists(h, serviceAccountName, serviceAccountLabelCount)
 
-			// check if keda started
-			Eventually(h.createGetKedaStateFunc(kedaName)).
-				WithPolling(time.Second * 2).
-				WithTimeout(time.Second * 20).
-				Should(Equal(rtypes.StateReady))
+			//TODO: disabled because of bug in operator
+			//updateKedaAndCheckIfIsUpdated(h, kedaName, kedaDeploymentName)
 
-			///////////////////////////////////////////////////////
-			// check if keda crd specification are properly passed to kubernetes object (e.g. logging)
-			var kedaDeployment appsv1.Deployment
-			Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &kedaDeployment)).
-				WithPolling(time.Second * 2).
-				WithTimeout(time.Second * 10).
-				Should(BeTrue())
+			deleteKedaAndCheckThatObjectsDisappear(h, kedaName, deploymentsCount)
 
-			containerIndex := -1
-			for i, container := range kedaDeployment.Spec.Template.Spec.Containers {
-				if container.Name == operatorName {
-					containerIndex = i
-					break
-				}
-			}
-			Expect(containerIndex).Should(Not(Equal(-1)))
-			Expect(kedaDeployment.Spec.Template.Spec.Containers[containerIndex].Env).Should(BeEquivalentTo(kedaSpec.Env))
-			// TODO: create dedicated matchers for keda
-
-			////////////////////////////////////////
-			// update
-			//var keda v1alpha1.Keda
-			//Eventually(h.createGetKubernetesObjectFunc(kedaName, &keda)).
-			//	WithPolling(time.Second * 2).
-			//	WithTimeout(time.Second * 10).
-			//	Should(BeTrue())
-			//
-			//envs := map[string]string{}
-			//if keda.Spec.Env != nil {
-			//	envs = *keda.Spec.Env
-			//}
-			//const (
-			//	envKey = "update-test"
-			//	envVal = "makapaka"
-			//)
-			//envs[envKey] = envVal
-			//keda.Spec.Env = &envs
-			//
-			//Expect(k8sClient.Update(h.ctx, &keda)).Should(Succeed())
-			//
-			//var deployment appsv1.Deployment
-			//Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &deployment)).
-			//	WithPolling(time.Second * 2).
-			//	WithTimeout(time.Second * 10).
-			//	Should(BeTrue())
-			//
-			//containerIndex := -1
-			//for i, container := range deployment.Spec.Template.Spec.Containers {
-			//	if container.Name == operatorName {
-			//		containerIndex = i
-			//		break
-			//	}
-			//}
-			//Expect(containerIndex).Should(Not(Equal(-1)))
-			//
-			//envIndex := -1
-			//for i, env := range deployment.Spec.Template.Spec.Containers[containerIndex].Env {
-			//	if env.Name == envKey {
-			//		envIndex = i
-			//		break
-			//	}
-			//}
-			//Expect(envIndex).Should(Not(Equal(-1)))
-			//Expect(deployment.Spec.Template.Spec.Containers[containerIndex].Env[envIndex]).Should(Equal(envVal))
-
-			////////////////////////////////////////////////////////
-			// delete
-			// TODO: check all kinds of kubernetes objects
-			var nsListBefore appsv1.DeploymentList
-			Expect(k8sClient.List(h.ctx, &nsListBefore)).Should(Succeed())
-			Expect(nsListBefore.Items).Should(Not(BeEmpty()))
-
-			var keda v1alpha1.Keda
-			Eventually(h.createGetKubernetesObjectFunc(kedaName, &keda)).
-				WithPolling(time.Second * 2).
-				WithTimeout(time.Second * 10).
-				Should(BeTrue())
-
-			Expect(k8sClient.Delete(h.ctx, &keda)).Should(Succeed())
-
-			// TODO: check all kinds of kubernetes objects
-			Eventually(h.createKymaObjectListIsEmptyFunc()).
-				WithPolling(time.Second * 2).
-				WithTimeout(time.Second * 10).
-				Should(BeTrue())
 		})
 	})
 })
 
+func startKedaAndCheckIfIsReady(h testHelper, kedaName, kedaDeploymentName, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+	// act
+	h.createKeda(kedaName, kedaSpec)
+
+	// we have to update deployment status manually
+	h.updateDeploymentStatus(metricsDeploymentName)
+	h.updateDeploymentStatus(kedaDeploymentName)
+
+	// assert
+	Eventually(h.createGetKedaStateFunc(kedaName)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 20).
+		Should(Equal(rtypes.StateReady))
+}
+
+func deleteKedaAndCheckThatObjectsDisappear(h testHelper, kedaName string, startedDeploymentCount int) {
+	// initial assert
+	// maybe we should check also other kinds of kubernetes objects
+	Expect(h.getKubernetesDeploymentCount()).To(Equal(startedDeploymentCount))
+
+	// act
+	var keda v1alpha1.Keda
+	Eventually(h.createGetKubernetesObjectFunc(kedaName, &keda)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
+	Expect(k8sClient.Delete(h.ctx, &keda)).To(Succeed())
+
+	// assert
+	Eventually(h.getKubernetesDeploymentCount).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(Equal(0))
+}
+
+func updateKedaAndCheckIfIsUpdated(h testHelper, kedaName string, kedaDeploymentName string) {
+	// arrange
+	var keda v1alpha1.Keda
+	Eventually(h.createGetKubernetesObjectFunc(kedaName, &keda)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
+
+	envs := map[string]string{}
+	if keda.Spec.Env != nil {
+		envs = *keda.Spec.Env
+	}
+	const (
+		envKey = "update-test-env-key"
+		envVal = "update-test-env-value"
+	)
+	envs[envKey] = envVal
+	keda.Spec.Env = &envs
+
+	// act
+	Expect(k8sClient.Update(h.ctx, &keda)).To(Succeed())
+
+	// assert
+	var deployment appsv1.Deployment
+	Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &deployment)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
+
+	//containerIndex := -1
+	//for i, container := range deployment.Spec.Template.Spec.Containers {
+	//	if container.Name == operatorName {
+	//		containerIndex = i
+	//		break
+	//	}
+	//}
+	//Expect(containerIndex).To(Not(Equal(-1)))
+
+	envIndex := -1
+	for i, env := range deployment.Spec.Template.Spec.Containers[0 /*containerIndex*/].Env {
+		if env.Name == envKey {
+			envIndex = i
+			break
+		}
+	}
+	Expect(envIndex).To(Not(Equal(-1)))
+	Expect(deployment.Spec.Template.Spec.Containers[0 /*containerIndex*/].Env[envIndex]).To(Equal(envVal))
+}
+
+func checkIfServiceAccountExists(h testHelper, serviceAccountName string, expectedLabelCount int) {
+	// assert
+	var serviceAccount corev1.ServiceAccount
+	Eventually(h.createGetKubernetesObjectFunc(serviceAccountName, &serviceAccount)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
+
+	Expect(len(serviceAccount.Labels)).To(Equal(expectedLabelCount))
+}
+
+func checkIfKedaCrdSpecIsPassedToObject(h testHelper, kedaName string, kedaDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+	// act
+	var kedaDeployment appsv1.Deployment
+	Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &kedaDeployment)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
+
+	Expect(kedaDeployment.Spec.Template.Spec.Containers[0].Args).
+		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.Operator.Level)))
+	// TODO: check another fields
+}
+
 type testHelper struct {
 	ctx           context.Context
 	namespaceName string
+}
+
+func (h *testHelper) getKubernetesDeploymentCount() int {
+	var objectList appsv1.DeploymentList
+	Expect(k8sClient.List(h.ctx, &objectList)).To(Succeed())
+	return len(objectList.Items)
 }
 
 func (h *testHelper) createKymaObjectListIsEmptyFunc() func() (bool, error) {
@@ -226,7 +241,7 @@ func (h *testHelper) updateDeploymentStatus(deploymentName string) {
 		Message: "test-message",
 	})
 	deployment.Status.Replicas = 1
-	Expect(k8sClient.Status().Update(h.ctx, &deployment)).Should(Succeed())
+	Expect(k8sClient.Status().Update(h.ctx, &deployment)).To(Succeed())
 
 	replicaSetName := h.createReplicaSetForDeployment(deployment)
 
@@ -238,7 +253,7 @@ func (h *testHelper) updateDeploymentStatus(deploymentName string) {
 
 	replicaSet.Status.ReadyReplicas = 1
 	replicaSet.Status.Replicas = 1
-	Expect(k8sClient.Status().Update(h.ctx, &replicaSet)).Should(Succeed())
+	Expect(k8sClient.Status().Update(h.ctx, &replicaSet)).To(Succeed())
 
 	By(fmt.Sprintf("Deployment status updated: %s", deploymentName))
 }
@@ -274,7 +289,7 @@ func (h *testHelper) createReplicaSetForDeployment(deployment appsv1.Deployment)
 			Template: deployment.Spec.Template,
 		},
 	}
-	Expect(k8sClient.Create(h.ctx, &replicaSet)).Should(Succeed())
+	Expect(k8sClient.Create(h.ctx, &replicaSet)).To(Succeed())
 	By(fmt.Sprintf("Replica set (for deployment) created: %s", replicaSetName))
 	return replicaSetName
 }
@@ -288,7 +303,7 @@ func (h *testHelper) createKeda(kedaName string, spec v1alpha1.KedaSpec) {
 		},
 		Spec: spec,
 	}
-	Expect(k8sClient.Create(h.ctx, &keda)).Should(Succeed())
+	Expect(k8sClient.Create(h.ctx, &keda)).To(Succeed())
 	By(fmt.Sprintf("Crd created: %s", kedaName))
 }
 
@@ -299,6 +314,6 @@ func (h *testHelper) createNamespace() {
 			Name: h.namespaceName,
 		},
 	}
-	Expect(k8sClient.Create(h.ctx, &namespace)).Should(Succeed())
+	Expect(k8sClient.Create(h.ctx, &namespace)).To(Succeed())
 	By(fmt.Sprintf("Namespace created: %s", h.namespaceName))
 }
