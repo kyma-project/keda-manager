@@ -21,10 +21,9 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName    = "keda"
-			kedaName         = "test"
-			operatorName     = "keda-manager"
-			deploymentsCount = 2
+			namespaceName = "keda"
+			kedaName      = "test"
+			operatorName  = "keda-manager"
 		)
 
 		var (
@@ -96,7 +95,7 @@ var _ = Describe("Keda controller", func() {
 			//TODO: disabled because of bug in operator (https://github.com/kyma-project/module-manager/issues/94)
 			//shouldUpdateKeda(h, kedaName, kedaDeploymentName)
 
-			shouldDeleteKeda(h, kedaName, deploymentsCount)
+			shouldDeleteKeda(h, kedaName)
 		})
 	})
 })
@@ -116,10 +115,11 @@ func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploym
 		Should(Equal(rtypes.StateReady))
 }
 
-func shouldDeleteKeda(h testHelper, kedaName string, startedDeploymentCount int) {
+func shouldDeleteKeda(h testHelper, kedaName string) {
 	// initial assert
 	// maybe we should check also other kinds of kubernetes objects
-	Expect(h.getKubernetesDeploymentCount()).To(Equal(startedDeploymentCount))
+	Expect(h.getKubernetesDeploymentCount() > 0).To(BeTrue())
+	Expect(h.getKedaCount()).To(Equal(1))
 
 	// act
 	var keda v1alpha1.Keda
@@ -134,6 +134,10 @@ func shouldDeleteKeda(h testHelper, kedaName string, startedDeploymentCount int)
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 10).
 		Should(Equal(0))
+	Eventually(h.createGetKedaDeletedOrDeletingFunc(kedaName)).
+		WithPolling(time.Second * 2).
+		WithTimeout(time.Second * 10).
+		Should(BeTrue())
 }
 
 func shouldUpdateKeda(h testHelper, kedaName string, kedaDeploymentName string) {
@@ -239,6 +243,12 @@ func (h *testHelper) getKubernetesDeploymentCount() int {
 	return len(objectList.Items)
 }
 
+func (h *testHelper) getKedaCount() int {
+	var objectList v1alpha1.KedaList
+	Expect(k8sClient.List(h.ctx, &objectList)).To(Succeed())
+	return len(objectList.Items)
+}
+
 func (h *testHelper) createKymaObjectListIsEmptyFunc() func() (bool, error) {
 	return func() (bool, error) {
 		var nsList appsv1.DeploymentList
@@ -252,17 +262,36 @@ func (h *testHelper) createKymaObjectListIsEmptyFunc() func() (bool, error) {
 
 func (h *testHelper) createGetKedaStateFunc(kedaName string) func() (rtypes.State, error) {
 	return func() (rtypes.State, error) {
-		var emptyState = rtypes.State("")
-		var keda v1alpha1.Keda
-		key := types.NamespacedName{
-			Name:      kedaName,
-			Namespace: h.namespaceName,
+		return h.getKedaState(kedaName)
+	}
+}
+
+func (h *testHelper) getKedaState(kedaName string) (rtypes.State, error) {
+	var emptyState = rtypes.State("")
+	var keda v1alpha1.Keda
+	key := types.NamespacedName{
+		Name:      kedaName,
+		Namespace: h.namespaceName,
+	}
+	err := k8sClient.Get(h.ctx, key, &keda)
+	if err != nil {
+		return emptyState, err
+	}
+	return keda.Status.State, nil
+}
+
+func (h *testHelper) createGetKedaDeletedOrDeletingFunc(kedaName string) func() (bool, error) {
+	return func() (bool, error) {
+		//deleted
+		if h.getKedaCount() == 0 {
+			return true, nil
 		}
-		err := k8sClient.Get(h.ctx, key, &keda)
+		//deleting
+		kedaState, err := h.getKedaState(kedaName)
 		if err != nil {
-			return emptyState, err
+			return false, err
 		}
-		return keda.Status.State, nil
+		return kedaState == rtypes.StateDeleting, nil
 	}
 }
 
