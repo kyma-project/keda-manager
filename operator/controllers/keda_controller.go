@@ -47,6 +47,7 @@ type KedaReconciler struct {
 	ChartPath string
 }
 
+
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas/finalizers,verbs=update

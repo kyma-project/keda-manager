@@ -9,4 +9,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: operator-controller-manager
+  namespace: keda
+- kind: ServiceAccount
+  name: operator-controller-manager
   namespace: operator-system
