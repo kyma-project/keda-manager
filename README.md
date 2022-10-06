@@ -1,8 +1,6 @@
-> **NOTE:** It is a general template that can be used for a project README.md, example README.md, or any other README.md type in all Kyma repositories in the Kyma organization. Not all the sections are mandatory. Use only those that suit your use case but keep the proposed section order.
-
 # Keda Manager
 
-## Overview (mandatory)
+## Overview
 
 Keda Manager is a module compatible with `lifecycle-manager` that allows to add KEDA Event Driven Autoscaler to Kyma ecosystem.
 
@@ -12,39 +10,60 @@ See also:
 
 ## Prerequisites
 
-> List the requirements to run the project or example.
+- access to a k8s cluster
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [kubebuilder](https://book.kubebuilder.io/)
 
-## Installation
+```bash
+# you could use one of the following options
 
-1. Building project
+# option 1: using brew
+brew install kubebuilder
+
+# option 2: fetch sources directly
+curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+chmod +x kubebuilder && mv kubebuilder /usr/local/bin/
+```
+
+## Manual installation
+
+This section is intended mainly for contributors.
+
+### Building project
 
 ```bash
 make build
 ```
 
-2. Build image
+### Build image
 
 ```bash
 make docker-build IMG=<image-name>:<image-tag>
 ```
 
-3. Push image to registry 
+### Push image to registry 
 
-- If using globaly available docker registry
+If you are using k3d.
+
+```bash
+k3d image import <image-name>:>image-tag> -c <k3d_cluster>
+```
+
+If using globally available docker registry
 
 ```bash
 make docker-push IMG=<image-name>:<image-tag>
 ```
 
-- If using k3d
+### Deploy
 
 ```bash
-k3d image import <image-name>:>image-tag> -c <k3d_context>
+make deploy IMG=<image-name>:<image-tag>
 ```
 
-> Explain the steps to install your project. Create an ordered list for each installation task.
->
-> If it is an example README.md, describe how to build, run locally, and deploy the example. Format the example as code blocks and specify the language, highlighting where possible. Explain how you can validate that the example ran successfully. For example, define the expected output or commands to run which check a successful deployment.
->
-> Add subsections (H3) for better readability.
+### Apply sample
+
+```bash
+kubectl apply -f config/samples/operator_v1alpha1_keda.yaml
+```
 
