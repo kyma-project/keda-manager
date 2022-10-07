@@ -18,3 +18,10 @@ rules:
   - kedas/status
   verbs:
   - get
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+
