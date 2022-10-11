@@ -1,4 +1,5 @@
 #! /bin/bash
+echo "mod-template: $MODULE_TEMPLATE"
 touch $MODULE_TEMPLATE
 cat <<EOF > $MODULE_TEMPLATE
 apiVersion: operator.kyma-project.io/v1alpha1
