@@ -3,7 +3,7 @@ MODULE_NAME ?= keda
 # Semantic Module Version used for identifying the build
 MODULE_VERSION ?= 0.0.4
 # Module Registry used for pushing the image
-MODULE_REGISTRY_PORT ?= 50092
+MODULE_REGISTRY_PORT ?= 8888
 MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
 # Desired Channel of the Generated Module Template
 MODULE_TEMPLATE_CHANNEL ?= stable
