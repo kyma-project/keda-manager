@@ -77,7 +77,7 @@ make docker-build
   </details>
 </div>
 
-### Deploy
+6. Deploy
 
 ```bash
 make deploy
