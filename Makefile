@@ -92,7 +92,7 @@ module-image: operator/docker-build operator/docker-push ## Build the Module Ima
 
 .PHONY: module-build
 module-build: kyma module-operator-chart module-default ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-	$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . $(MODULE_CREATION_FLAGS)
+	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . --registry $(MODULE_REGISTRY) -w -c oauth2accesstoken:$(shell gcloud auth application-default print-access-token)
 
 .PHONY: module-template-push
 module-template-push: ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
@@ -112,10 +112,11 @@ $(LOCALBIN):
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable
 
+KYMA_OS_TYPE ?= kyma-linux
 KYMA ?= $(LOCALBIN)/kyma-$(KYMA_STABILITY)
 kyma: $(LOCALBIN) $(KYMA) ## Download kyma locally if necessary.
 $(KYMA):
-	test -f $@ || curl -# -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/kyma-darwin 
+	test -f $@ || curl -s -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/$(KYMA_OS_TYPE)
 	chmod 0100 $(KYMA)
 
 ########## Kustomize ###########
