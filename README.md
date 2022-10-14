@@ -83,6 +83,108 @@ make docker-build
 make deploy
 ```
 
+## Install in modular kyma on local k3d cluster
+
+1. Setup local k3d cluster and local docker registry
+
+```bash
+k3d cluster create kyma --registry-create registry.localhost:0.0.0.0:5001
+```
+2. Add `etc/hosts` entry to register the local docker registry under a `registry.localhost` name
+
+```
+127.0.0.1 registry.localhost
+```
+
+3. Export ENVs pointing to module and module image registries
+
+```bash
+export IMG_REGISTRY=registry.localhost:5001/unsigned/operator-images
+export MODULE_REGISTRY=registry.localhost:5001/unsigned
+```
+
+4. Build Keda module
+```bash
+make module-build
+```
+
+This will build oci image for keda module and push it to the registry and path as defined in `MODULE_REGISTRY`.
+
+5. Build Keda manager image
+```bash
+make module-image
+```
+
+This will build docker image for keda manager and push it to the registry and path as defined in `IMG_REGISTRY`.
+
+6. Verify if the module and the manager's image are pushed to the local registry
+
+```bash
+curl registry.localhost:5001/v2/_catalog
+{"repositories":["unsigned/component-descriptors/kyma.project.io/module/keda","unsigned/operator-images/keda-operator"]}
+```
+
+7. Inpect the generated module template
+
+Edit the `template.yaml` file and change the `target` to `control-plane`
+This is only required in the single cluster mode
+
+```yaml
+spec:
+  target: control-plane
+```
+8. Install modular kyma on the k3d cluster
+
+This will install the latest versions of `module-manager` and `lifecycle-manager`
+
+You can  use --template option to deploy the keda module manifest from the beginning or apply it via kubectl later.
+
+```bash
+kyma alpha deploy  --template=./template.yaml
+
+- Kustomize ready
+- Lifecycle Manager deployed
+- Module Manager deployed
+- Modules deployed
+- Kyma CR deployed
+- Kyma deployed successfully!
+
+Kyma is installed in version:
+Kyma installation took:		18 seconds
+
+Happy Kyma-ing! :)
+```
+
+Kyma installation is ready, but no module is activated yet
+```bash
+kubectl get kymas.operator.kyma-project.io -A
+NAMESPACE    NAME           STATE   AGE
+kcp-system   default-kyma   Ready   71s
+```
+
+Keda Module is a known module, but not activated
+```bash
+kubectl get moduletemplates.operator.kyma-project.io -A 
+NAMESPACE    NAME                  AGE
+kcp-system   moduletemplate-keda   2m24s
+```
+9. Enable Keda in Kyma
+
+Edit Kyma CR ...
+
+```bash
+kubectl edit kymas.operator.kyma-project.io -n kcp-system default-kyma
+```
+..to add Keda module
+
+```yaml
+spec:
+  modules:
+  - name: keda
+```
+
+
+
 ## Using `keda-manager`
 
 - Create Keda instance
