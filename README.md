@@ -114,20 +114,20 @@ spec:
 EOF
 ```
 
-## Install in modular kyma on local k3d cluster
+## Installation in modular Kyma on the local k3d cluster
 
-1. Setup local k3d cluster and local docker registry
+1. Setup local k3d cluster and local Docker registry
 
 ```bash
 k3d cluster create kyma --registry-create registry.localhost:0.0.0.0:5001
 ```
-2. Add `etc/hosts` entry to register the local docker registry under a `registry.localhost` name
+2. Add the `etc/hosts` entry to register the local Docker registry under the `registry.localhost` name
 
 ```
 127.0.0.1 registry.localhost
 ```
 
-3. Export ENVs pointing to module and module image registries
+3. Export environment variables (ENVs) pointing to module and the module image registries
 
 ```bash
 export IMG_REGISTRY=registry.localhost:5001/unsigned/operator-images
@@ -139,14 +139,14 @@ export MODULE_REGISTRY=registry.localhost:5001/unsigned
 make module-build
 ```
 
-This will build oci image for keda module and push it to the registry and path as defined in `MODULE_REGISTRY`.
+This builds an OCI image for Keda module and pushes it to the registry and path, as defined in `MODULE_REGISTRY`.
 
 5. Build Keda manager image
 ```bash
 make module-image
 ```
 
-This will build docker image for keda manager and push it to the registry and path as defined in `IMG_REGISTRY`.
+This builds a Docker image for Keda Manager and pushes it to the registry and path, as defined in `IMG_REGISTRY`.
 
 6. Verify if the module and the manager's image are pushed to the local registry
 
@@ -157,20 +157,20 @@ curl registry.localhost:5001/v2/_catalog
 
 7. Inpect the generated module template
 
-The following are temporary workarounds. Probabaly will be mitigated in the future.
+The following are temporary workarounds.
 
 Edit the `template.yaml` file and:
 
- - change the `target` to `control-plane`
-This is only required in the single cluster mode
+ - change `target` to `control-plane`
+>**NOTE:** This is only required in the single cluster mode
 
 ```yaml
 spec:
   target: control-plane
 ```
 
-- change the existing repository context in spec.descriptor.component:
-(Because pods inside the k3d cluster use the docker-internal port of the registry, it will try to resolve the registry against port 5000 instead of 5001. K3d has registry aliases but module-manager is not part of k3s and thus does not know how to properly alias `registry.localhost:5001`)
+- change the existing repository context in `spec.descriptor.component`:
+>**NOTE:** Because Pods inside the k3d cluster use the docker-internal port of the registry, it tries to resolve the registry against port 5000 instead of 5001. K3d has registry aliases but module-manager is not part of k3d and thus does not know how to properly alias `registry.localhost:5001`
 
 ```yaml
 repositoryContexts:                                                                           
@@ -179,11 +179,11 @@ repositoryContexts:
   type: ociRegistry
 ```
 
-8. Install modular kyma on the k3d cluster
+8. Install modular Kyma on the k3d cluster
 
-This will install the latest versions of `module-manager` and `lifecycle-manager`
+This installs the latest versions of `module-manager` and `lifecycle-manager`
 
-You can  use --template option to deploy the keda module manifest from the beginning or apply it via kubectl later.
+You can use the `--template` flag to deploy the Keda module manifest from the beginning or apply it using kubectl later.
 
 ```bash
 kyma alpha deploy  --template=./template.yaml
@@ -215,7 +215,7 @@ NAMESPACE    NAME                  AGE
 kcp-system   moduletemplate-keda   2m24s
 ```
 
-9. Give module manager permission to install CRD cluster wide
+9. Give Module Manager permission to install CRD cluster-wide
 
 This is temporary workaround for the local mode only:
 (As module-manager  does not have the permissions in local mode for creating CRDs; since in local-mode it uses service account, while in remote mode, an administrative kubeconfig is expected)
