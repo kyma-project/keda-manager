@@ -215,13 +215,13 @@ NAMESPACE    NAME                  AGE
 kcp-system   moduletemplate-keda   2m24s
 ```
 
-9. Give Module Manager permission to install CRD cluster-wide
+9. Give Module Manager permission to install CustomResourceDefinition (CRD) cluster-wide
 
->**NOTE:** This is a temporary workaround and is only required in the single cluster mode
+>**NOTE:** This is a temporary workaround and is only required in the single-cluster mode
 
-Module-manager should be able to apply Custom Resource Definitions (CRD) to install modules. In the remote mode (with control-plane managing remote clusters) it will be given an administrative kubeconfig targeting the remote cluster to do so. But in local-mode (single cluster mode) it uses service account and does not have the permissions to create CRDs by default.
+Module-manager must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
 
-Run the following to make sure module manager's service account becomes an administrative role:
+Run the following to make sure the module manager's Service Account becomes an administrative role:
 
 ```bash
 kubectl edit clusterrole module-manager-manager-role
