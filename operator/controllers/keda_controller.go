@@ -113,7 +113,7 @@ func (m *ManifestResolver) Get(obj types.BaseCustomObject, _ logr.Logger) (types
 	sample, valid := obj.(*v1alpha1.Keda)
 	if !valid {
 		return types.InstallationSpec{},
-			fmt.Errorf("invalid type conversion for %s", client.ObjectKeyFromObject(obj))
+			fmt.Errorf(" invalid type conversion for %s", client.ObjectKeyFromObject(obj))
 	}
 
 	flags, err := structToFlags(sample.Spec)
