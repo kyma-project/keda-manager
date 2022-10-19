@@ -28,7 +28,9 @@ endif
 
 # This will change the flags of the `kyma alpha module create` command in case we spot credentials
 # Otherwise we will assume http-based local registries without authentication (e.g. for k3d)
-ifeq (,$(MODULE_CREDENTIALS))
+ifneq (,$(PROW_JOB_ID))
+MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w -c oauth2accesstoken:$(shell gcloud auth application-default print-access-token)
+else ifeq (,$(MODULE_CREDENTIALS))
 MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w --insecure
 else
 MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w -c $(MODULE_CREDENTIALS)
@@ -38,7 +40,6 @@ endif
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
-
 
 .PHONY: all
 all: module-build
@@ -111,11 +112,12 @@ $(LOCALBIN):
 
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable
+KYMA_FILE_NAME ?= kyma-linux
 
 KYMA ?= $(LOCALBIN)/kyma-$(KYMA_STABILITY)
-kyma: $(KYMA) ## Download kyma locally if necessary.
+kyma: $(LOCALBIN) $(KYMA) ## Download kyma locally if necessary.
 $(KYMA):
-	test -f $@ || curl -# -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/kyma-darwin 
+	test -f $@ || curl -s -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/$(KYMA_FILE_NAME)
 	chmod 0100 $(KYMA)
 
 ########## Kustomize ###########
