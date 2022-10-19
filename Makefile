@@ -29,7 +29,8 @@ endif
 # This will change the flags of the `kyma alpha module create` command in case we spot credentials
 # Otherwise we will assume http-based local registries without authentication (e.g. for k3d)
 ifneq (,$(PROW_JOB_ID))
-MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w -c oauth2accesstoken:$(shell gcloud auth application-default print-access-token)
+GCP_ACCESS_TOKEN=$(shell gcloud auth application-default print-access-token)
+MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w -c oauth2accesstoken:$(GCP_ACCESS_TOKEN)
 else ifeq (,$(MODULE_CREDENTIALS))
 MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) -w --insecure
 else
@@ -42,7 +43,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
 .PHONY: all
-all: module-build
+all: module-build module-template-push
 
 ##@ General
 
@@ -68,10 +69,10 @@ operator/manifests: ## Call Manifest Generation
 .PHONY: operator/docker-build
 operator/docker-build:
 	IMG=$(IMG) $(MAKE) -C operator/ docker-build
+
 .PHONY: operator/docker-push
 operator/docker-push:
 	IMG=$(IMG) $(MAKE) -C operator/ docker-push
-
 
 ##@ Module
 
@@ -93,11 +94,12 @@ module-image: operator/docker-build operator/docker-push ## Build the Module Ima
 
 .PHONY: module-build
 module-build: kyma module-operator-chart module-default ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-	$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . $(MODULE_CREATION_FLAGS)
+	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push
-module-template-push: ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
-	kubectl apply -f template.yaml
+module-template-push: crane ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
+	@[[ ! -z "$PROW_JOB_ID" ]] && crane auth login europe-west4-docker.pkg.dev -u oauth2accesstoken -p "$(GCP_ACCESS_TOKEN)" || exit 1
+	@crane append -f <(tar -f - -c ./template.yaml) -t ${MODULE_REGISTRY}/templates/$(MODULE_NAME):$(MODULE_VERSION)
 
 .PHONY: module-default
 module-default:
@@ -132,3 +134,10 @@ $(KUSTOMIZE): $(LOCALBIN)
 .PHONY: grafana-dashboard
 grafana-dashboard: ## Generating Grafana manifests to visualize controller status.
 	cd operator && kubebuilder edit --plugins grafana.kubebuilder.io/v1-alpha
+
+CRANE ?= $(shell which crane)
+
+.PHONY: crane
+crane: $(CRANE)
+	go install github.com/google/go-containerregistry/cmd/crane@latest
+
