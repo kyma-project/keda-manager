@@ -1,0 +1,28 @@
+- path: spec.scaleTargetRef
+  widget: FormGroup
+  simple: true
+  children:
+  - path: kind
+    simple: true
+    required: true
+    enum:
+      - Function
+      - Deployment
+  - path: apiVersion
+    simple: true
+    required: true
+  - path: name
+    simple: true
+    required: true
+- path: spec.triggers
+  widget: GenericList
+  simple: true
+  children:
+  - path: '[].type'
+    simple: true
+    required: true
+  - path: '[].metadata'
+    simple: true
+    required: true
+    widget: CodeEditor
+    language: "'YAML'"
