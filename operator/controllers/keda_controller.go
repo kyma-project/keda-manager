@@ -109,7 +109,6 @@ type ManifestResolver struct {
 
 // Get returns the chart information to be processed.
 func (m *ManifestResolver) Get(obj types.BaseCustomObject) (types.InstallationSpec, error) {
-	// experiment with generics or make a code generator
 	sample, valid := obj.(*v1alpha1.Keda)
 	if !valid {
 		return types.InstallationSpec{},
