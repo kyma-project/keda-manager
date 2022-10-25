@@ -5,6 +5,8 @@ configMapGenerator:
   - general
   - presets
   - form
+  - list
+  - details
   options:
     disableNameSuffixHash: true
     labels:

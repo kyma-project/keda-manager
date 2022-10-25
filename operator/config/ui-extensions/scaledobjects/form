@@ -1,7 +1,19 @@
+- path: spec.minReplicaCount
+  simple: true
+- path: spec.maxReplicaCount
+  simple: true
+- path: spec.cooldownPeriod
+- path: spec.pollingInterval
 - path: spec.scaleTargetRef
   widget: FormGroup
   simple: true
   children:
+  - var: scaledResourceType
+    type: string
+    defaultValue:
+    enum:
+      - function.serverless.kyma-project.io/v1alpha2
+      - deployment.apps/v1
   - path: kind
     simple: true
     required: true
@@ -13,7 +25,24 @@
     required: true
   - path: name
     simple: true
-    required: true
+    widget: Resource
+    visibility: $scaledResourceType = 'deployment.apps/v1'
+    # visibility: $item.spec.scaleTargetRef.kind = 'Deployment'
+    resource:
+      kind: Deployment
+      version: v1
+      group: apps
+      scope: namespace
+  - path: name
+    simple: true
+    widget: Resource
+    visibility: $scaledResourceType = 'function.serverless.kyma-project.io/v1alpha2'
+    # visibility: $item.spec.scaleTargetRef.kind = 'Function'
+    resource:
+      kind: Function
+      version: v1alpha2
+      group: serverless.kyma-project.io
+      scope: namespace
 - path: spec.triggers
   widget: GenericList
   simple: true
