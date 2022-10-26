@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/kyma-project/module-manager/operator/pkg/declarative"
 	"github.com/kyma-project/module-manager/operator/pkg/types"
 
@@ -108,7 +109,7 @@ type ManifestResolver struct {
 }
 
 // Get returns the chart information to be processed.
-func (m *ManifestResolver) Get(obj types.BaseCustomObject) (types.InstallationSpec, error) {
+func (m *ManifestResolver) Get(obj types.BaseCustomObject, _ logr.Logger) (types.InstallationSpec, error) {
 	sample, valid := obj.(*v1alpha1.Keda)
 	if !valid {
 		return types.InstallationSpec{},
