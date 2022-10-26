@@ -7,20 +7,45 @@ header:
       positive:
         - 'True'
       negative:
-        - 'False'  
+        - 'False'
 body:
-  - name: Scale Target
-    widget: Panel
+  - name: columns.container
+    widget: Columns
     children:
-      - name: Kind
-        source: spec.scaleTargetRef.kind
-      - name: Name
-        source: spec.scaleTargetRef.name
-        widget: ResourceLink
-        resource:
-          name: spec.scaleTargetRef.name
-          namespace: $root.metadata.namespace
-          kind: spec.scaleTargetRef.kind
+      - name: Scale Target
+        widget: Panel
+        children:
+          - name: Kind
+            source: spec.scaleTargetRef.kind
+          - name: Name
+            source: spec.scaleTargetRef.name
+            widget: ResourceLink
+            resource:
+              name: spec.scaleTargetRef.name
+              namespace: $root.metadata.namespace
+              kind: spec.scaleTargetRef.kind
+      - name: Scale Config
+        widget: Panel
+        children:
+          - name: Minimum number of replicas
+            source: spec.minReplicaCount
+          - name: Maximum number of replicas
+            source: spec.maxReplicaCount
+          - name: Polling Interval
+            source: spec.pollingInterval
+            visibility: '$exists($value)'
+          - name: Cooldown Period
+            source: spec.cooldownPeriod  
+            visibility: '$exists($value)'    
+      - name: Fallback
+        widget: Panel
+        source: spec.fallback
+        visibility: '$exists($value)' 
+        children:
+          - name: Fallback number of replicas
+            source: replicas
+          - name: Trigger Failure Threshold
+            source: failureThreshold
   - source: spec.triggers
     name: Triggers
     widget: Table
@@ -29,4 +54,7 @@ body:
       - source: metadata
         widget: CodeViewer
         language: "'yaml'"
-      
+  - widget: EventList
+    filter: '$matchEvents($$, $root.kind, $root.metadata.name)'
+    name: events
+    defaultType: information

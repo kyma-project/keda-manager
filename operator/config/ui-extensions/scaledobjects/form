@@ -1,9 +1,13 @@
 - path: spec.minReplicaCount
+  inputInfo: "Minimum number of replicas to scale down to"
   simple: true
 - path: spec.maxReplicaCount
+  inputInfo: "Maximum number of replicas to scale up to"
   simple: true
 - path: spec.cooldownPeriod
+  inputInfo: "The minimal inactivity period (in seconds) to wait before scaling the resource back to 0 (default: 5 minutes)"
 - path: spec.pollingInterval
+  inputInfo: "Interval (in seconds) to check each trigger on (default: 30 seconds)."
 - path: spec.scaleTargetRef
   widget: FormGroup
   simple: true
@@ -17,34 +21,47 @@
   - path: kind
     simple: true
     required: true
+    inputInfo: "Type of the scale target resource. For example `Deployment`"
     enum:
       - Function
       - Deployment
   - path: apiVersion
     simple: true
     required: true
-  - path: name
-    simple: true
-    widget: Resource
-    visibility: $scaledResourceType = 'deployment.apps/v1'
-    # visibility: $item.spec.scaleTargetRef.kind = 'Deployment'
-    resource:
-      kind: Deployment
-      version: v1
-      group: apps
-      scope: namespace
+    inputInfo: "Api group and api version of the scale target resource. For example `apps/v1`"
   - path: name
     simple: true
     widget: Resource
     visibility: $scaledResourceType = 'function.serverless.kyma-project.io/v1alpha2'
+    inputInfo: "Name of the scale target resource"
     # visibility: $item.spec.scaleTargetRef.kind = 'Function'
     resource:
       kind: Function
       version: v1alpha2
       group: serverless.kyma-project.io
       scope: namespace
+  - path: name
+    simple: true
+    widget: Resource
+    visibility: $scaledResourceType = 'deployment.apps/v1'
+    inputInfo: "Name of the scale target resource"
+    # visibility: $item.spec.scaleTargetRef.kind = 'Deployment'
+    resource:
+      kind: Deployment
+      version: v1
+      group: apps
+      scope: namespace
+- path: spec.fallback
+  widget: FormGroup
+  required: false
+  children:
+  - path: replicas
+    inputInfo: "Number of replicas to set in case scalers has failed to get metrics from their source" 
+  - path: failureThreshold
+    inputInfo: "Number of consecutive times each scaler has failed to get metrics from its source before the fallback amount of replicas is set"
 - path: spec.triggers
   widget: GenericList
+  defaultExpanded: true
   simple: true
   children:
   - path: '[].type'
