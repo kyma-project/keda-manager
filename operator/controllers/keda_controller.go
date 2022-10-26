@@ -132,4 +132,5 @@ func (m *ManifestResolver) Get(obj types.BaseCustomObject) (types.InstallationSp
 			SetFlags: flags,
 		},
 	}, nil
+
 }
