@@ -1,0 +1,18 @@
+domain: kyma-project.io
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  grafana.kubebuilder.io/v1-alpha: {}
+projectName: keda-manager
+repo: github.com/kyma-project/keda-manager
+resources:
+- api:
+    crdVersion: v1alpha1
+    namespaced: true
+  controller: true
+  domain: kyma-project.io
+  group: operator
+  kind: Keda
+  path: github.com/kyma-project/keda-manager/operator/api/v1alpha1
+  version: v1alpha1
+version: "1"
