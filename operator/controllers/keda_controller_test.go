@@ -3,9 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"time"
 
 	rtypes "github.com/kyma-project/module-manager/operator/pkg/types"
 
@@ -131,16 +132,11 @@ func shouldDeleteKeda(h testHelper, kedaName string) {
 	Expect(k8sClient.Delete(h.ctx, &keda)).To(Succeed())
 
 	// assert
-	// TODO: it's never ending - keda whole the time is Deleting
-	// TODO: uncomment this Eventually and remove next when it will be fixed
-	//Eventually(h.getKedaCount).
-	//	WithPolling(time.Second * 2).
-	//	WithTimeout(time.Second * 10).
-	//	Should(Equal(0))
-	Eventually(h.createGetKedaStateFunc(kedaName)).
+	Eventually(h.getKedaCount).
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 10).
-		Should(Equal(rtypes.StateDeleting))
+		Should(Equal(0))
+
 }
 
 func shouldUpdateKeda(h testHelper, kedaName string, kedaDeploymentName string) {
@@ -354,6 +350,9 @@ func (h *testHelper) createKeda(kedaName string, spec v1alpha1.KedaSpec) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      kedaName,
 			Namespace: h.namespaceName,
+			Labels: map[string]string{
+				"operator.kyma-project.io/kyma-name": "test",
+			},
 		},
 		Spec: spec,
 	}
