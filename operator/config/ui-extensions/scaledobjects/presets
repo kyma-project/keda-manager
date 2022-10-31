@@ -1,0 +1,30 @@
+- name: CPU Consumption Triggered
+  value:
+    apiVersion: keda.sh/v1alpha1
+    kind: ScaledObject
+    metadata:
+      name: ''
+      labels: {}
+      annotations: {}
+    spec:
+      triggers:
+      - type: cpu
+        metadata:
+          type: Utilization
+          value: '50'
+- name: Prometheus Triggered
+  value:
+    apiVersion: keda.sh/v1alpha1
+    kind: ScaledObject
+    metadata:
+      name: ''
+      labels: {}
+      annotations: {}
+    spec:
+      triggers:
+      - type: prometheus
+        metadata:
+          serverAddress: http://prometheus-operated.kyma-system.svc.cluster.local:9090
+          metricName: ''
+          query: ''
+          threshold: ''

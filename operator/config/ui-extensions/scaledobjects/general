@@ -1,0 +1,11 @@
+resource:
+  kind: ScaledObject
+  group: keda.sh
+  version: v1alpha1
+urlPath: scaledobjects
+category: Workloads
+name: Scaled Objects
+scope: namespace
+description: >-
+  \{\{[Scaled Objects](https://keda.sh/docs/2.8/concepts/scaling-deployments/#scaledobject-spec)\}\}
+  describes which workloads should KEDA scale and what the triggers for the scaling are.
