@@ -225,10 +225,10 @@ module-default:
 
 ##@ Tools
 
-# ## Location to install dependencies to
-# LOCALBIN ?= $(shell pwd)/bin
-# $(LOCALBIN):
-# 	mkdir -p $(LOCALBIN)
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
 
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable
