@@ -30,7 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kyma-project/keda-manager/operator/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/api/v1alpha1"
 )
 
 const (

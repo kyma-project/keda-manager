@@ -2,7 +2,7 @@ domain: operator.kyma-project.io
 layout:
 - go.kubebuilder.io/v3
 projectName: operator
-repo: github.com/kyma-project/keda-manager/operator
+repo: github.com/kyma-project/keda-manager
 resources:
 - api:
     crdVersion: v1
@@ -11,6 +11,6 @@ resources:
   domain: operator.kyma-project.io
   group: operator
   kind: Keda
-  path: github.com/kyma-project/keda-manager/operator/api/v1alpha1
+  path: github.com/kyma-project/keda-manager/api/v1alpha1
   version: v1alpha1
 version: "3"

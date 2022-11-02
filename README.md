@@ -31,7 +31,7 @@ chmod +x kubebuilder && mv kubebuilder /usr/local/bin/
 1. Clone project
 
 ```bash
-git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/operator
+git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
 ```
 
 2. Set `keda-manager` image name
