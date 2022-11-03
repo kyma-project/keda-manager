@@ -130,10 +130,6 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-.PHONY: shit
-shit:
-	IMG=$(IMG_REGISTRY) echo ${IMG} 
-
 ##@ Deployment
 
 ifndef ignore-not-found
