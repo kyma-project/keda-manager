@@ -116,6 +116,8 @@ EOF
 
 ## Installation in modular Kyma on the local k3d cluster
 
+>>NOTE: The steps described below are also scripted in `deploy-kyma-keda-k3d.sh`
+
 1. Setup local k3d cluster and local Docker registry
 
 ```bash
