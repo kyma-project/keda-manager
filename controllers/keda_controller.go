@@ -34,9 +34,7 @@ import (
 )
 
 const (
-	sampleAnnotationKey   = "owner"
-	sampleAnnotationValue = "keda-manager"
-	chartNs               = "keda"
+	chartNs = "keda-system"
 )
 
 // KedaReconciler reconciles a Keda object
