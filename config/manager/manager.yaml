@@ -3,13 +3,13 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: keda-system
+  name: kyma-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: keda-system
+  namespace: kyma-system
   labels:
     control-plane: controller-manager
 spec:

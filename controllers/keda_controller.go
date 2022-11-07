@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	chartNs = "keda-system"
+	chartNs = "kyma-system"
 )
 
 // KedaReconciler reconciles a Keda object

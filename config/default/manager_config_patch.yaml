@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: keda-system
+  namespace: kyma-system
 spec:
   template:
     spec:
