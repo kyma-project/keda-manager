@@ -1,10 +1,10 @@
-module github.com/kyma-project/keda-manager/operator
+module github.com/kyma-project/keda-manager
 
 go 1.18
 
 require (
 	github.com/go-logr/logr v1.2.3
-	github.com/kyma-project/module-manager/operator v0.0.0-20221020113457-620af4f4b365
+	github.com/kyma-project/module-manager/operator v0.0.0-20221031152637-c1668e8dcd6c
 	github.com/onsi/ginkgo/v2 v2.2.0
 	github.com/onsi/gomega v1.20.1
 	k8s.io/api v0.25.2

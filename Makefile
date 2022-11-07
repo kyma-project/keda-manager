@@ -14,9 +14,29 @@ OS_ARCH ?= $(shell uname -m)
 # Operating system type
 OS_TYPE ?= $(shell uname)
 
+# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
+ENVTEST_K8S_VERSION = 1.24.2
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+
 # Credentials used for authenticating into the module registry
 # see `kyma alpha mod create --help for more info`
 # MODULE_CREDENTIALS ?= testuser:testpw
+
+
+# Image URL to use all building/pushing image targets
+APP_NAME = keda-manager
 
 # Image URL to use all building/pushing image targets
 IMG_REGISTRY_PORT ?= $(MODULE_REGISTRY_PORT)
@@ -68,17 +88,105 @@ all: module-build module-template-push
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: operator/manifests
-operator/manifests: ## Call Manifest Generation
-	$(MAKE) -C operator/ manifests
 
-.PHONY: operator/docker-build
-operator/docker-build:
-	IMG=$(IMG) $(MAKE) -C operator/ docker-build
+##@ Development
 
-.PHONY: operator/docker-push
-operator/docker-push:
-	IMG=$(IMG) $(MAKE) -C operator/ docker-push
+.PHONY: manifests
+manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+.PHONY: generate
+generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
+
+.PHONY: test
+test: manifests generate fmt vet envtest ## Run tests.
+	KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=2m KUBEBUILDER_CONTROLPLANE_STOP_TIMEOUT=2m KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+
+
+##@ Build
+
+.PHONY: build
+build: generate fmt vet ## Build manager binary.
+	go build -o bin/manager main.go
+
+.PHONY: run
+run: manifests generate fmt vet ## Run a controller from your host.
+	go run ./main.go
+
+.PHONY: docker-build
+docker-build: test ## Build docker image with the manager.
+	IMG=$(IMG) docker build -t ${IMG} .
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the manager.
+	docker push ${IMG}
+
+##@ Deployment
+
+ifndef ignore-not-found
+  ignore-not-found = false
+endif
+
+.PHONY: install
+install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+.PHONY: uninstall
+uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: deploy
+deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+.PHONY: undeploy
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
+
+##@ Build Dependencies
+
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+## Tool Binaries
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+ENVTEST ?= $(LOCALBIN)/setup-envtest
+
+## Tool Versions
+KUSTOMIZE_VERSION ?= v4.5.5
+CONTROLLER_TOOLS_VERSION ?= v0.9.2
+
+KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(LOCALBIN)
+	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+
 
 ##@ Module
 
@@ -87,20 +195,20 @@ GEN_CHART ?= sh hack/gen-chart.sh
 GEN_MODULE_TEMPLATE ?= sh hack/gen-mod-template.sh
 
 .PHONY: module-operator-chart
-module-operator-chart: operator/manifests kustomize ## Bundle the Module Operator Chart
+module-operator-chart: manifests kustomize ## Bundle the Module Operator Chart
 	mkdir -p "$(TEMPLATE_DIR)"/templates $(TEMPLATE_DIR)/crds/
-	cd operator/config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build operator/config/default -o $(TEMPLATE_DIR)/templates/
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default -o $(TEMPLATE_DIR)/templates/
 	mv $(TEMPLATE_DIR)/templates/apiextensions.k8s.io_v1_customresourcedefinition_* $(TEMPLATE_DIR)/crds
 	MODULE_NAME=$(MODULE_NAME) MODULE_VERSION=$(MODULE_VERSION) $(GEN_CHART) > $(TEMPLATE_DIR)/Chart.yaml
 
 .PHONY: module-image
-module-image: operator/docker-build operator/docker-push ## Build the Module Image and push it to a registry defined in IMG_REGISTRY
+module-image: docker-build docker-push ## Build the Module Image and push it to a registry defined in IMG_REGISTRY
 	echo "built and pushed module image $(IMG)"
 
 .PHONY: module-build
 module-build: kyma module-operator-chart module-default ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) ./charts/keda-operator $(MODULE_CREATION_FLAGS)
+	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) ./ $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push
 module-template-push: crane ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
@@ -109,7 +217,7 @@ module-template-push: crane ## Pushes the ModuleTemplate referencing the Image o
 
 .PHONY: module-default
 module-default:
-	cp operator/config/samples/* default.yaml
+	cp config/samples/* default.yaml
 
 ##@ Tools
 

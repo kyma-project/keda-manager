@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	operatorv1alpha1 "github.com/kyma-project/keda-manager/operator/api/v1alpha1"
-	"github.com/kyma-project/keda-manager/operator/controllers"
+	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
