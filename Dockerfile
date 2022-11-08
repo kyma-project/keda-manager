@@ -25,4 +25,5 @@ COPY --chown=65532:65532 --from=builder /workspace/manager .
 COPY --chown=65532:65532 --from=builder /workspace/module-chart ./module-chart
 USER 65532:65532
 
+
 ENTRYPOINT ["/manager"]
