@@ -116,42 +116,40 @@ EOF
 
 ## Installation in modular Kyma on the local k3d cluster
 
+>>NOTE: The following steps are also scripted in `deploy-kyma-keda-k3d.sh`
+
 1. Setup local k3d cluster and local Docker registry
 
-```bash
-k3d cluster create kyma --registry-create registry.localhost:0.0.0.0:5001
-```
-2. Add the `etc/hosts` entry to register the local Docker registry under the `registry.localhost` name
-
-```
-127.0.0.1 registry.localhost
-```
-
-3. Export environment variables (ENVs) pointing to module and the module image registries
+# Provision k3d cluster
 
 ```bash
-export IMG_REGISTRY=registry.localhost:5001/unsigned/operator-images
-export MODULE_REGISTRY=registry.localhost:5001/unsigned
+kyma provision k3d 
+```
+2. Add the `etc/hosts` entry for the local `k3d-kyma-registry`.
+
+```
+127.0.0.1 k3d-kyma-registry.localhost
+127.0.0.1 k3d-kyma-registry
 ```
 
-4. Build Keda module
+3. Build Keda Manager image
 ```bash
-make module-build
-```
-
-This builds an OCI image for Keda module and pushes it to the registry and path, as defined in `MODULE_REGISTRY`.
-
-5. Build Keda manager image
-```bash
-make module-image
+make module-image IMG_REGISTRY=k3d-kyma-registry:5001/unsigned/operator-images
 ```
 
 This builds a Docker image for Keda Manager and pushes it to the registry and path, as defined in `IMG_REGISTRY`.
 
-6. Verify if the module and the manager's image are pushed to the local registry
+4. Build Keda module
+```bash
+make module-build IMG_REGISTRY=k3d-kyma-registry:5001/unsigned/operator-images MODULE_REGISTRY=k3d-kyma-registry.localhost:5001/unsigned
+```
+
+This builds an OCI image for Keda module and pushes it to the registry and path, as defined in `MODULE_REGISTRY`.
+
+5. Verify if the module and the manager's image are pushed to the local registry
 
 ```bash
-curl registry.localhost:5001/v2/_catalog
+curl k3d-kyma-registry.localhost:5001/v2/_catalog
 {"repositories":["unsigned/component-descriptors/kyma.project.io/module/keda","unsigned/operator-images/keda-operator"]}
 ```
 
@@ -170,11 +168,11 @@ spec:
 ```
 
 - change the existing repository context in `spec.descriptor.component`:
->**NOTE:** Because Pods inside the k3d cluster use the docker-internal port of the registry, it tries to resolve the registry against port 5000 instead of 5001. K3d has registry aliases but module-manager is not part of k3d and thus does not know how to properly alias `registry.localhost:5001`
+>**NOTE:** Because Pods inside the k3d cluster use the docker-internal port of the registry, it tries to resolve the registry against port 5000 instead of 5001. K3d has registry aliases but module-manager is not part of k3d and thus does not know how to properly alias `k3d-kyma-registry.localhost:5001`
 
 ```yaml
 repositoryContexts:                                                                           
-- baseUrl: registry.localhost:5000/unsigned                                                   
+- baseUrl: k3d-kyma-registry.localhost:5000/unsigned                                                   
   componentNameMapping: urlPath                                                               
   type: ociRegistry
 ```

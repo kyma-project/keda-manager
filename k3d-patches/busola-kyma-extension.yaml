@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kymas.operator.kyma-project.io
+  namespace: kube-public
+  labels:
+    app.kubernetes.io/name: kymas.operator.kyma-project.io
+    busola.io/extension: resource
+    busola.io/extension-version: '0.5'
+data:
+  details: |
+    header: []
+    body:
+      - name: Summary
+        widget: Panel
+        children:
+          - name: channel
+            source: spec.channel
+          - name: State
+            source: status.state
+          - name: Age
+            source: metadata.creationTimestamp
+      - widget: Table
+        source: 'spec.modules[]'
+        name: Modules
+        visibility: $exists(*)
+        children:
+          - source: $item.name
+            name: Module Name
+          - source: $item.channel
+            name: Channel
+  form: |
+    - simple: true
+      path: spec.channel
+      required: true
+    - widget: GenericList
+      path: spec.modules
+      children:
+      - path: "[].name"
+        simple: true
+        required: true
+        enum:
+        - keda
+      - path: "[].channel"
+        enum:
+        - rapid
+        - regular
+        - stable        
+  general: |-
+    resource:
+      kind: Kyma
+      group: operator.kyma-project.io
+      version: v1alpha1
+    name: Kyma
+    category: Kyma
+    urlPath: kymas
+    scope: namespace
+  list: |-
+    - name: channel
+      widget: Labels
+      source: spec.channel
+    - name: State
+      widget: Badge
+      source: status.state
+      tooltip: status.state
+    - name: Age
+      source: metadata.creationTimestamp
+  translations: |
+    en:
+      metadata.annotations: Annotations
+      metadata.labels: Labels
+      metadata.creationTimestamp: Created at

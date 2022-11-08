@@ -26,3 +26,6 @@ testbin/*
 mod
 bin
 charts
+default.yaml
+template.yaml
+template-k3d.yaml
