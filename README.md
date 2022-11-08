@@ -116,23 +116,23 @@ EOF
 
 ## Installation in modular Kyma on the local k3d cluster
 
->>NOTE: The steps described below are also scripted in `deploy-kyma-keda-k3d.sh`
+>>NOTE: The following steps are also scripted in `deploy-kyma-keda-k3d.sh`
 
 1. Setup local k3d cluster and local Docker registry
 
-# Provision K3D cluster
+# Provision k3d cluster
 
 ```bash
 kyma provision k3d 
 ```
-2. Add the `etc/hosts` entry for the local k3d-kyma-registry 
+2. Add the `etc/hosts` entry for the local `k3d-kyma-registry`.
 
 ```
 127.0.0.1 k3d-kyma-registry.localhost
 127.0.0.1 k3d-kyma-registry
 ```
 
-3. Build Keda manager image
+3. Build Keda Manager image
 ```bash
 make module-image IMG_REGISTRY=k3d-kyma-registry:5001/unsigned/operator-images
 ```
