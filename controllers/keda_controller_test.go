@@ -22,7 +22,7 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName = "keda"
+			namespaceName = "kyma-system"
 			kedaName      = "test"
 			operatorName  = "keda-manager"
 		)

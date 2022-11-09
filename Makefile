@@ -221,11 +221,6 @@ module-default:
 
 ##@ Tools
 
-## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
-
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable
 
@@ -243,14 +238,6 @@ $(KYMA):
 	$(if $(KYMA_FILE_NAME),,$(call os_error, ${OS_TYPE}, ${OS_ARCH}))
 	test -f $@ || curl -s -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/$(KYMA_FILE_NAME)
 	chmod 0100 $(KYMA)
-
-########## Kustomize ###########
-KUSTOMIZE_VERSION ?= v4.5.6
-KUSTOMIZE ?= $(LOCALBIN)/kustomize
-.PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download & Build kustomize locally if necessary.
-$(KUSTOMIZE): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION)
 
 ########## Grafana Dashboard ###########
 .PHONY: grafana-dashboard
