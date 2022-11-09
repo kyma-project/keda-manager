@@ -17,12 +17,16 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -33,12 +37,15 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	appsv1 "k8s.io/api/apps/v1"
 	//+kubebuilder:scaffold:imports
 )
 
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+
+	kedaCoreLabels = map[string]string{"app": "keda-operator", "app.kubernetes.io/name": "keda-operator"}
 )
 
 func init() {
@@ -68,8 +75,19 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	restConfig := ctrl.GetConfigOrDie()
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	hasKeda, err := hasExistingKedaInstallation(restConfig)
+	if err != nil {
+		setupLog.Error(err, "failed to check for existing Keda installations")
+		os.Exit(1)
+	}
+	if hasKeda {
+		setupLog.Error(nil, "keda-manager can't be installed on a cluster with an existing Keda installation, exiting..")
+		os.Exit(1)
+	}
+
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
 		Port:                   9443,
@@ -117,4 +135,28 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func hasExistingKedaInstallation(restConfig *rest.Config) (bool, error) {
+	// create a new client, don't wait for the manager cached client.
+	kubeClient, err := client.New(restConfig, client.Options{})
+	if err != nil {
+		return false, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	deployList := &appsv1.DeploymentList{}
+	// use multiple label matches to be sure.
+	matchingLabels := client.MatchingLabels(kedaCoreLabels)
+	listOpts := &client.ListOptions{}
+	matchingLabels.ApplyToList(listOpts)
+
+	if err := kubeClient.List(context.Background(), deployList, listOpts); err != nil {
+		return false, fmt.Errorf("failed to list deployments: %v", err)
+	}
+
+	if len(deployList.Items) > 0 {
+		setupLog.Info(fmt.Sprintf("found [%d] deployments with matchingLabels: %v", len(deployList.Items), matchingLabels))
+		return true, nil
+	}
+	return false, nil
 }
