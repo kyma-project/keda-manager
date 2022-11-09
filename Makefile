@@ -111,7 +111,6 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=2m KUBEBUILDER_CONTROLPLANE_STOP_TIMEOUT=2m KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
-
 ##@ Build
 
 .PHONY: build
@@ -153,7 +152,6 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
-
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -186,38 +184,24 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-
-
 ##@ Module
 
 TEMPLATE_DIR ?= charts/$(MODULE_NAME)-operator
 GEN_CHART ?= sh hack/gen-chart.sh
 GEN_MODULE_TEMPLATE ?= sh hack/gen-mod-template.sh
 
-.PHONY: module-operator-chart
-module-operator-chart: manifests kustomize ## Bundle the Module Operator Chart
-	mkdir -p "$(TEMPLATE_DIR)"/templates $(TEMPLATE_DIR)/crds/
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default -o $(TEMPLATE_DIR)/templates/
-	mv $(TEMPLATE_DIR)/templates/apiextensions.k8s.io_v1_customresourcedefinition_* $(TEMPLATE_DIR)/crds
-	MODULE_NAME=$(MODULE_NAME) MODULE_VERSION=$(MODULE_VERSION) $(GEN_CHART) > $(TEMPLATE_DIR)/Chart.yaml
-
 .PHONY: module-image
 module-image: docker-build docker-push ## Build the Module Image and push it to a registry defined in IMG_REGISTRY
 	echo "built and pushed module image $(IMG)"
 
 .PHONY: module-build
-module-build: kyma module-operator-chart module-default ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) ./ $(MODULE_CREATION_FLAGS)
+module-build: kyma ## Build the Module and push it to a registry defined in MODULE_REGISTRY
+	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push
 module-template-push: crane ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
 	@[[ ! -z "$PROW_JOB_ID" ]] && crane auth login europe-west4-docker.pkg.dev -u oauth2accesstoken -p "$(GCP_ACCESS_TOKEN)" || exit 1
 	@crane append -f <(tar -f - -c ./template.yaml) -t ${MODULE_REGISTRY}/templates/$(MODULE_NAME):$(MODULE_VERSION)
-
-.PHONY: module-default
-module-default:
-	cp config/samples/* default.yaml
 
 ##@ Tools
 
