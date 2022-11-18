@@ -166,7 +166,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v4.5.5
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
+CONTROLLER_TOOLS_VERSION ?= v0.10.0
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
@@ -195,7 +195,8 @@ module-image: docker-build docker-push ## Build the Module Image and push it to 
 	echo "built and pushed module image $(IMG)"
 
 .PHONY: module-build
-module-build: kyma ## Build the Module and push it to a registry defined in MODULE_REGISTRY
+module-build: kyma kustomize ## Build the Module and push it to a registry defined in MODULE_REGISTRY
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KYMA) alpha create module kyma.project.io/module/$(MODULE_NAME) $(MODULE_VERSION) . $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push

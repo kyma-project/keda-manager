@@ -15,7 +15,9 @@ make module-build IMG_REGISTRY=k3d-kyma-registry:5001/unsigned/operator-images M
 cat template.yaml | sed -e 's/remote/control-plane/g' -e 's/5001/5000/g'  > template-k3d.yaml
 
 # Install lifecycle and module managers
-./bin/kyma-unstable alpha deploy --template=./template-k3d.yaml
+./bin/kyma-unstable alpha deploy --template=./template-k3d.yaml \
+  --kustomization https://github.com/kyma-project/lifecycle-manager/config/default@main \
+  --kustomization https://github.com/kyma-project/module-manager/operator/config/default@main
 
 # Allow applying CRD to module manager's cluster role
 kubectl patch clusterrole module-manager-manager-role --patch-file ./k3d-patches/patch-k3d-module-manager-clusterrole.yaml
