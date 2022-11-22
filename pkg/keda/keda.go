@@ -1,4 +1,4 @@
-package controllers
+package keda
 
 import (
 	"context"
@@ -13,7 +13,7 @@ var (
 	kedaCoreLabels = map[string]string{"app": "keda-operator", "app.kubernetes.io/name": "keda-operator"}
 )
 
-func HasExistingKedaInstallation(c client.Client, logger logr.Logger) (bool, error) {
+func IsInstalled(c client.Client, logger logr.Logger) (bool, error) {
 	// use multiple label matches to be sure.
 	matchingLabels := client.MatchingLabels(kedaCoreLabels)
 	listOpts := &client.ListOptions{}

@@ -34,6 +34,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/pkg/keda"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -76,12 +77,12 @@ func main() {
 		setupLog.Error(err, "failed to create Kubernetes client")
 		os.Exit(1)
 	}
-	hasKeda, err := controllers.HasExistingKedaInstallation(kubeClient, setupLog)
+	kedaInstalled, err := keda.IsInstalled(kubeClient, setupLog)
 	if err != nil {
 		setupLog.Error(err, "failed to check for existing Keda installations")
 		os.Exit(1)
 	}
-	if hasKeda {
+	if kedaInstalled {
 		setupLog.Error(nil, "keda-manager can't be installed on a cluster with an existing Keda installation, exiting..")
 		os.Exit(1)
 	}
