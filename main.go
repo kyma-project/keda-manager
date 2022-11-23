@@ -33,6 +33,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/pkg/keda"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -68,8 +69,19 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	restConfig := ctrl.GetConfigOrDie()
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	kedaInstalled, err := keda.IsInstalled(restConfig, setupLog)
+	if err != nil {
+		setupLog.Error(err, "failed to check for existing Keda installations")
+		os.Exit(1)
+	}
+	if kedaInstalled {
+		setupLog.Error(nil, "keda-manager can't be installed on a cluster with an existing Keda installation, exiting..")
+		os.Exit(1)
+	}
+
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
 		Port:                   9443,

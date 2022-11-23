@@ -3,6 +3,7 @@
 # Allow
 !./main.go
 !api
+!pkg
 !controllers
 !module-chart
 !go.sum
