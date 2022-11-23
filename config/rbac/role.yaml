@@ -25,6 +25,7 @@ rules:
   - create
   - delete
   - list
+  - patch
   - update
   - watch
 - apiGroups:
@@ -53,6 +54,7 @@ rules:
   verbs:
   - create
   - delete
+  - patch
   - update
 - apiGroups:
   - apiregistration.k8s.io
@@ -61,6 +63,7 @@ rules:
   verbs:
   - create
   - delete
+  - patch
   - update
 - apiGroups:
   - apps
@@ -70,6 +73,7 @@ rules:
   - create
   - delete
   - list
+  - patch
   - update
   - watch
 - apiGroups:
@@ -136,6 +140,7 @@ rules:
   resources:
   - kedas/finalizers
   verbs:
+  - patch
   - update
 - apiGroups:
   - operator.kyma-project.io
@@ -154,4 +159,5 @@ rules:
   verbs:
   - create
   - delete
+  - patch
   - update
