@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -13,7 +14,16 @@ var (
 	kedaCoreLabels = map[string]string{"app": "keda-operator", "app.kubernetes.io/name": "keda-operator"}
 )
 
-func IsInstalled(c client.Client, logger logr.Logger) (bool, error) {
+func IsInstalled(config *rest.Config, logger logr.Logger) (bool, error) {
+	k8sClient, err := client.New(config, client.Options{})
+	if err != nil {
+		return false, fmt.Errorf("failed to create Kubernetes Client: %v", err)
+	}
+
+	return isInstalledWithClient(k8sClient, logger)
+}
+
+func isInstalledWithClient(c client.Client, logger logr.Logger) (bool, error) {
 	// use multiple label matches to be sure.
 	matchingLabels := client.MatchingLabels(kedaCoreLabels)
 	listOpts := &client.ListOptions{}

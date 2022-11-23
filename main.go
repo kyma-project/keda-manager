@@ -28,7 +28,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -72,12 +71,7 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	restConfig := ctrl.GetConfigOrDie()
 
-	kubeClient, err := client.New(restConfig, client.Options{})
-	if err != nil {
-		setupLog.Error(err, "failed to create Kubernetes client")
-		os.Exit(1)
-	}
-	kedaInstalled, err := keda.IsInstalled(kubeClient, setupLog)
+	kedaInstalled, err := keda.IsInstalled(restConfig, setupLog)
 	if err != nil {
 		setupLog.Error(err, "failed to check for existing Keda installations")
 		os.Exit(1)
