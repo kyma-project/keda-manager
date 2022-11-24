@@ -116,7 +116,7 @@ EOF
 
 ## Installation in modular Kyma on the local k3d cluster
 
->>NOTE: The following steps are also scripted in `deploy-kyma-keda-k3d.sh`
+>>NOTE: The following steps are scripted in form of make targets. You can execute all the steps by calling `make run` target from `hack/local` folder.
 
 1. Setup local k3d cluster and local Docker registry
 
