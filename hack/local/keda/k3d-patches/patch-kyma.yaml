@@ -1,4 +1,4 @@
 spec:
   modules:
   - name: keda
-    channel: stable
+    channel: alpha
