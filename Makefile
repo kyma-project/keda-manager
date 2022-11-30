@@ -7,6 +7,7 @@ MODULE_REGISTRY_PORT ?= 8888
 MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
 # Desired Channel of the Generated Module Template
 MODULE_TEMPLATE_CHANNEL ?= stable
+MODULE_CHANNEL ?= alpha
 
 # Operating system architecture
 OS_ARCH ?= $(shell uname -m)
@@ -193,7 +194,7 @@ module-image: docker-build docker-push ## Build the Module Image and push it to 
 .PHONY: module-build
 module-build: kyma kustomize ## Build the Module and push it to a registry defined in MODULE_REGISTRY
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	@$(KYMA) alpha create module --name kyma.project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS)
+	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma.project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push
 module-template-push: crane ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
