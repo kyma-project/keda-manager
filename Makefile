@@ -69,9 +69,6 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
-.PHONY: all
-all: module-build module-template-push
-
 ##@ General
 
 # The help target prints out all targets with their descriptions organized
