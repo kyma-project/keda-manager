@@ -2,6 +2,14 @@
 MODULE_NAME ?= keda
 # Semantic Module Version used for identifying the build
 MODULE_VERSION ?= 0.0.4
+
+# If MODULE_SHA was provided calculate MODULE_SHORT_SHA that will be part of patch version
+ifneq (,${MODULE_SHA})
+MODULE_SHORT_SHA := $(shell git rev-parse --short ${MODULE_SHA})
+$(if $(MODULE_SHORT_SHA),,$(call error, "invalid sha value: ${MODULE_SHA}"))
+MODULE_VERSION := $(MODULE_VERSION)-$(MODULE_SHORT_SHA)
+endif
+
 # Module Registry used for pushing the image
 MODULE_REGISTRY_PORT ?= 8888
 MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
