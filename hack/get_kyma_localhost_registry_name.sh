@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-function get_kyma_localhost_registry_name {
+function get_kyma_localhost_registry_name () {
 	local _REGISTRY_NAME=$1
 	local _TMPFILE=/tmp/coredns.patch.yaml
 	local _COREDNS_RDY=0
