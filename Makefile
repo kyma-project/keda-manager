@@ -237,3 +237,5 @@ CRANE ?= $(shell which crane)
 crane: $(CRANE)
 	go install github.com/google/go-containerregistry/cmd/crane@latest
 
+.PHONY: all
+all: module-build module-template-push
