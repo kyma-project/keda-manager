@@ -21,8 +21,8 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/kyma-project/module-manager/operator/pkg/declarative"
-	"github.com/kyma-project/module-manager/operator/pkg/types"
+	"github.com/kyma-project/module-manager/pkg/declarative"
+	"github.com/kyma-project/module-manager/pkg/types"
 
 	"k8s.io/client-go/rest"
 
@@ -75,6 +75,7 @@ func (r *KedaReconciler) initReconciler(mgr ctrl.Manager) error {
 	return r.Inject(mgr, &v1alpha1.Keda{},
 		declarative.WithManifestResolver(manifestResolver),
 		declarative.WithResourcesReady(true),
+		declarative.WithFinalizer("keda-manager.kyma-project.io/deletion-hook"),
 	)
 }
 
