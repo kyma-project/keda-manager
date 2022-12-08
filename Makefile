@@ -194,11 +194,6 @@ module-build: kyma kustomize ## Build the Module and push it to a registry defin
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma.project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS)
 
-.PHONY: module-template-push
-module-template-push: crane ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
-	@[[ ! -z "$PROW_JOB_ID" ]] && crane auth login europe-west4-docker.pkg.dev -u oauth2accesstoken -p "$(GCP_ACCESS_TOKEN)" || exit 1
-	@crane append -f <(tar -f - -c ./template.yaml) -t ${MODULE_REGISTRY}/templates/$(MODULE_NAME):$(MODULE_VERSION)
-
 ##@ Tools
 
 ########## Kyma CLI ###########
@@ -224,11 +219,5 @@ $(KYMA):
 grafana-dashboard: ## Generating Grafana manifests to visualize controller status.
 	cd operator && kubebuilder edit --plugins grafana.kubebuilder.io/v1-alpha
 
-CRANE ?= $(shell which crane)
-
-.PHONY: crane
-crane: $(CRANE)
-	go install github.com/google/go-containerregistry/cmd/crane@latest
-
 .PHONY: all
-all: module-build module-template-push
+all: module-build
