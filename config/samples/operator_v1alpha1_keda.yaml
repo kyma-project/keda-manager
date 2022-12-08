@@ -1,8 +1,6 @@
 apiVersion: operator.kyma-project.io/v1alpha1
 kind: Keda
 metadata:
-  labels:
-    operator.kyma-project.io/kyma-name: keda-sample
   name: keda-sample
 spec:
   logging:
