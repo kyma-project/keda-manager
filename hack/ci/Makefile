@@ -19,9 +19,9 @@ module-build:
 
 .PHONY: module-template-print
 module-template-print:
-	@echo "~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
+	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
 	@cat ${PROJECT_ROOT}/template.yaml
-	@echo "~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~~~~"
+	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: all
 all: module-build module-template-print
