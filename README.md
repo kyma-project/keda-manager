@@ -19,7 +19,7 @@ See also:
 
 ## Installation on the k3d cluster
 
-1. Clone project.
+1. Clone the project.
 
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
@@ -33,7 +33,7 @@ See also:
 
 ## Manual installation on the k3d cluster
 
-1. Clone project.
+1. Clone the project.
 
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
@@ -45,7 +45,7 @@ See also:
    kyma provision k3d
    ```
 
-3. Install prerequisites.
+3. Install the prerequisites.
 
    ```bash
    kyma deploy -s main --component cluster-essentials --profile production --ci
@@ -75,13 +75,13 @@ You should get a result similar to this example:
    ```json
    {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma.project.io/module/keda"]}
    ```
-1. Patch CoreDNS on the Kyma cluster.
+7. Patch CoreDNS on the Kyma cluster.
 
    ```bash 
    hack/get_kyma_localhost_registry_name.sh k3d-kyma-registry
    ```
 
-2. Inspect the generated module template.
+8. Inspect the generated module template.
 
 > **NOTE:** The following sub-steps are temporary workarounds.
 
@@ -105,7 +105,7 @@ Edit `template.yaml` and:
 
 > **NOTE:** Because Pods inside the k3d cluster use the docker-internal port of the registry, it tries to resolve the registry against port 5000 instead of 5001. K3d has registry aliases, but `module-manager` is not part of k3d and does not know how to properly alias k3d-kyma-registry.localhost:5001.
 
-9. Install modular Kyma on the k3d cluster.
+9. Install the modular Kyma on the k3d cluster.
 
 > **NOTE** This installs the latest versions of `module-manager` and `lifecycle-manager`.
 
@@ -178,7 +178,7 @@ Add the following element under `rules`:
 
 ## Manual installation
 
-1. Clone project.
+1. Clone the project.
 
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
