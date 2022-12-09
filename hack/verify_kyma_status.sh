@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-function get_kyma_status {
+function get_kyma_status () {
 	local number=1
 	while [[ $number -le 12*3 ]] ; do
 		echo ">--> checking kyma status #$number"
