@@ -27,7 +27,7 @@ See also:
 2. Build the manager locally and run it on the k3d cluster.
 
    ```bash
-   make k3d-run
+   make -C hack/local run
    ```
 > **NOTE:** To clean up the k3d cluster, use the `make k3d stop` make target.
 
@@ -45,27 +45,19 @@ See also:
    kyma provision k3d
    ```
 
-3. Install the prerequisites.
-
-   ```bash
-   kyma deploy -s main --component cluster-essentials --profile production --ci
-   ```
-
-> **NOTE:** This step is required because `keda-manager` is in the early stage, and there is no manager for the Kyma CustomResourceDefinitions installation.
-
-4. Build and push the Keda Manager image.
+3. Build and push the Keda Manager image.
 
    ```bash
    make module-image IMG_REGISTRY=localhost:5001/unsigned/operator-images IMG=localhost:5001/keda-manager-dev-local:0.0.1
    ```
 
-5. Build and push the Keda module.
+4. Build and push the Keda module.
 
    ```bash
    make module-build IMG=k3d-kyma-registry:5001/keda-manager-dev-local:0.0.1 MODULE_REGISTRY=localhost:5001/unsigned
    ```
 
-6. Verify if the module and the manager's image are pushed to the local registry.
+5. Verify if the module and the manager's image are pushed to the local registry.
 
    ```bash
    curl localhost:5001/v2/_catalog
@@ -75,13 +67,13 @@ You should get a result similar to this example:
    ```json
    {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma.project.io/module/keda"]}
    ```
-7. Patch CoreDNS on the Kyma cluster.
+1. Patch CoreDNS on the Kyma cluster.
 
    ```bash 
    hack/get_kyma_localhost_registry_name.sh k3d-kyma-registry
    ```
 
-8. Inspect the generated module template.
+2. Inspect the generated module template.
 
 > **NOTE:** The following sub-steps are temporary workarounds.
 
