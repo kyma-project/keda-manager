@@ -70,6 +70,7 @@ patch-mod-mgr-role:
 .PHONY: install-module
 install-module:
 	${KYMA} alpha deploy \
+		--ci \
 		--template=${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
