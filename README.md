@@ -67,13 +67,13 @@ You should get a result similar to this example:
    ```json
    {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma.project.io/module/keda"]}
    ```
-1. Patch CoreDNS on the Kyma cluster.
+6. Patch CoreDNS on the Kyma cluster.
 
    ```bash 
    hack/get_kyma_localhost_registry_name.sh k3d-kyma-registry
    ```
 
-2. Inspect the generated module template.
+7. Inspect the generated module template.
 
 > **NOTE:** The following sub-steps are temporary workarounds.
 
@@ -97,7 +97,7 @@ Edit `template.yaml` and:
 
 > **NOTE:** Because Pods inside the k3d cluster use the docker-internal port of the registry, it tries to resolve the registry against port 5000 instead of 5001. K3d has registry aliases, but `module-manager` is not part of k3d and does not know how to properly alias k3d-kyma-registry.localhost:5001.
 
-9. Install the modular Kyma on the k3d cluster.
+8. Install the modular Kyma on the k3d cluster.
 
 > **NOTE** This installs the latest versions of `module-manager` and `lifecycle-manager`.
 
@@ -131,7 +131,7 @@ You should get a result similar to the following example:
    kcp-system   moduletemplate-keda   2m24s
    ```
 
-10.  Give Module Manager permission to install CRD cluster-wide.
+9.  Give Module Manager permission to install CRD cluster-wide.
 
 > **NOTE:** `module-manager` must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
 
@@ -154,7 +154,7 @@ Add the following element under `rules`:
 
 > **NOTE:** This is a temporary workaround and is only required in the single-cluster mode.
 
-11. Enable Keda in the Kyma custom resource (CR).
+10. Enable Keda in the Kyma custom resource (CR).
 
    ```bash
    kubectl edit kymas.operator.kyma-project.io -n kcp-system default-kyma
