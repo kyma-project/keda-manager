@@ -30,6 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
@@ -44,7 +45,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }

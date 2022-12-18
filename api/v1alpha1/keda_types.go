@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kyma-project/module-manager/pkg/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -93,8 +92,13 @@ type Keda struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KedaSpec     `json:"spec,omitempty"`
-	Status types.Status `json:"status,omitempty"`
+	Spec   KedaSpec `json:"spec,omitempty"`
+	Status Status   `json:"status,omitempty"`
+}
+
+type Status struct {
+	State      string             `json:"state"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -108,18 +112,4 @@ type KedaList struct {
 
 func init() {
 	SchemeBuilder.Register(&Keda{}, &KedaList{})
-}
-
-var _ types.CustomObject = &Keda{}
-
-func (s *Keda) GetStatus() types.Status {
-	return s.Status
-}
-
-func (s *Keda) SetStatus(status types.Status) {
-	s.Status = status
-}
-
-func (s *Keda) ComponentName() string {
-	return "keda"
 }
