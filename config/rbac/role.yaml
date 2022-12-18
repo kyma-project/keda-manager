@@ -54,8 +54,10 @@ rules:
   verbs:
   - create
   - delete
+  - list
   - patch
   - update
+  - watch
 - apiGroups:
   - apiregistration.k8s.io
   resources:
@@ -63,8 +65,10 @@ rules:
   verbs:
   - create
   - delete
+  - list
   - patch
   - update
+  - watch
 - apiGroups:
   - apps
   resources:
@@ -159,5 +163,7 @@ rules:
   verbs:
   - create
   - delete
+  - list
   - patch
   - update
+  - watch

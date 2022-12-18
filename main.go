@@ -18,22 +18,28 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"github.com/kyma-project/keda-manager/pkg/keda"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/keda"
+	"github.com/kyma-project/keda-manager/pkg/yaml"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -44,14 +50,10 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
+	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
 	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
-
-const (
-	chartPath = "./module-chart"
-)
 
 func main() {
 	var metricsAddr string
@@ -62,13 +64,12 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
-		Development: true,
-	}
+	//FIXME use parameter
+	opts := zapk8s.Options{}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(zapk8s.New(zapk8s.UseFlagOptions(&opts)))
 	restConfig := ctrl.GetConfigOrDie()
 
 	kedaInstalled, err := keda.IsInstalled(restConfig, setupLog)
@@ -105,11 +106,37 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.KedaReconciler{
-		Client:    mgr.GetClient(),
-		Scheme:    mgr.GetScheme(),
-		ChartPath: chartPath,
-	}).SetupWithManager(mgr); err != nil {
+	file, err := os.Open("keda-manager.yaml")
+	if err != nil {
+		setupLog.Error(err, "unable to open k8s data")
+	}
+
+	data, err := yaml.LoadData(file)
+	if err != nil {
+		setupLog.Error(err, "unable to load k8s data")
+		os.Exit(1)
+	}
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.Encoding = "json"
+	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
+
+	kedaLogger, err := config.Build()
+	if err != nil {
+		setupLog.Error(err, "unable to setup logger")
+		os.Exit(1)
+	}
+
+	setupLog.Info(fmt.Sprintf("log level set to: %s", kedaLogger.Level()))
+
+	kedaReconciler := controllers.NewKedaReconciler(
+		mgr.GetClient(),
+		mgr.GetEventRecorderFor("keda-manager"),
+		kedaLogger.Sugar(),
+		data,
+	)
+	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
 		os.Exit(1)
 	}

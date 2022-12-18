@@ -6,3 +6,18 @@ spec:
   logging:
     operator:
       level: "debug"
+  resources:
+    operator:
+      limits:
+        cpu: "1"
+        memory: "200Mi"
+      requests:
+        cpu: "0.5"
+        memory: "150Mi"
+    metricServer:
+      limits:
+        cpu: "1"
+        memory: "1000Mi"
+      requests:
+        cpu: "300m"
+        memory: "500Mi"
