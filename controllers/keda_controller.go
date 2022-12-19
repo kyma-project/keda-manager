@@ -118,7 +118,7 @@ func (m *ManifestResolver) Get(obj types.BaseCustomObject, _ logr.Logger) (types
 	flags, err := structToFlags(sample.Spec)
 	if err != nil {
 		return types.InstallationSpec{},
-			fmt.Errorf("resolving manifest failed: %w", err)
+			fmt.Errorf("resolving manifest failed : %w", err)
 	}
 
 	return types.InstallationSpec{
