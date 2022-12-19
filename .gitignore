@@ -23,6 +23,7 @@ testbin/*
 *.swo
 *~
 
+__debug_bin
 mod
 bin
 charts

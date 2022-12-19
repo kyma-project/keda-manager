@@ -15,7 +15,26 @@ spec:
     singular: keda
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.generation
+      name: generation
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: age
+      type: date
+    - jsonPath: .status.conditions[?(@.type=='Installed')].status
+      name: mod_installed
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='KedaRdy')].status
+      name: keda_rdy
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='MetricsRdy')].status
+      name: metrics_rdy
+      type: string
+    - jsonPath: .status.state
+      name: state
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Keda is the Schema for the kedas API

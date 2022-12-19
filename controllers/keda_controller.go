@@ -18,20 +18,14 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
-	"os"
+	"fmt"
 	"time"
 
-	"github.com/kyma-project/module-manager/pkg/declarative"
-
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,11 +38,9 @@ const (
 
 // KedaReconciler reconciles a Keda object
 type KedaReconciler struct {
-	declarative.ManifestReconciler
 	client.Client
 	Scheme *runtime.Scheme
 	*rest.Config
-	ChartPath string
 }
 
 //+kubebuilder:rbac:groups="*",resources="*",verbs=get
@@ -80,78 +72,120 @@ func (r *KedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-type ReconciliationAction func(context.Context, client.Client, v1alpha1.Keda) (*ctrl.Result, error)
+type shouldContinue = bool
 
-type result int
+type ReconciliationAction func(context.Context, client.Client, v1alpha1.Keda) (shouldContinue, ctrl.Result, error)
 
-const (
-	ommit result = iota
-	patch
-	apply
-)
+type ReconciliationActions []ReconciliationAction
 
-func buildInstallCRDs(expectedCRDs []apiextensionsv1.CustomResourceDefinition, name string) ReconciliationAction {
-	crdReq, err := labels.NewRequirement("app.kubernetes.io/name", selection.Equals, []string{name})
-	if err != nil {
-		panic(err)
-	}
+func (a ReconciliationActions) reconcileAll(ctx context.Context, c client.Client, v v1alpha1.Keda) (ctrl.Result, error) {
+	for _, f := range a {
+		shouldContinue, result, err := f(ctx, c, v)
 
-	opts := &client.ListOptions{
-		LabelSelector: labels.NewSelector().Add(*crdReq),
-	}
-
-	return func(ctx context.Context, cli client.Client, instance v1alpha1.Keda) (*ctrl.Result, error) {
-		var crdList apiextensionsv1.CustomResourceDefinitionList
-
-		// list all labeled CRDs
-		if err := cli.List(ctx, &crdList, opts); err != nil {
-			return &defaultResult, err
+		if !shouldContinue {
+			return result, err
 		}
 
-		for _, crd := range expectedCRDs {
-			// check if CRD was already applied
-			keyObj := client.ObjectKeyFromObject(&crd)
-			err := cli.Get(ctx, keyObj, &crd)
-			// the CRD is already applied, continue with next one
-			if err != nil {
-				continue
-			}
-			// error while getting CRD stop reconciliation and return error
-			if !apierrors.IsNotFound(err) {
-				return &defaultResult, err
-			}
-			// apply CRD
-			if err := cli.Create(ctx, &crd); err != nil {
-				return &defaultResult, err
-			}
+		if err != nil {
+			return defaultResult, err
+		}
+	}
+	return ctrl.Result{RequeueAfter: time.Minute}, nil
+}
+
+func deleteFinalizer(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
+	controllerutil.RemoveFinalizer(&v, finalizer)
+	if err := c.Update(ctx, &v); err != nil {
+		return false, defaultResult, err
+	}
+	fmt.Println("finalizer removed")
+	return false, defaultResult, nil
+}
+
+var ErrMultipleInstancesInNamespace = fmt.Errorf("namespace must not contain multiple module instances")
+
+func buildStopAndError(err error) ReconciliationAction {
+	return func(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
+		v.Status.State = "Error"
+		meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
+			Type:               "Installed",
+			Status:             "False",
+			LastTransitionTime: metav1.Now(),
+			Message:            "instance of a module already found on cluster",
+			Reason:             "CrdCreationErr",
+		})
+
+		if err := c.Status().Update(ctx, &v); err != nil {
+			fmt.Println(err)
 		}
 
-		return nil, nil
+		return false, ctrl.Result{
+			RequeueAfter: time.Minute,
+		}, err
 	}
 }
 
-func buildDeleteAllResources(objKey client.ObjectKey) ReconciliationAction {
-	return nil
+func isNamespaceSingleton(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
+	var list v1alpha1.KedaList
+	err := c.List(ctx, &list, &client.ListOptions{})
+	// stop reconciliation on any error
+	if err != nil {
+		return buildStopAndError(err)(ctx, c, v)
+	}
+
+	if len(list.Items) > 1 {
+		return buildStopAndError(err)(ctx, c, v)
+	}
+
+	return true, defaultResult, nil
 }
 
-func init() {
-	file, err := os.Open("/tmp/templated.json")
-	if err != nil {
-		panic(err)
+func defaultConditionsForFirstGeneration(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
+	if len(v.Status.Conditions) > 0 {
+		return true, defaultResult, nil
 	}
 
-	if err := json.NewDecoder(file).Decode(&clustertriggerauthentications_keda_sh); err != nil {
-		panic(err)
+	fmt.Println("defaulting conditions")
+
+	msg := "custom resource created"
+
+	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
+		Type:               "Installed",
+		Status:             "Unknown",
+		Reason:             "Created",
+		Message:            msg,
+		LastTransitionTime: v.GetCreationTimestamp(),
+	})
+
+	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
+		Type:               "KedaRdy",
+		Status:             "Unknown",
+		Reason:             "Created",
+		Message:            msg,
+		LastTransitionTime: v.GetCreationTimestamp(),
+	})
+
+	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
+		Type:               "MetricsRdy",
+		Status:             "Unknown",
+		Reason:             "Created",
+		Message:            msg,
+		LastTransitionTime: v.GetCreationTimestamp(),
+	})
+
+	v.Status.State = "Processing"
+
+	if err := c.Status().Update(ctx, &v); err != nil {
+		fmt.Println(err)
 	}
+	return false, defaultResult, nil
 }
 
 var (
 	finalizer = "keda-manager.kyma-project.io/deletion-hook"
 
-	clustertriggerauthentications_keda_sh apiextensionsv1.CustomResourceDefinition
-
 	defaultResult = ctrl.Result{
-		Requeue: true,
+		Requeue: false,
 	}
 
 	kedaObjKey = client.ObjectKey{
@@ -159,13 +193,13 @@ var (
 		Namespace: "kyma-system",
 	}
 
-	reconciliationActions = []ReconciliationAction{
-		// handleIstio(..., installCRD),
-		buildInstallCRDs([]apiextensionsv1.CustomResourceDefinition{clustertriggerauthentications_keda_sh}, "keda-manager"),
+	main = ReconciliationActions{
+		defaultConditionsForFirstGeneration,
+		isNamespaceSingleton,
 	}
 
-	deleteResources = []ReconciliationAction{
-		buildDeleteAllResources(kedaObjKey),
+	deletion = ReconciliationActions{
+		deleteFinalizer,
 	}
 )
 
@@ -174,11 +208,13 @@ func (r *KedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	err := r.Get(ctx, req.NamespacedName, &instance)
 
 	if err != nil {
-		return defaultResult, client.IgnoreNotFound(err)
+		return ctrl.Result{
+			RequeueAfter: time.Second * 30,
+		}, client.IgnoreNotFound(err)
 	}
 
 	instanceIsBeingDeleted := !instance.DeletionTimestamp.IsZero()
-	instanceHasFinalizer := !controllerutil.ContainsFinalizer(&instance, finalizer)
+	instanceHasFinalizer := controllerutil.ContainsFinalizer(&instance, finalizer)
 
 	// in case instance does not have finalizer - add it and update instance
 	if !instanceIsBeingDeleted && !instanceHasFinalizer {
@@ -196,22 +232,8 @@ func (r *KedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	// in case instance is being deleted and has finalizer - delete all resources
 	if instanceIsBeingDeleted {
-		reconciliationActions = deleteResources
+		return deletion.reconcileAll(ctx, r.Client, instance)
 	}
 
-	// perform all the reconciliation actions; in case instance is being deleted,
-	// the appropriate action(s) should be added be in reconciliationActions slice
-	for _, f := range reconciliationActions {
-		actionResult, err := f(ctx, r.Client, instance)
-		// return reconcile action result if possible
-		if actionResult != nil {
-			return *actionResult, err
-		}
-		// stop reconciliation if reconcile action returned error
-		if err != nil {
-			return defaultResult, err
-		}
-	}
-
-	return ctrl.Result{RequeueAfter: time.Minute}, nil
+	return main.reconcileAll(ctx, r.Client, instance)
 }
