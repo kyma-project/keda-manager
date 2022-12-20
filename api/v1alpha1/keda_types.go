@@ -88,9 +88,6 @@ type KedaSpec struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="generation",type="integer",JSONPath=".metadata.generation"
 //+kubebuilder:printcolumn:name="age",type="date",JSONPath=".metadata.creationTimestamp"
-//+kubebuilder:printcolumn:name="mod_installed",type="string",JSONPath=".status.conditions[?(@.type=='Installed')].status"
-//+kubebuilder:printcolumn:name="keda_rdy",type="string",JSONPath=".status.conditions[?(@.type=='KedaRdy')].status"
-//+kubebuilder:printcolumn:name="metrics_rdy",type="string",JSONPath=".status.conditions[?(@.type=='MetricsRdy')].status"
 //+kubebuilder:printcolumn:name="state",type="string",JSONPath=".status.state"
 
 // Keda is the Schema for the kedas API

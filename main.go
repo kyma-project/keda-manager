@@ -17,7 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -34,7 +36,6 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/keda"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
@@ -73,16 +74,6 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	restConfig := ctrl.GetConfigOrDie()
 
-	kedaInstalled, err := keda.IsInstalled(restConfig, setupLog)
-	if err != nil {
-		setupLog.Error(err, "failed to check for existing Keda installations")
-		os.Exit(1)
-	}
-	if kedaInstalled {
-		setupLog.Error(nil, "keda-manager can't be installed on a cluster with an existing Keda installation, exiting..")
-		os.Exit(1)
-	}
-
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -107,16 +98,23 @@ func main() {
 		os.Exit(1)
 	}
 
+	var crds unstructured.Unstructured
+	if err := loadData("hack/k8s/templated.json", &crds); err != nil {
+		setupLog.Error(err, "unablr to load k8s data")
+		os.Exit(1)
+	}
+
 	if err = (&controllers.KedaReconciler{
 		Reconciler: reconciler.Reconciler{
 			Client: mgr.GetClient(),
 			Config: reconciler.Config{
 				Prototype: &operatorv1alpha1.Keda{},
 				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
+				Installation: []reconciler.ReconciliationAction{
+					controllers.BuildInstall([]unstructured.Unstructured{crds}),
+				},
 			},
 		},
-		//		Client: mgr.GetClient(),
-		//		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
 		os.Exit(1)
@@ -137,4 +135,12 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func loadData(path string, u *unstructured.Unstructured) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	return json.NewDecoder(file).Decode(u)
 }

@@ -33,6 +33,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
@@ -82,6 +83,10 @@ var _ = BeforeSuite(func() {
 	err = (&KedaReconciler{
 		Reconciler: reconciler.Reconciler{
 			Client: k8sManager.GetClient(),
+			Config: reconciler.Config{
+				Prototype: &v1alpha1.Keda{},
+				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
+			},
 		},
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
