@@ -12,16 +12,11 @@
   widget: FormGroup
   simple: true
   children:
-  - var: scaledResourceType
-    type: string
-    defaultValue:
-    enum:
-      - function.serverless.kyma-project.io/v1alpha2
-      - deployment.apps/v1
   - path: kind
     simple: true
     required: true
     inputInfo: "Type of the scale target resource. For example `Deployment`"
+    trigger: [kindChanged]
     enum:
       - Function
       - Deployment
@@ -29,27 +24,33 @@
     simple: true
     required: true
     inputInfo: "Api group and api version of the scale target resource. For example `apps/v1`"
+    subscribe:
+      kindChanged: "$root.spec.scaleTargetRef.kind = 'Function'?'function.serverless.kyma-project.io/v1alpha2':'deployment.apps/v1'"
   - path: name
     simple: true
     widget: Resource
-    visibility: $scaledResourceType = 'function.serverless.kyma-project.io/v1alpha2'
     inputInfo: "Name of the scale target resource"
-    # visibility: $item.spec.scaleTargetRef.kind = 'Function'
-    resource:
-      kind: Function
-      version: v1alpha2
-      group: serverless.kyma-project.io
-      scope: namespace
-  - path: name
-    simple: true
-    widget: Resource
-    visibility: $scaledResourceType = 'deployment.apps/v1'
-    inputInfo: "Name of the scale target resource"
-    # visibility: $item.spec.scaleTargetRef.kind = 'Deployment'
+    visibility: $root.spec.scaleTargetRef.kind = 'Deployment'
+    overwrite: false
     resource:
       kind: Deployment
       version: v1
       group: apps
+      scope: namespace
+  - var: dummy
+    simple: false
+    required: false
+    advanced: false
+  - path: name
+    simple: true
+    widget: Resource
+    visibility: $root.spec.scaleTargetRef.kind = 'Function'
+    overwrite: false
+    inputInfo: "Name of the scale target resource"
+    resource:
+      kind: Function
+      version: v1alpha2
+      group: serverless.kyma-project.io
       scope: namespace
 - path: spec.fallback
   widget: FormGroup
