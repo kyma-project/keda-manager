@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -79,8 +80,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&KedaReconciler{
-		Client: k8sManager.GetClient(),
-		Scheme: k8sManager.GetScheme(),
+		Reconciler: reconciler.Reconciler{
+			Client: k8sManager.GetClient(),
+		},
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

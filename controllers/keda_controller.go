@@ -21,15 +21,13 @@ import (
 	"fmt"
 	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
-
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -38,9 +36,7 @@ const (
 
 // KedaReconciler reconciles a Keda object
 type KedaReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
-	*rest.Config
+	reconciler.Reconciler
 }
 
 //+kubebuilder:rbac:groups="*",resources="*",verbs=get
@@ -65,49 +61,28 @@ type KedaReconciler struct {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *KedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.Config = mgr.GetConfig()
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Keda{}).
 		Complete(r)
 }
 
-type shouldContinue = bool
-
-type ReconciliationAction func(context.Context, client.Client, v1alpha1.Keda) (shouldContinue, ctrl.Result, error)
-
-type ReconciliationActions []ReconciliationAction
-
-func (a ReconciliationActions) reconcileAll(ctx context.Context, c client.Client, v v1alpha1.Keda) (ctrl.Result, error) {
-	for _, f := range a {
-		shouldContinue, result, err := f(ctx, c, v)
-
-		if !shouldContinue {
-			return result, err
-		}
-
-		if err != nil {
-			return defaultResult, err
-		}
-	}
-	return ctrl.Result{RequeueAfter: time.Minute}, nil
-}
-
-func deleteFinalizer(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
-	controllerutil.RemoveFinalizer(&v, finalizer)
-	if err := c.Update(ctx, &v); err != nil {
-		return false, defaultResult, err
-	}
-	fmt.Println("finalizer removed")
-	return false, defaultResult, nil
-}
-
 var ErrMultipleInstancesInNamespace = fmt.Errorf("namespace must not contain multiple module instances")
 
-func buildStopAndError(err error) ReconciliationAction {
-	return func(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
-		v.Status.State = "Error"
-		meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
+func GetLatest(ctx context.Context, c client.Client, nsName types.NamespacedName) (v1alpha1.Keda, error) {
+	var instance v1alpha1.Keda
+	err := c.Get(ctx, nsName, &instance)
+	return instance, err
+}
+
+func buildStopAndError(err error) reconciler.ReconciliationAction {
+	return func(ctx context.Context, c client.Client, req ctrl.Request) (bool, ctrl.Result, error) {
+		instance, err := GetLatest(ctx, c, req.NamespacedName)
+		if err != nil {
+			return false, ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
+		instance.Status.State = "Error"
+		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 			Type:               "Installed",
 			Status:             "False",
 			LastTransitionTime: metav1.Now(),
@@ -115,7 +90,7 @@ func buildStopAndError(err error) ReconciliationAction {
 			Reason:             "CrdCreationErr",
 		})
 
-		if err := c.Status().Update(ctx, &v); err != nil {
+		if err := c.Status().Update(ctx, &instance); err != nil {
 			fmt.Println(err)
 		}
 
@@ -123,62 +98,6 @@ func buildStopAndError(err error) ReconciliationAction {
 			RequeueAfter: time.Minute,
 		}, err
 	}
-}
-
-func isNamespaceSingleton(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
-	var list v1alpha1.KedaList
-	err := c.List(ctx, &list, &client.ListOptions{})
-	// stop reconciliation on any error
-	if err != nil {
-		return buildStopAndError(err)(ctx, c, v)
-	}
-
-	if len(list.Items) > 1 {
-		return buildStopAndError(err)(ctx, c, v)
-	}
-
-	return true, defaultResult, nil
-}
-
-func defaultConditionsForFirstGeneration(ctx context.Context, c client.Client, v v1alpha1.Keda) (shouldContinue, ctrl.Result, error) {
-	if len(v.Status.Conditions) > 0 {
-		return true, defaultResult, nil
-	}
-
-	fmt.Println("defaulting conditions")
-
-	msg := "custom resource created"
-
-	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
-		Type:               "Installed",
-		Status:             "Unknown",
-		Reason:             "Created",
-		Message:            msg,
-		LastTransitionTime: v.GetCreationTimestamp(),
-	})
-
-	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
-		Type:               "KedaRdy",
-		Status:             "Unknown",
-		Reason:             "Created",
-		Message:            msg,
-		LastTransitionTime: v.GetCreationTimestamp(),
-	})
-
-	meta.SetStatusCondition(&v.Status.Conditions, metav1.Condition{
-		Type:               "MetricsRdy",
-		Status:             "Unknown",
-		Reason:             "Created",
-		Message:            msg,
-		LastTransitionTime: v.GetCreationTimestamp(),
-	})
-
-	v.Status.State = "Processing"
-
-	if err := c.Status().Update(ctx, &v); err != nil {
-		fmt.Println(err)
-	}
-	return false, defaultResult, nil
 }
 
 var (
@@ -193,47 +112,7 @@ var (
 		Namespace: "kyma-system",
 	}
 
-	main = ReconciliationActions{
-		defaultConditionsForFirstGeneration,
-		isNamespaceSingleton,
-	}
+	main = reconciler.ReconciliationActions{}
 
-	deletion = ReconciliationActions{
-		deleteFinalizer,
-	}
+	deletion = reconciler.ReconciliationActions{}
 )
-
-func (r *KedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	var instance v1alpha1.Keda
-	err := r.Get(ctx, req.NamespacedName, &instance)
-
-	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: time.Second * 30,
-		}, client.IgnoreNotFound(err)
-	}
-
-	instanceIsBeingDeleted := !instance.DeletionTimestamp.IsZero()
-	instanceHasFinalizer := controllerutil.ContainsFinalizer(&instance, finalizer)
-
-	// in case instance does not have finalizer - add it and update instance
-	if !instanceIsBeingDeleted && !instanceHasFinalizer {
-		controllerutil.AddFinalizer(&instance, finalizer)
-		if err := r.Update(ctx, &instance); err != nil {
-			return defaultResult, err
-		}
-		return defaultResult, nil
-	}
-
-	// in case instance has no finalizer and instance is being deleted - end reconciliation
-	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&instance, finalizer) {
-		return defaultResult, nil
-	}
-
-	// in case instance is being deleted and has finalizer - delete all resources
-	if instanceIsBeingDeleted {
-		return deletion.reconcileAll(ctx, r.Client, instance)
-	}
-
-	return main.reconcileAll(ctx, r.Client, instance)
-}

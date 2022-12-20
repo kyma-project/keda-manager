@@ -35,6 +35,7 @@ import (
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
 	"github.com/kyma-project/keda-manager/pkg/keda"
+	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -107,8 +108,15 @@ func main() {
 	}
 
 	if err = (&controllers.KedaReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Reconciler: reconciler.Reconciler{
+			Client: mgr.GetClient(),
+			Config: reconciler.Config{
+				Prototype: &operatorv1alpha1.Keda{},
+				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
+			},
+		},
+		//		Client: mgr.GetClient(),
+		//		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
 		os.Exit(1)
