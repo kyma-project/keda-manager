@@ -8,21 +8,21 @@ aliases:
   documentation-reviewers:
     - klaudiagrz
     - mmitoraj
-    - majakurcius
     - NHingerl
     - grego952
+    - nataliasitko
   documentation-approvers:
     - klaudiagrz
     - mmitoraj
-    - majakurcius
     - NHingerl
     - grego952
+    - nataliasitko
   technical-writers:
     - klaudiagrz
     - mmitoraj
-    - majakurcius
     - NHingerl
     - grego952
+    - nataliasitko
   ci-reviewers:
     - Ressetkk
     - Halamix2
