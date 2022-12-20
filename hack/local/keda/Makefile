@@ -45,11 +45,6 @@ module-build:
 yq-install:
 	@make -C ${PROJECT_ROOT} yq
 
-.PHONY: patch-coredns
-patch-coredns:
-	@${PROJECT_ROOT}/hack/get_kyma_localhost_registry_name.sh k3d-${REGISTRY_NAME}
-
-
 .PHONY: fix-template
 fix-template:
 	@cat ${PROJECT_ROOT}/template.yaml \
@@ -79,7 +74,7 @@ install-module:
 		--template=${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
-run: kyma create-k3d module-image yq-install patch-coredns module-build fix-template install-module patch-mod-mgr-role enable-module verify
+run: kyma create-k3d module-image yq-install module-build fix-template install-module patch-mod-mgr-role enable-module verify
 
 .PHONY: stop
 stop: delete-k3d
