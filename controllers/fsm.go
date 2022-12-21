@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
-	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"reflect"
 	"runtime"
@@ -23,17 +21,6 @@ type cfg struct {
 }
 type systemState struct {
 	instance v1alpha1.Keda
-}
-
-func (s *systemState) setConditionInstalledFalse(reason v1alpha1.InstalledConditionReason, msg string) {
-	instanceCopy := s.instance.DeepCopy()
-	meta.SetStatusCondition(&instanceCopy.Status.Conditions, metav1.Condition{
-		Type:               string(v1alpha1.ConditionTypeInstalled),
-		Status:             metav1.ConditionFalse,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
-		Message:            msg,
-	})
 }
 
 type k8s struct {
@@ -81,16 +68,14 @@ loop:
 	}
 
 	m.log.
-		With("requeueAfter", out.result.RequeueAfter).
-		With("requeue", out.result.Requeue).
-		With("error", out.err).
 		With("result", out.result).
+		With("error", out.err).
 		Info("reconciliation done")
 
 	return out.result, out.err
 }
 
 func sFnApplyObj(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	r.log.Warn("not implemented yet")
+	r.log.Info("not implemented yet")
 	return nil
 }

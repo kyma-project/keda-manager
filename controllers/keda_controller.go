@@ -18,15 +18,17 @@ package controllers
 
 import (
 	"context"
+	"time"
+
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
 	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 type KedaReconciler interface {
@@ -36,7 +38,10 @@ type KedaReconciler interface {
 
 // kedaReconciler reconciles a Keda object
 type kedaReconciler struct {
-	reconciler
+	fn  stateFn
+	log *zap.SugaredLogger
+	cfg
+	k8s
 }
 
 type K8sObjects struct {
@@ -45,16 +50,14 @@ type K8sObjects struct {
 
 func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o K8sObjects) KedaReconciler {
 	return &kedaReconciler{
-		reconciler: reconciler{
-			fn:  sFnInitialize,
-			log: log,
-			cfg: cfg{
-				finalizer: "keda-manager.kyma-project.io/deletion-hook",
-				crds:      o.CRDs,
-			},
-			k8s: k8s{
-				client: c,
-			},
+		fn:  sFnInitialize,
+		log: log,
+		cfg: cfg{
+			finalizer: "keda-manager.kyma-project.io/deletion-hook",
+			crds:      o.CRDs,
+		},
+		k8s: k8s{
+			client: c,
 		},
 	}
 }
@@ -133,7 +136,9 @@ func sFnApplyCRDs(ctx context.Context, r *reconciler, s *systemState, out *out) 
 	applied, out.err = applyCRDs(ctx, r.client, r.cfg.crds)
 
 	if out.err != nil {
-		s.setConditionInstalledFalse(v1alpha1.ConditionReasonCrdError, out.err.Error())
+		newCondition := cHelper.Installed().False(v1alpha1.ConditionReasonCrdError, out.err.Error())
+		meta.SetStatusCondition(&s.instance.Status.Conditions, newCondition)
+
 		if err := r.client.Status().Update(ctx, &s.instance); err != nil {
 			r.log.Warn("unable to change state")
 		}
@@ -179,12 +184,22 @@ func applyCRDs(ctx context.Context, c client.Client, crds []unstructured.Unstruc
 
 func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var instance v1alpha1.Keda
-
 	if err := r.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 		return ctrl.Result{
 			RequeueAfter: time.Second * 30,
 		}, client.IgnoreNotFound(err)
 	}
 
-	return r.reconcile(ctx, instance)
+	reconciler := reconciler{
+		fn:  r.fn,
+		log: r.log,
+		k8s: k8s{
+			client: r.client,
+		},
+		cfg: cfg{
+			finalizer: r.finalizer,
+			crds:      r.crds,
+		},
+	}
+	return reconciler.reconcile(ctx, instance)
 }

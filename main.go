@@ -19,10 +19,12 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
+	"os"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"os"
 	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -106,8 +108,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	config := zap.NewProductionConfig()
+	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
+	config.Encoding = "json"
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
 
 	kedaLogger, err := config.Build()
@@ -115,6 +118,8 @@ func main() {
 		setupLog.Error(err, "unable to setup logger")
 		os.Exit(1)
 	}
+
+	setupLog.Info(fmt.Sprintf("log level set to: %s", kedaLogger.Level()))
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),

@@ -21,12 +21,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type InstalledConditionReason string
+type ConditionReason string
 
 type ConditionType string
 
 const (
-	ConditionReasonCrdError = InstalledConditionReason("CrdError")
+	ConditionReasonCrdError = ConditionReason("CrdError")
 	ConditionTypeInstalled  = ConditionType("Installed")
 	OperatorLogLevelDebug   = OperatorLogLevel("debug")
 	OperatorLogLevelInfo    = OperatorLogLevel("info")
