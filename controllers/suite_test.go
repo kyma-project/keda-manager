@@ -33,16 +33,15 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	_ "github.com/kyma-project/keda-manager/api/v1alpha1"
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
-	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
+var config *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 
@@ -61,33 +60,33 @@ var _ = BeforeSuite(func() {
 	}
 
 	var err error
-	// cfg is defined in this file globally.
-	cfg, err = testEnv.Start()
+	// config is defined in this file globally.
+	config, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
+	Expect(config).NotTo(BeNil())
 
 	err = operatorv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sClient, err = client.New(config, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+	k8sManager, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&KedaReconciler{
-		Reconciler: reconciler.Reconciler{
-			Client: k8sManager.GetClient(),
-			Config: reconciler.Config{
-				Prototype: &v1alpha1.Keda{},
-				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
-			},
-		},
+	err = (&kedaReconciler{
+		//		Reconciler: reconciler.Reconciler{
+		//			Client: k8sManager.GetClient(),
+		//			Config: reconciler.Config{
+		//				Prototype: &v1alpha1.Keda{},
+		//				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
+		//			},
+		//		},
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

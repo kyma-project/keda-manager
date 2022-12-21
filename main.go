@@ -19,8 +19,11 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"os"
+	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -32,11 +35,9 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -65,13 +66,14 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
+	//FIXME use parameter
+	opts := zapk8s.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(zapk8s.New(zapk8s.UseFlagOptions(&opts)))
 	restConfig := ctrl.GetConfigOrDie()
 
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
@@ -98,24 +100,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	var crds unstructured.Unstructured
-	if err := loadData("hack/k8s/templated.json", &crds); err != nil {
-		setupLog.Error(err, "unablr to load k8s data")
+	var crd unstructured.Unstructured
+	if err := loadData("hack/k8s/templated.json", &crd); err != nil {
+		setupLog.Error(err, "unable to load k8s data")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.KedaReconciler{
-		Reconciler: reconciler.Reconciler{
-			Client: mgr.GetClient(),
-			Config: reconciler.Config{
-				Prototype: &operatorv1alpha1.Keda{},
-				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
-				Installation: []reconciler.ReconciliationAction{
-					controllers.BuildInstall([]unstructured.Unstructured{crds}),
-				},
-			},
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
+
+	kedaLogger, err := config.Build()
+	if err != nil {
+		setupLog.Error(err, "unable to setup logger")
+		os.Exit(1)
+	}
+
+	kedaReconciler := controllers.NewKedaReconciler(
+		mgr.GetClient(),
+		kedaLogger.Sugar(),
+		controllers.K8sObjects{
+			CRDs: []unstructured.Unstructured{crd},
 		},
-	}).SetupWithManager(mgr); err != nil {
+	)
+	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
 		os.Exit(1)
 	}

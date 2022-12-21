@@ -1,10 +1,10 @@
-package fsm
+package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
-	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -18,7 +18,8 @@ import (
 type stateFn func(context.Context, *reconciler, *systemState, *out) stateFn
 
 type cfg struct {
-	crds []unstructured.Unstructured
+	finalizer string
+	crds      []unstructured.Unstructured
 }
 type systemState struct {
 	instance v1alpha1.Keda
@@ -74,7 +75,7 @@ loop:
 			break loop
 
 		default:
-			m.log.With("stateFn", m.stateFnName()).Info("next state")
+			m.log.Info(fmt.Sprintf("switching state: %s", m.stateFnName()))
 			m.fn = m.fn(ctx, m, &state, &out)
 		}
 	}
@@ -83,61 +84,13 @@ loop:
 		With("requeueAfter", out.result.RequeueAfter).
 		With("requeue", out.result.Requeue).
 		With("error", out.err).
-		Info("reconciliation result")
+		With("result", out.result).
+		Info("reconciliation done")
 
 	return out.result, out.err
 }
 
 func sFnApplyObj(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	r.log.Warn("unable to change state")
+	r.log.Warn("not implemented yet")
 	return nil
-}
-
-func sFnApplyCRDs(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	var applied bool
-	applied, out.err = applyCRDs(ctx, r.client, r.cfg.crds)
-
-	if out.err != nil {
-		s.setConditionInstalledFalse(v1alpha1.ConditionReasonCrdError, out.err.Error())
-		if err := r.client.Status().Update(ctx, &s.instance); err != nil {
-			r.log.Warn("unable to change state")
-		}
-		return nil
-	}
-	// all CRDs already exist - goto applyObj
-	if !applied {
-		return sFnApplyObj
-	}
-	// all CRDs applied
-	return nil
-}
-
-func applyCRDs(ctx context.Context, c client.Client, crds []unstructured.Unstructured) (bool, error) {
-	var installed bool
-
-	for _, obj := range crds {
-		var crd apixtv1.CustomResourceDefinition
-		keyObj := client.ObjectKeyFromObject(&obj)
-
-		err := c.Get(ctx, keyObj, &crd)
-
-		// error while getting crd
-		if client.IgnoreNotFound(err) != nil {
-			return false, err
-		}
-
-		// crd exists - continue with crds installation
-		if err == nil {
-			continue
-		}
-
-		// crd does not exit - create it
-		if err = c.Create(ctx, &obj); err != nil {
-			return false, err
-		}
-
-		installed = true
-	}
-
-	return installed, nil
 }

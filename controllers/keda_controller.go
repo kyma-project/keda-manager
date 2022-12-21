@@ -18,26 +18,45 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"time"
-
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
-	"github.com/kyma-project/keda-manager/pkg/reconciler"
-	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	"go.uber.org/zap"
+	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
-const (
-	chartNs = "kyma-system"
-)
+type KedaReconciler interface {
+	reconcile.Reconciler
+	SetupWithManager(mgr ctrl.Manager) error
+}
 
-// KedaReconciler reconciles a Keda object
-type KedaReconciler struct {
-	reconciler.Reconciler
+// kedaReconciler reconciles a Keda object
+type kedaReconciler struct {
+	reconciler
+}
+
+type K8sObjects struct {
+	CRDs []unstructured.Unstructured
+}
+
+func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o K8sObjects) KedaReconciler {
+	return &kedaReconciler{
+		reconciler: reconciler{
+			fn:  sFnInitialize,
+			log: log,
+			cfg: cfg{
+				finalizer: "keda-manager.kyma-project.io/deletion-hook",
+				crds:      o.CRDs,
+			},
+			k8s: k8s{
+				client: c,
+			},
+		},
+	}
 }
 
 //+kubebuilder:rbac:groups="*",resources="*",verbs=get
@@ -61,101 +80,111 @@ type KedaReconciler struct {
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas/finalizers,verbs=update;patch
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *KedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Keda{}).
 		Complete(r)
 }
 
-func GetLatest(ctx context.Context, c client.Client, nsName types.NamespacedName) (v1alpha1.Keda, error) {
+func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	controllerutil.RemoveFinalizer(&s.instance, r.finalizer)
+	if out.err = r.client.Update(ctx, &s.instance); out.err != nil {
+		// stop state machine
+		return nil
+	}
+
+	r.log.Debug("finalizer removed")
+	return nil
+}
+
+func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	r.log.Debug("nothing to remove")
+	return sFnRemoveFinalizer
+}
+
+func sFnInitialize(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	instanceIsBeingDeleted := !s.instance.GetDeletionTimestamp().IsZero()
+	instanceHasFinalizer := controllerutil.ContainsFinalizer(&s.instance, r.finalizer)
+
+	// in case instance does not have finalizer - add it and update instance
+	if !instanceIsBeingDeleted && !instanceHasFinalizer {
+		controllerutil.AddFinalizer(&s.instance, r.finalizer)
+		out.err = r.client.Update(ctx, &s.instance)
+		// stop state machine with potential error
+		return nil
+	}
+
+	// in case instance has no finalizer and instance is being deleted - end reconciliation
+	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&s.instance, r.finalizer) {
+		// stop state machine
+		return nil
+	}
+
+	// in case instance is being deleted and has finalizer - delete all resources
+	if instanceIsBeingDeleted {
+		return sFnDeleteResources
+	}
+
+	return sFnApplyCRDs
+}
+
+func sFnApplyCRDs(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	var applied bool
+	applied, out.err = applyCRDs(ctx, r.client, r.cfg.crds)
+
+	if out.err != nil {
+		s.setConditionInstalledFalse(v1alpha1.ConditionReasonCrdError, out.err.Error())
+		if err := r.client.Status().Update(ctx, &s.instance); err != nil {
+			r.log.Warn("unable to change state")
+		}
+		return nil
+	}
+	// all CRDs already exist - goto applyObj
+	if !applied {
+		return sFnApplyObj
+	}
+	// all CRDs applied
+	return nil
+}
+
+func applyCRDs(ctx context.Context, c client.Client, crds []unstructured.Unstructured) (bool, error) {
+	var installed bool
+
+	for _, obj := range crds {
+		var crd apixtv1.CustomResourceDefinition
+		keyObj := client.ObjectKeyFromObject(&obj)
+
+		err := c.Get(ctx, keyObj, &crd)
+
+		// error while getting crd
+		if client.IgnoreNotFound(err) != nil {
+			return false, err
+		}
+
+		// crd exists - continue with crds installation
+		if err == nil {
+			continue
+		}
+
+		// crd does not exit - create it
+		if err = c.Create(ctx, &obj); err != nil {
+			return false, err
+		}
+
+		installed = true
+	}
+
+	return installed, nil
+}
+
+func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var instance v1alpha1.Keda
-	err := c.Get(ctx, nsName, &instance)
-	return instance, err
-}
 
-func BuildVerify() reconciler.ReconciliationAction {
-	return func(ctx context.Context, c client.Client, request ctrl.Request) (bool, ctrl.Result, error) {
-		_, err := GetLatest(ctx, c, request.NamespacedName)
-		if err != nil {
-			return buildStopAndError(err)(ctx, c, request)
-		}
-		panic("not implemented yet")
+	if err := r.client.Get(ctx, req.NamespacedName, &instance); err != nil {
+		return ctrl.Result{
+			RequeueAfter: time.Second * 30,
+		}, client.IgnoreNotFound(err)
 	}
-}
 
-func buildStopAndError(err error) reconciler.ReconciliationAction {
-	return func(ctx context.Context, c client.Client, req ctrl.Request) (bool, ctrl.Result, error) {
-		instance, getErr := GetLatest(ctx, c, req.NamespacedName)
-		if getErr != nil {
-			fmt.Printf("unable to get instance: %s", err)
-			return false, ctrl.Result{}, client.IgnoreNotFound(err)
-		}
-
-		instance.Status.State = "Error"
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:               "Installed",
-			Status:             "False",
-			LastTransitionTime: metav1.Now(),
-			Reason:             "InstallationErr",
-			Message:            fmt.Sprintf("%s", err),
-		})
-
-		if err := c.Status().Update(ctx, &instance); err != nil {
-			fmt.Println(err)
-		}
-
-		return false, ctrl.Result{
-			RequeueAfter: time.Minute,
-		}, err
-	}
-}
-
-func BuildInstall(crds []unstructured.Unstructured) reconciler.ReconciliationAction {
-	return func(ctx context.Context, c client.Client, req ctrl.Request) (bool, ctrl.Result, error) {
-		installed, err := reconciler.InstallCRDs(ctx, c, crds)
-		if err != nil {
-			instance, err := GetLatest(ctx, c, req.NamespacedName)
-			if err != nil {
-				fmt.Printf("unable to get instance: %s", err)
-				return false, ctrl.Result{}, err
-			}
-
-			instance.Status.State = "Error"
-			meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-				Type:               "Installed",
-				Status:             "False",
-				LastTransitionTime: metav1.Now(),
-				Reason:             "ErrInstallation",
-				Message:            fmt.Sprintf("%s", err),
-			})
-
-			if err := c.Status().Update(ctx, &instance); err != nil {
-				fmt.Printf("unable to update instance status: %s", err)
-			}
-
-			return false, ctrl.Result{
-				RequeueAfter: 5 * time.Second,
-			}, err
-		}
-
-		if installed {
-			instance, err := GetLatest(ctx, c, req.NamespacedName)
-			if err != nil {
-				fmt.Printf("unable to get instance: %s", err)
-				return false, ctrl.Result{}, err
-			}
-			instance.Status.State = "Processing"
-			meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-				Type:               "Installed",
-				Status:             "False",
-				LastTransitionTime: metav1.Now(),
-				Reason:             "CRDsApplied",
-				Message:            "cutom resource definitions applied",
-			})
-			if err := c.Status().Update(ctx, &instance); err != nil {
-				fmt.Printf("unable to update instance status: %s", err)
-			}
-		}
-		return !installed, ctrl.Result{}, nil
-	}
+	return r.reconcile(ctx, instance)
 }
