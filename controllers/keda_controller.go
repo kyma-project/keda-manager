@@ -23,6 +23,7 @@ import (
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
 	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -45,7 +46,8 @@ type kedaReconciler struct {
 }
 
 type K8sObjects struct {
-	CRDs []unstructured.Unstructured
+	CRDs  []unstructured.Unstructured
+	Other []unstructured.Unstructured
 }
 
 func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o K8sObjects) KedaReconciler {
@@ -55,6 +57,7 @@ func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o K8sObjects) Ke
 		cfg: cfg{
 			finalizer: "keda-manager.kyma-project.io/deletion-hook",
 			crds:      o.CRDs,
+			objs:      o.Other,
 		},
 		k8s: k8s{
 			client: c,
@@ -101,7 +104,22 @@ func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState, out 
 }
 
 func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	r.log.Debug("nothing to remove")
+	for _, obj := range r.objs {
+		r.log.With("objName", obj.GetName()).
+			With("gvk", obj.GroupVersionKind()).
+			Debug("deleting")
+
+		if out.err = r.client.Delete(ctx, &obj); client.IgnoreNotFound(out.err) != nil {
+			r.log.Error(out.err)
+		}
+	}
+
+	if out.err != nil {
+		s.instance.Status.State = "Error"
+		// stop state machine
+		return nil
+	}
+
 	return sFnRemoveFinalizer
 }
 
@@ -111,6 +129,7 @@ func sFnInitialize(ctx context.Context, r *reconciler, s *systemState, out *out)
 
 	// in case instance does not have finalizer - add it and update instance
 	if !instanceIsBeingDeleted && !instanceHasFinalizer {
+		r.log.Debug("adding finalizer")
 		controllerutil.AddFinalizer(&s.instance, r.finalizer)
 		out.err = r.client.Update(ctx, &s.instance)
 		// stop state machine with potential error
@@ -119,6 +138,7 @@ func sFnInitialize(ctx context.Context, r *reconciler, s *systemState, out *out)
 
 	// in case instance has no finalizer and instance is being deleted - end reconciliation
 	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&s.instance, r.finalizer) {
+		r.log.Debug("instance is being deleted")
 		// stop state machine
 		return nil
 	}
@@ -196,10 +216,12 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		k8s: k8s{
 			client: r.client,
 		},
-		cfg: cfg{
-			finalizer: r.finalizer,
-			crds:      r.crds,
-		},
+		cfg: r.cfg,
 	}
 	return reconciler.reconcile(ctx, instance)
+}
+
+func sFnApplyObj(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	r.log.Info("not implemented yet")
+	return nil
 }

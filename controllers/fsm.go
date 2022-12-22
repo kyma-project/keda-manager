@@ -18,6 +18,7 @@ type stateFn func(context.Context, *reconciler, *systemState, *out) stateFn
 type cfg struct {
 	finalizer string
 	crds      []unstructured.Unstructured
+	objs []unstructured.Unstructured
 }
 type systemState struct {
 	instance v1alpha1.Keda
@@ -75,7 +76,3 @@ loop:
 	return out.result, out.err
 }
 
-func sFnApplyObj(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	r.log.Info("not implemented yet")
-	return nil
-}

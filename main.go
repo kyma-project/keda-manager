@@ -17,14 +17,13 @@ limitations under the License.
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -32,6 +31,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -40,6 +40,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"gopkg.in/yaml.v3"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -102,8 +103,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	var crd unstructured.Unstructured
-	if err := loadData("hack/k8s/templated.json", &crd); err != nil {
+	var k8sObject controllers.K8sObjects
+	if err := loadData("hack/k8s/templated2.yaml", &k8sObject); err != nil {
 		setupLog.Error(err, "unable to load k8s data")
 		os.Exit(1)
 	}
@@ -124,9 +125,7 @@ func main() {
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		kedaLogger.Sugar(),
-		controllers.K8sObjects{
-			CRDs: []unstructured.Unstructured{crd},
-		},
+		k8sObject,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
@@ -150,10 +149,49 @@ func main() {
 	}
 }
 
-func loadData(path string, u *unstructured.Unstructured) error {
+func loadData(path string, data *controllers.K8sObjects) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	return json.NewDecoder(file).Decode(u)
+
+	if data == nil {
+		data = &controllers.K8sObjects{}
+	}
+
+	if data.CRDs == nil {
+		data.CRDs = make([]unstructured.Unstructured, 0)
+	}
+
+	if data.Other == nil {
+		data.Other = make([]unstructured.Unstructured, 0)
+	}
+
+	decoder := yaml.NewDecoder(file)
+
+	for {
+		var obj map[string]interface{}
+		err := decoder.Decode(&obj)
+
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		u := unstructured.Unstructured{
+			Object: obj,
+		}
+		
+		if u.GetObjectKind().GroupVersionKind().Kind == "CustomResourceDefinition" {
+			data.CRDs = append(data.CRDs, u)
+			continue
+		}
+		
+		data.Other = append(data.Other,u)
+	}
+
+	return nil
 }

@@ -26,11 +26,13 @@ type ConditionReason string
 type ConditionType string
 
 const (
-	ConditionReasonCrdError = ConditionReason("CrdError")
-	ConditionTypeInstalled  = ConditionType("Installed")
-	OperatorLogLevelDebug   = OperatorLogLevel("debug")
-	OperatorLogLevelInfo    = OperatorLogLevel("info")
-	OperatorLogLevelError   = OperatorLogLevel("error")
+	ConditionReasonCrdError      = ConditionReason("CrdError")
+	ConditionReasonApplyObjError = ConditionReason("ApplyObjError")
+
+	ConditionTypeInstalled = ConditionType("Installed")
+	OperatorLogLevelDebug  = OperatorLogLevel("debug")
+	OperatorLogLevelInfo   = OperatorLogLevel("info")
+	OperatorLogLevelError  = OperatorLogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")
