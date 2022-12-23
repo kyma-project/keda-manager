@@ -47,6 +47,8 @@ const (
 
 	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
 	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
+
+	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
