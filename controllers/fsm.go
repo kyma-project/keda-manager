@@ -17,11 +17,12 @@ type stateFn func(context.Context, *reconciler, *systemState, *out) stateFn
 
 type cfg struct {
 	finalizer string
-	crds      []unstructured.Unstructured
-	objs []unstructured.Unstructured
+	objs      []unstructured.Unstructured
 }
+
 type systemState struct {
 	instance v1alpha1.Keda
+	objs []unstructured.Unstructured
 }
 
 type k8s struct {
@@ -75,4 +76,3 @@ loop:
 
 	return out.result, out.err
 }
-

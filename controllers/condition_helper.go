@@ -29,7 +29,7 @@ func (s *statusHelper) Unknown(reason v1alpha1.ConditionReason, msg string) meta
 func (s *statusHelper) False(reason v1alpha1.ConditionReason, msg string) metav1.Condition {
 	return metav1.Condition{
 		Type:               s.String(),
-		Status:             metav1.StatusFailure,
+		Status:             "False",
 		LastTransitionTime: metav1.Now(),
 		Reason:             string(reason),
 		Message:            msg,

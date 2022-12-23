@@ -28,6 +28,7 @@ type ConditionType string
 const (
 	ConditionReasonCrdError      = ConditionReason("CrdError")
 	ConditionReasonApplyObjError = ConditionReason("ApplyObjError")
+	ConditionReasonVerification  = ConditionReason("Verification")
 
 	ConditionTypeInstalled = ConditionType("Installed")
 	OperatorLogLevelDebug  = OperatorLogLevel("debug")

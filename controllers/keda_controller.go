@@ -18,14 +18,18 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
 	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -45,19 +49,13 @@ type kedaReconciler struct {
 	k8s
 }
 
-type K8sObjects struct {
-	CRDs  []unstructured.Unstructured
-	Other []unstructured.Unstructured
-}
-
-func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o K8sObjects) KedaReconciler {
+func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {
 	return &kedaReconciler{
 		fn:  sFnInitialize,
 		log: log,
 		cfg: cfg{
 			finalizer: "keda-manager.kyma-project.io/deletion-hook",
-			crds:      o.CRDs,
-			objs:      o.Other,
+			objs:      o,
 		},
 		k8s: k8s{
 			client: c,
@@ -105,6 +103,10 @@ func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState, out 
 
 func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
 	for _, obj := range r.objs {
+		if obj.GetObjectKind().GroupVersionKind().Kind == "CustomResourceDefinition" {
+			continue
+		}
+
 		r.log.With("objName", obj.GetName()).
 			With("gvk", obj.GroupVersionKind()).
 			Debug("deleting")
@@ -135,78 +137,120 @@ func sFnInitialize(ctx context.Context, r *reconciler, s *systemState, out *out)
 		// stop state machine with potential error
 		return nil
 	}
-
 	// in case instance has no finalizer and instance is being deleted - end reconciliation
 	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&s.instance, r.finalizer) {
 		r.log.Debug("instance is being deleted")
 		// stop state machine
 		return nil
 	}
-
 	// in case instance is being deleted and has finalizer - delete all resources
 	if instanceIsBeingDeleted {
 		return sFnDeleteResources
 	}
 
-	return sFnApplyCRDs
+	return sFnApply
 }
 
-func sFnApplyCRDs(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
-	var applied bool
-	applied, out.err = applyCRDs(ctx, r.client, r.cfg.crds)
-
-	if out.err != nil {
-		newCondition := cHelper.Installed().False(v1alpha1.ConditionReasonCrdError, out.err.Error())
-		meta.SetStatusCondition(&s.instance.Status.Conditions, newCondition)
-
-		if err := r.client.Status().Update(ctx, &s.instance); err != nil {
-			r.log.Warn("unable to change state")
-		}
-		return nil
-	}
-	// all CRDs already exist - goto applyObj
-	if !applied {
-		return sFnApplyObj
-	}
-	// all CRDs applied
-	return nil
-}
-
-func applyCRDs(ctx context.Context, c client.Client, crds []unstructured.Unstructured) (bool, error) {
-	var installed bool
-
-	for _, obj := range crds {
-		var crd apixtv1.CustomResourceDefinition
-		keyObj := client.ObjectKeyFromObject(&obj)
-
-		err := c.Get(ctx, keyObj, &crd)
-
-		// error while getting crd
-		if client.IgnoreNotFound(err) != nil {
-			return false, err
-		}
-
-		// crd exists - continue with crds installation
-		if err == nil {
+func sFnVerify(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	var count int
+	for _, obj := range s.objs {
+		if obj.GetKind() != "Deployment" {
 			continue
 		}
 
-		// crd does not exit - create it
-		if err = c.Create(ctx, &obj); err != nil {
-			return false, err
+		var deployment appsv1.Deployment
+		if out.err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &deployment); out.err != nil {
+			return nil
 		}
 
-		installed = true
+		for _, cond := range deployment.Status.Conditions {
+			if cond.Type == appsv1.DeploymentAvailable && cond.Status == v1.ConditionTrue {
+				count++
+			}
+		}
 	}
 
-	return installed, nil
+	if count == 2 {
+		s.instance.Status.State = "Ready"
+		out.result.RequeueAfter = time.Second * 60
+	} else {
+		s.instance.Status.State = "Pending"
+		out.result.RequeueAfter = time.Second * 5
+	}
+
+	condition := cHelper.Installed().True(v1alpha1.ConditionReasonVerification, "verification started")
+	meta.SetStatusCondition(&s.instance.Status.Conditions, condition)
+
+	out.err = r.client.Status().Update(ctx, &s.instance)
+	return nil
+}
+
+func sFnApply(ctx context.Context, r *reconciler, s *systemState, out *out) stateFn {
+	var isError bool
+	for _, obj := range r.objs {
+		isCRD := obj.GetKind() == "CustomResourceDefinition" && obj.GetAPIVersion() == "apiextensions.k8s.io/v1"
+		applyFn := applyObj
+
+		if isCRD {
+			applyFn = applyCRD
+		}
+
+		r.log.With("gvk", obj.GetObjectKind().GroupVersionKind()).
+			With("objKey", client.ObjectKeyFromObject(&obj)).
+			Debug("applying")
+
+		if err := applyFn(ctx, r.client, r.log, &obj); err != nil {
+			r.log.With("err", err).Debug("apply result")
+			isError = true
+		}
+
+		s.objs = append(s.objs, obj)
+	}
+	// no errors
+	if !isError {
+		return sFnVerify
+	}
+
+	out.err = errors.New("installation error")
+	newCondition := cHelper.Installed().False(v1alpha1.ConditionReasonCrdError, out.err.Error())
+	meta.SetStatusCondition(&s.instance.Status.Conditions, newCondition)
+
+	out.err = r.client.Status().Update(ctx, &s.instance)
+	out.result.RequeueAfter = 30 * time.Second
+	return nil
+}
+
+func applyObj(ctx context.Context, c client.Client, log *zap.SugaredLogger, obj *unstructured.Unstructured) error {
+	err := c.Patch(ctx, obj, client.Apply, &client.PatchOptions{
+		Force:        pointer.Bool(true),
+		FieldManager: "m00g3n",
+	})
+	return err
+}
+
+func applyCRD(ctx context.Context, c client.Client, log *zap.SugaredLogger, crd *unstructured.Unstructured) error {
+	var freshCRD apixtv1.CustomResourceDefinition
+	keyObj := client.ObjectKeyFromObject(crd)
+	// check if CRD is already applied
+	err := c.Get(ctx, keyObj, &freshCRD)
+	// crd exists - continue with crds installation
+	if err == nil {
+		log.Debug("CRD already exists")
+		return nil
+	}
+	// error while getting crd
+	if client.IgnoreNotFound(err) != nil {
+		return err
+	}
+	// crd does not exit - create it
+	return c.Create(ctx, crd)
 }
 
 func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var instance v1alpha1.Keda
 	if err := r.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 		return ctrl.Result{
-			RequeueAfter: time.Second * 30,
+			RequeueAfter: time.Second * 5,
 		}, client.IgnoreNotFound(err)
 	}
 

@@ -103,8 +103,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	var k8sObject controllers.K8sObjects
-	if err := loadData("hack/k8s/templated2.yaml", &k8sObject); err != nil {
+	data, err := loadData("hack/k8s/templated2.yaml")
+	if err != nil {
 		setupLog.Error(err, "unable to load k8s data")
 		os.Exit(1)
 	}
@@ -125,7 +125,7 @@ func main() {
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		kedaLogger.Sugar(),
-		k8sObject,
+		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")
@@ -149,23 +149,13 @@ func main() {
 	}
 }
 
-func loadData(path string, data *controllers.K8sObjects) error {
+func loadData(path string) ([]unstructured.Unstructured, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if data == nil {
-		data = &controllers.K8sObjects{}
-	}
-
-	if data.CRDs == nil {
-		data.CRDs = make([]unstructured.Unstructured, 0)
-	}
-
-	if data.Other == nil {
-		data.Other = make([]unstructured.Unstructured, 0)
-	}
+	results := make([]unstructured.Unstructured, 0)
 
 	decoder := yaml.NewDecoder(file)
 
@@ -178,20 +168,16 @@ func loadData(path string, data *controllers.K8sObjects) error {
 		}
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		u := unstructured.Unstructured{
-			Object: obj,
-		}
-		
+		u := unstructured.Unstructured{Object: obj}
 		if u.GetObjectKind().GroupVersionKind().Kind == "CustomResourceDefinition" {
-			data.CRDs = append(data.CRDs, u)
+			results = append([]unstructured.Unstructured{u}, results...)
 			continue
 		}
-		
-		data.Other = append(data.Other,u)
+		results = append(results, u)
 	}
 
-	return nil
+	return results, nil
 }
