@@ -86,16 +86,17 @@ func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState) (sta
 }
 
 func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctrl.Result, error) {
+	// TODO add CR cleanup before objs cleanup
+	// TODO reconcile - event base (on edit) - watch, label
 	var err error
 	for _, obj := range r.objs {
-		if obj.GetObjectKind().GroupVersionKind().Kind == "CustomResourceDefinition" {
-			continue
-		}
-
 		r.log.With("objName", obj.GetName()).With("gvk", obj.GroupVersionKind()).
 			Debug("deleting")
 
-		if err = r.client.Delete(ctx, &obj); client.IgnoreNotFound(err) != nil {
+		err = r.client.Delete(ctx, &obj)
+		err = client.IgnoreNotFound(err)
+
+		if err != nil {
 			r.log.Error(err)
 		}
 	}
@@ -172,18 +173,11 @@ func sFnVerify(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ct
 func sFnApply(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctrl.Result, error) {
 	var isError bool
 	for _, obj := range r.objs {
-		isCRD := obj.GetKind() == "CustomResourceDefinition" && obj.GetAPIVersion() == "apiextensions.k8s.io/v1"
-		applyFn := applyObj
-
-		if isCRD {
-			applyFn = applyCRD
-		}
-
 		r.log.With("gvk", obj.GetObjectKind().GroupVersionKind()).
 			With("objKey", client.ObjectKeyFromObject(&obj)).
 			Debug("applying")
 
-		if err := applyFn(ctx, r.client, r.log, &obj); err != nil {
+		if err := applyObj(ctx, r.client, r.log, &obj); err != nil {
 			r.log.With("err", err).Debug("apply result")
 			isError = true
 		}
