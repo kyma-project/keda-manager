@@ -70,9 +70,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	//FIXME use parameter
-	opts := zapk8s.Options{
-		Development: true,
-	}
+	opts := zapk8s.Options{}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 

@@ -18,22 +18,31 @@ package controllers
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
-	apixtv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 type KedaReconciler interface {
@@ -49,18 +58,124 @@ type kedaReconciler struct {
 	k8s
 }
 
+func (r *kedaReconciler) mapFunction(object client.Object) []reconcile.Request {
+	var keda v1alpha1.KedaList
+	err := r.client.List(context.Background(), &keda)
+
+	if err != nil {
+		r.log.Error(err)
+		return nil
+	}
+
+	if len(keda.Items) < 1 {
+		return nil
+	}
+
+	r.log.With("gen", object.GetGeneration()).
+		With("rscVer", object.GetResourceVersion()).
+		With("name", object.GetName()).
+		With("gvk", object.GetObjectKind().GroupVersionKind()).
+		Debug("redirecting")
+
+	// make sure only 1 controller will handle change
+	return []ctrl.Request{
+		{
+			NamespacedName: types.NamespacedName{
+				Namespace: object.GetNamespace(),
+				Name:      keda.Items[0].Name,
+			},
+		},
+	}
+}
+
+var ommitStatusChanged = predicate.Or(
+	predicate.LabelChangedPredicate{},
+	predicate.AnnotationChangedPredicate{},
+	predicate.GenerationChangedPredicate{},
+)
+
+func calculateSHA256(obj unstructured.Unstructured) (string, error) {
+	sha := sha256.New()
+	str := fmt.Sprintf("%s%s%s",
+		obj.GetKind(),
+		obj.GetObjectKind().GroupVersionKind().Group,
+		obj.GetObjectKind().GroupVersionKind().Version)
+
+	if _, err := sha.Write([]byte(str)); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s", sha), nil
+}
+
+func (r *kedaReconciler) watchAll(b *builder.Builder, objs []unstructured.Unstructured, p predicate.Predicate) error {
+	visited := map[string]struct{}{}
+
+	for _, obj := range objs {
+		u := unstructured.Unstructured{}
+		u.SetGroupVersionKind(schema.GroupVersionKind{
+			Kind:    obj.GetKind(),
+			Group:   obj.GetObjectKind().GroupVersionKind().Group,
+			Version: obj.GetObjectKind().GroupVersionKind().Version,
+		})
+		u.SetName(obj.GetName())
+
+		shaStr, err := calculateSHA256(u)
+		if err != nil {
+			return err
+		}
+
+		if _, found := visited[shaStr]; found {
+			continue
+		}
+
+		r.log.With("obj", u).Debug("watching")
+
+		b = b.Watches(
+			&source.Kind{Type: &u},
+			handler.EnqueueRequestsFromMapFunc(r.mapFunction),
+			builder.WithPredicates(
+				predicate.And(
+					predicate.ResourceVersionChangedPredicate{},
+					p,
+				),
+			),
+		)
+
+		visited[shaStr] = struct{}{}
+	}
+	return nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Keda{}).
-		Complete(r)
+	labelSelectorPredicate, err := predicate.LabelSelectorPredicate(
+		metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				"app.kubernetes.io/name": "keda-manager",
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	b := ctrl.NewControllerManagedBy(mgr).For(&v1alpha1.Keda{}, builder.WithPredicates(ommitStatusChanged))
+
+	if err := r.watchAll(b, r.objs, labelSelectorPredicate); err != nil {
+		return err
+	}
+
+	return b.WithOptions(controller.Options{
+		MaxConcurrentReconciles: 1,
+	}).Complete(r)
 }
 
 func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var instance v1alpha1.Keda
 	if err := r.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 		return ctrl.Result{
-			RequeueAfter: time.Second * 5,
+			RequeueAfter: time.Minute,
 		}, client.IgnoreNotFound(err)
 	}
 
@@ -78,7 +193,7 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctrl.Result, error) {
 	controllerutil.RemoveFinalizer(&s.instance, r.finalizer)
 	if err := r.client.Update(ctx, &s.instance); err != nil {
-		return stopWithError(err)
+		return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 	}
 
 	r.log.Debug("finalizer removed")
@@ -90,7 +205,9 @@ func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState) (sta
 	// TODO reconcile - event base (on edit) - watch, label
 	var err error
 	for _, obj := range r.objs {
-		r.log.With("objName", obj.GetName()).With("gvk", obj.GroupVersionKind()).
+		r.log.
+			With("objName", obj.GetName()).
+			With("gvk", obj.GroupVersionKind()).
 			Debug("deleting")
 
 		err = r.client.Delete(ctx, &obj)
@@ -103,7 +220,10 @@ func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState) (sta
 
 	if err != nil {
 		s.instance.Status.State = "Error"
-		return stopWithError(err)
+		if err := r.client.Status().Update(ctx, &s.instance); err != nil {
+			r.log.Error(err)
+		}
+		return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 	}
 
 	return switchState(sFnRemoveFinalizer)
@@ -117,9 +237,18 @@ func sFnInitialize(ctx context.Context, r *reconciler, s *systemState) (stateFn,
 	if !instanceIsBeingDeleted && !instanceHasFinalizer {
 		r.log.Debug("adding finalizer")
 		controllerutil.AddFinalizer(&s.instance, r.finalizer)
+
 		err := r.client.Update(ctx, &s.instance)
+		if err != nil {
+			return stopWithError(err)
+		}
+
+		instance := s.instance.DeepCopy()
+		instance.Status.State = "Initialized"
+		err = r.k8s.client.Status().Update(ctx, instance)
+
 		// stop state machine with potential error
-		return stopWithError(err)
+		return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 	}
 	// in case instance has no finalizer and instance is being deleted - end reconciliation
 	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&s.instance, r.finalizer) {
@@ -154,19 +283,30 @@ func sFnVerify(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ct
 		}
 	}
 
-	var result ctrl.Result
+	result := ctrl.Result{}
+
+	instance := s.instance.DeepCopy()
 	if count == 2 {
-		s.instance.Status.State = "Ready"
-		result.RequeueAfter = time.Second * 60
+		instance.Status.State = "Ready"
+		r.log.Debug("deployment rdy")
 	} else {
-		s.instance.Status.State = "Pending"
-		result.RequeueAfter = time.Second * 5
+		if reflect.DeepEqual(s.instance.Status, instance.Status) {
+			return nil, nil, nil
+		}
+
+		r.log.With("status", instance.Status).Debug("current status")
+		instance.Status.State = "Processing"
+		//condition := cHelper.Installed().True(v1alpha1.ConditionReasonVerification, "verification started")
+		//meta.SetStatusCondition(&instance.Status.Conditions, condition)
 	}
 
-	condition := cHelper.Installed().True(v1alpha1.ConditionReasonVerification, "verification started")
-	meta.SetStatusCondition(&s.instance.Status.Conditions, condition)
-
-	err := r.client.Status().Update(ctx, &s.instance)
+	err := r.client.Status().Update(ctx, instance)
+	if err != nil {
+		r.log.Error(err)
+		result = ctrl.Result{
+			RequeueAfter: time.Second,
+		}
+	}
 	return nil, &result, err
 }
 
@@ -174,10 +314,15 @@ func sFnApply(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctr
 	var isError bool
 	for _, obj := range r.objs {
 		r.log.With("gvk", obj.GetObjectKind().GroupVersionKind()).
-			With("objKey", client.ObjectKeyFromObject(&obj)).
+			With("name", obj.GetName()).
 			Debug("applying")
 
-		if err := applyObj(ctx, r.client, r.log, &obj); err != nil {
+		err := r.client.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
+			Force:        pointer.Bool(true),
+			FieldManager: "m00g3n",
+		})
+
+		if err != nil {
 			r.log.With("err", err).Debug("apply result")
 			isError = true
 		}
@@ -190,37 +335,19 @@ func sFnApply(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctr
 	}
 
 	err := errors.New("installation error")
-	newCondition := cHelper.Installed().False(v1alpha1.ConditionReasonCrdError, err.Error())
-	meta.SetStatusCondition(&s.instance.Status.Conditions, newCondition)
+	instance := s.instance.DeepCopy()
+	//newCondition := cHelper.Installed().False(v1alpha1.ConditionReasonCrdError, err.Error())
+	//meta.SetStatusCondition(&s.instance.Status.Conditions, newCondition)
 
-	r.client.Status().Update(ctx, &s.instance)
-	return nil, &ctrl.Result{RequeueAfter: 30 * time.Second}, err
-}
-
-func applyObj(ctx context.Context, c client.Client, log *zap.SugaredLogger, obj *unstructured.Unstructured) error {
-	err := c.Patch(ctx, obj, client.Apply, &client.PatchOptions{
-		Force:        pointer.Bool(true),
-		FieldManager: "m00g3n",
-	})
-	return err
-}
-
-func applyCRD(ctx context.Context, c client.Client, log *zap.SugaredLogger, crd *unstructured.Unstructured) error {
-	var freshCRD apixtv1.CustomResourceDefinition
-	keyObj := client.ObjectKeyFromObject(crd)
-	// check if CRD is already applied
-	err := c.Get(ctx, keyObj, &freshCRD)
-	// crd exists - continue with crds installation
-	if err == nil {
-		log.Debug("CRD already exists")
-		return nil
+	if reflect.DeepEqual(s.instance.Status, instance.Status) {
+		return nil, nil, nil
 	}
-	// error while getting crd
-	if client.IgnoreNotFound(err) != nil {
-		return err
+
+	if err := r.client.Status().Update(ctx, instance); err != nil {
+		r.log.Error(err)
 	}
-	// crd does not exit - create it
-	return c.Create(ctx, crd)
+
+	return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 }
 
 func NewKedaReconciler(c client.Client, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {

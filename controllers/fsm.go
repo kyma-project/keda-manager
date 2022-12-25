@@ -82,5 +82,7 @@ loop:
 		return *result, err
 	}
 
-	return ctrl.Result{}, err
+	return ctrl.Result{
+		Requeue: false,
+	}, err
 }
