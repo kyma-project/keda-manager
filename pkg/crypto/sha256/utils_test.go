@@ -1,14 +1,19 @@
-package sha256
+package sha256_test
 
 import (
 	"errors"
 	"testing"
 
+	"github.com/kyma-project/keda-manager/pkg/crypto/sha256"
+	sha256mock "github.com/kyma-project/keda-manager/pkg/crypto/sha256/automock"
+	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-var errTest = errors.New("test error")
+var (
+	errTest = errors.New("test error")
+)
 
 func Test_calculateSHA256(t *testing.T) {
 	type args struct {
@@ -17,13 +22,24 @@ func Test_calculateSHA256(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		hashBuilder WriterSumerBuilder
+		hashBuilder sha256.Calculator
 		want        string
 		wantErr     bool
 	}{
 		{
+			name: "write error",
+			hashBuilder: func() sha256.Calculator {
+				ws := sha256mock.NewWriterSumer(t)
+				ws.On("Write", mock.AnythingOfType("[]uint8")).Return(0, errTest).Once()
+				return func() sha256.WriterSumer {
+					return ws
+				}
+			}(),
+			wantErr: true,
+		},
+		{
 			name:        "empty",
-			hashBuilder: DefaultWriterSumerBuilder,
+			hashBuilder: sha256.DefaultCalculator,
 			args: args{
 				obj: unstructured.Unstructured{},
 			},
@@ -31,7 +47,7 @@ func Test_calculateSHA256(t *testing.T) {
 		},
 		{
 			name:        "no-empty",
-			hashBuilder: DefaultWriterSumerBuilder,
+			hashBuilder: sha256.DefaultCalculator,
 			args: args{
 				obj: func() unstructured.Unstructured {
 					var u unstructured.Unstructured
@@ -48,9 +64,8 @@ func Test_calculateSHA256(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.hashBuilder.CalculateSHA256(tt.args.obj)
+			got, err := tt.hashBuilder.CalculateSum(tt.args.obj)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("calculateSHA256() error = %v, wantErr %v", err, tt.wantErr)
 				return

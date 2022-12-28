@@ -116,7 +116,7 @@ func (r *kedaReconciler) watchAll(b *builder.Builder, objs []unstructured.Unstru
 		})
 		u.SetName(obj.GetName())
 
-		shaStr, err := sha256.DefaultWriterSumerBuilder.CalculateSHA256(u)
+		shaStr, err := sha256.DefaultCalculator.CalculateSum(u)
 		if err != nil {
 			return err
 		}
@@ -290,10 +290,6 @@ func sFnVerify(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ct
 		instance.Status.State = "Ready"
 		r.log.Debug("deployment rdy")
 	} else {
-		if instance.Status.State == "Ready" {
-			return nil, nil, nil
-		}
-
 		r.log.With("status", instance.Status).Debug("current status")
 		instance.Status.State = "Processing"
 		//condition := cHelper.Installed().True(v1alpha1.ConditionReasonVerification, "verification started")

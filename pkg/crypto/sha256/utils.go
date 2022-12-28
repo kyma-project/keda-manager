@@ -9,8 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-var DefaultWriterSumerBuilder = WriterSumerBuilder(New)
+var DefaultCalculator = Calculator(New)
 
+//go:generate mockery --name=WriterSumer --output=automock --outpkg=automock --case=underscore
 type WriterSumer interface {
 	io.Writer
 	Sum(b []byte) []byte
@@ -20,10 +21,10 @@ func New() WriterSumer {
 	return sha256.New()
 }
 
-type WriterSumerBuilder func() WriterSumer
+type Calculator func() WriterSumer
 
-func (w *WriterSumerBuilder) CalculateSHA256(obj unstructured.Unstructured) (string, error) {
-	sha := DefaultWriterSumerBuilder()
+func (w Calculator) CalculateSum(obj unstructured.Unstructured) (string, error) {
+	sha := w()
 	str := fmt.Sprintf("%s:%s:%s",
 		obj.GetKind(),
 		obj.GetObjectKind().GroupVersionKind().Group,
