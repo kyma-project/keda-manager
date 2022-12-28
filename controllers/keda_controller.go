@@ -18,16 +18,16 @@ package controllers
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
-	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/pkg/crypto/sha256"
 	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -37,7 +37,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -59,15 +58,25 @@ type kedaReconciler struct {
 }
 
 func (r *kedaReconciler) mapFunction(object client.Object) []reconcile.Request {
-	var keda v1alpha1.KedaList
-	err := r.client.List(context.Background(), &keda)
+	var kedas v1alpha1.KedaList
+	err := r.client.List(context.Background(), &kedas)
+
+	if apierrors.IsNotFound(err) {
+		return nil
+	}
 
 	if err != nil {
 		r.log.Error(err)
 		return nil
 	}
 
-	if len(keda.Items) < 1 {
+	if len(kedas.Items) < 1 {
+		return nil
+	}
+
+	// instance is being deleted, do not notify it about changes
+	instanceIsBeingDeleted := !kedas.Items[0].GetDeletionTimestamp().IsZero()
+	if instanceIsBeingDeleted {
 		return nil
 	}
 
@@ -75,6 +84,7 @@ func (r *kedaReconciler) mapFunction(object client.Object) []reconcile.Request {
 		With("rscVer", object.GetResourceVersion()).
 		With("name", object.GetName()).
 		With("gvk", object.GetObjectKind().GroupVersionKind()).
+		With("kedaRscVer", kedas.Items[0].ResourceVersion).
 		Debug("redirecting")
 
 	// make sure only 1 controller will handle change
@@ -82,7 +92,7 @@ func (r *kedaReconciler) mapFunction(object client.Object) []reconcile.Request {
 		{
 			NamespacedName: types.NamespacedName{
 				Namespace: object.GetNamespace(),
-				Name:      keda.Items[0].Name,
+				Name:      kedas.Items[0].Name,
 			},
 		},
 	}
@@ -93,20 +103,6 @@ var ommitStatusChanged = predicate.Or(
 	predicate.AnnotationChangedPredicate{},
 	predicate.GenerationChangedPredicate{},
 )
-
-func calculateSHA256(obj unstructured.Unstructured) (string, error) {
-	sha := sha256.New()
-	str := fmt.Sprintf("%s%s%s",
-		obj.GetKind(),
-		obj.GetObjectKind().GroupVersionKind().Group,
-		obj.GetObjectKind().GroupVersionKind().Version)
-
-	if _, err := sha.Write([]byte(str)); err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s", sha), nil
-}
 
 func (r *kedaReconciler) watchAll(b *builder.Builder, objs []unstructured.Unstructured, p predicate.Predicate) error {
 	visited := map[string]struct{}{}
@@ -120,7 +116,7 @@ func (r *kedaReconciler) watchAll(b *builder.Builder, objs []unstructured.Unstru
 		})
 		u.SetName(obj.GetName())
 
-		shaStr, err := calculateSHA256(u)
+		shaStr, err := sha256.DefaultWriterSumerBuilder.CalculateSHA256(u)
 		if err != nil {
 			return err
 		}
@@ -160,15 +156,13 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	b := ctrl.NewControllerManagedBy(mgr).For(&v1alpha1.Keda{}, builder.WithPredicates(ommitStatusChanged))
+	b := ctrl.NewControllerManagedBy(mgr).For(&v1alpha1.Keda{}, builder.WithPredicates(predicate.GenerationChangedPredicate{}))
 
 	if err := r.watchAll(b, r.objs, labelSelectorPredicate); err != nil {
 		return err
 	}
 
-	return b.WithOptions(controller.Options{
-		MaxConcurrentReconciles: 1,
-	}).Complete(r)
+	return b.Complete(r)
 }
 
 func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -192,7 +186,9 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 func sFnRemoveFinalizer(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ctrl.Result, error) {
 	controllerutil.RemoveFinalizer(&s.instance, r.finalizer)
-	if err := r.client.Update(ctx, &s.instance); err != nil {
+
+	err := r.client.Update(ctx, &s.instance)
+	if client.IgnoreNotFound(err) != nil {
 		return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 	}
 
@@ -214,7 +210,7 @@ func sFnDeleteResources(ctx context.Context, r *reconciler, s *systemState) (sta
 		err = client.IgnoreNotFound(err)
 
 		if err != nil {
-			r.log.Error(err)
+			r.log.With("deleting resource").Error(err)
 		}
 	}
 
@@ -287,10 +283,14 @@ func sFnVerify(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ct
 
 	instance := s.instance.DeepCopy()
 	if count == 2 {
+		if instance.Status.State == "Ready" {
+			return nil, nil, nil
+		}
+
 		instance.Status.State = "Ready"
 		r.log.Debug("deployment rdy")
 	} else {
-		if reflect.DeepEqual(s.instance.Status, instance.Status) {
+		if instance.Status.State == "Ready" {
 			return nil, nil, nil
 		}
 
@@ -300,9 +300,12 @@ func sFnVerify(ctx context.Context, r *reconciler, s *systemState) (stateFn, *ct
 		//meta.SetStatusCondition(&instance.Status.Conditions, condition)
 	}
 
+	r.log.With("rscVersion", instance.ResourceVersion).
+		With("generation", instance.Generation).
+		Debug("changing status")
+
 	err := r.client.Status().Update(ctx, instance)
 	if err != nil {
-		r.log.Error(err)
 		result = ctrl.Result{
 			RequeueAfter: time.Second,
 		}
