@@ -1,4 +1,4 @@
-package controllers
+package reconciler
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"

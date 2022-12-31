@@ -1,4 +1,4 @@
-package controllers
+package reconciler
 
 import (
 	"github.com/kyma-project/keda-manager/api/v1alpha1"

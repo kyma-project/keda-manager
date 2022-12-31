@@ -54,11 +54,32 @@ const (
 // +kubebuilder:validation:Enum=debug;info;error
 type OperatorLogLevel string
 
+func (l *OperatorLogLevel) String() string {
+	if l == nil {
+		return ""
+	}
+	return string(*l)
+}
+
 // +kubebuilder:validation:Enum=json;console
 type LogFormat string
 
+func (f *LogFormat) String() string {
+	if f == nil {
+		return ""
+	}
+	return string(*f)
+}
+
 // +kubebuilder:validation:Enum=epoch;millis;nano;iso8601;rfc3339;rfc3339nano
 type LogTimeEncoding string
+
+func (e *LogTimeEncoding) String() string {
+	if e == nil {
+		return ""
+	}
+	return string(*e)
+}
 
 type LoggingOperatorCfg struct {
 	Level        *OperatorLogLevel `json:"level,omitempty"`
