@@ -17,6 +17,9 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"strings"
+
+	"github.com/kyma-project/keda-manager/pkg/reconciler/api"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -49,42 +52,88 @@ const (
 	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
 
 	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
+
+	zapLogLevel     = "--zap-log-level"
+	zapEncoder      = "--zap-encoder"
+	zapTimeEncoding = "--zap-time-encoding"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
 type OperatorLogLevel string
 
+func (l *OperatorLogLevel) zero() string {
+	return string(OperatorLogLevelInfo)
+}
+
 func (l *OperatorLogLevel) String() string {
 	if l == nil {
-		return ""
+		return l.zero()
 	}
 	return string(*l)
+}
+
+func (l *OperatorLogLevel) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapLogLevel)
 }
 
 // +kubebuilder:validation:Enum=json;console
 type LogFormat string
 
+func (f *LogFormat) zero() string {
+	return string(LogFormatConsole)
+}
+
 func (f *LogFormat) String() string {
 	if f == nil {
-		return ""
+		return f.zero()
 	}
 	return string(*f)
+}
+
+func (f *LogFormat) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapEncoder)
 }
 
 // +kubebuilder:validation:Enum=epoch;millis;nano;iso8601;rfc3339;rfc3339nano
 type LogTimeEncoding string
 
+func (e *LogTimeEncoding) zero() string {
+	return string(TimeEncodingRFC3339)
+}
+
 func (e *LogTimeEncoding) String() string {
 	if e == nil {
-		return ""
+		return e.zero()
 	}
 	return string(*e)
+}
+
+func (e *LogTimeEncoding) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapTimeEncoding)
 }
 
 type LoggingOperatorCfg struct {
 	Level        *OperatorLogLevel `json:"level,omitempty"`
 	Format       *LogFormat        `json:"format,omitempty"`
 	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
+}
+
+func (o *LoggingOperatorCfg) list() []api.MatchStringer {
+	return []api.MatchStringer{
+		o.Level,
+		o.Format,
+		o.TimeEncoding,
+	}
+}
+
+func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
+	for _, cfgProp := range o.list() {
+		if !cfgProp.Match(arg) {
+			return
+		}
+		newValue := cfgProp.String()
+		*arg = newValue
+	}
 }
 
 // +kubebuilder:validation:Enum="0";"4"

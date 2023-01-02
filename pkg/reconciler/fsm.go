@@ -34,97 +34,46 @@ var (
 	toUnstructed     = apirt.DefaultUnstructuredConverter.ToUnstructured
 )
 
-func updateObj(u *unstructured.Unstructured, updateDeployment func(*appsv1.Deployment)) error {
-	var result appsv1.Deployment
+// updates given object by applying provided function with given data
+func updateObj[T any, R any](u *unstructured.Unstructured, data R, update func(T, R) error) error {
+	var result T
 	err := fromUnstructured(u.Object, &result)
 	if err != nil {
 		return err
 	}
 
-	updateDeployment(&result)
-	u.Object, err = toUnstructed(&result)
-	return err
-}
-
-type argumentPredicate func(*string) (string, bool)
-
-var (
-	isLevel = func(s *string) (string, bool) {
-		return zapLogLevel, s != nil && strings.HasPrefix(*s, zapLogLevel)
-	}
-	isFormat = func(s *string) (string, bool) {
-		return zapEncoder, s != nil && strings.HasPrefix(*s, zapEncoder)
-	}
-	isTimeEncoding = func(s *string) (string, bool) {
-		return zapTimeEncoding, s != nil && strings.HasPrefix(*s, zapTimeEncoding)
-	}
-)
-
-func updateLogArgument(cfg v1alpha1.LoggingOperatorCfg, arg *string) {
-	for _, pkv := range []struct {
-		p argumentPredicate
-		v string
-		d string
-	}{
-		{
-			p: isLevel,
-			v: cfg.Level.String(),
-			d: "info",
-		},
-		{
-			p: isFormat,
-			v: cfg.Format.String(),
-			d: "console",
-		},
-		{
-			p: isTimeEncoding,
-			v: cfg.TimeEncoding.String(),
-			d: "rfc3339",
-		},
-	} {
-		key, ok := pkv.p(arg)
-		if !ok {
-			continue
-		}
-		value := pkv.v
-		if value == "" {
-			value = pkv.d
-		}
-		result := fmt.Sprintf("%s=%s", key, value)
-		*arg = result
-		return
-	}
-}
-
-func (c *Cfg) operatorDeployment() *unstructured.Unstructured {
-	for i := range c.Objs {
-		if !isOperator(c.Objs[i]) {
-			continue
-		}
-
-		return &c.Objs[i]
-	}
-	return nil
-}
-
-func (cfg *Cfg) updateOperatorLogging2(logCfg v1alpha1.LoggingOperatorCfg) error {
-	u := cfg.operatorDeployment()
-	if u == nil {
-		return fmt.Errorf("%w: operator object", ErrNotFound)
-	}
-
-	var deployment appsv1.Deployment
-	err := fromUnstructured(u.Object, &deployment)
+	err = update(result, data)
 	if err != nil {
 		return err
 	}
 
-	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
-		updateLogArgument(logCfg, &deployment.Spec.Template.Spec.Containers[0].Args[i])
-	}
-
-	u.Object, err = toUnstructed(&deployment)
+	u.Object, err = toUnstructed(&result)
 	return err
+}
+
+func (c *Cfg) kedaOperatorDeployment() (*unstructured.Unstructured, error) {
+	for i := range c.Objs {
+		if !isKedaOperatorDeployment(c.Objs[i]) {
+			continue
+		}
+		return &c.Objs[i], nil
+	}
+	return nil, fmt.Errorf("%w: operator object", ErrNotFound)
+}
+
+func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingOperatorCfg) error {
+	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
+		logCfg.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
+	}
+	return nil
+}
+
+func (cfg *Cfg) updateOperatorLogging(logCfg v1alpha1.LoggingOperatorCfg) error {
+	u, err := cfg.kedaOperatorDeployment()
+	if err != nil {
+		return err
+	}
+	return updateObj(u, logCfg, updateKedaOperatorContainer0Args)
 }
 
 // the state of controlled system (k8s cluster)
@@ -135,18 +84,12 @@ type systemState struct {
 	objs []unstructured.Unstructured
 }
 
-const (
-	operatorName    = "keda-manager"
-	zapLogLevel     = "--zap-log-level"
-	zapEncoder      = "--zap-encoder"
-	zapTimeEncoding = "--zap-time-encoding"
-)
+const operatorName = "keda-manager"
 
 type predicate func(unstructured.Unstructured) bool
 
 var (
-	ErrContextDone = errors.New("context done")
-	ErrNotFound    = errors.New("not found")
+	ErrNotFound = errors.New("not found")
 
 	hasOperatorName predicate = func(u unstructured.Unstructured) bool {
 		return u.GetName() == operatorName
@@ -155,30 +98,10 @@ var (
 		return u.GetKind() == "Deployment" &&
 			u.GetAPIVersion() == "apps/v1"
 	}
-	isOperator predicate = func(u unstructured.Unstructured) bool {
+	isKedaOperatorDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasOperatorName(u) && isDeployment(u)
 	}
 )
-
-func updateOperatorArgs(cfg v1alpha1.LoggingOperatorCfg, d *appsv1.Deployment) {
-	for i, arg := range d.Spec.Template.Spec.Containers[0].Args {
-
-		if cfg.Level != nil && strings.HasPrefix(arg, zapLogLevel) {
-			d.Spec.Template.Spec.Containers[0].Args[i] =
-				fmt.Sprintf("%s=%s", zapLogLevel, *cfg.Level)
-		}
-
-		if cfg.Format != nil && strings.HasPrefix(arg, zapEncoder) {
-			d.Spec.Template.Spec.Containers[0].Args[i] =
-				fmt.Sprintf("%s=%s", zapEncoder, *cfg.Format)
-		}
-
-		if cfg.TimeEncoding != nil && strings.HasPrefix(arg, zapTimeEncoding) {
-			d.Spec.Template.Spec.Containers[0].Args[i] =
-				fmt.Sprintf("%s=%s", zapTimeEncoding, *cfg.TimeEncoding)
-		}
-	}
-}
 
 type K8s struct {
 	client.Client

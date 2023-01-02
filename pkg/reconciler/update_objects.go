@@ -15,7 +15,7 @@ func sFnUpdate(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resu
 }
 
 func sFnUpdateKedaDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	if err := r.updateOperatorLogging2(*s.instance.Spec.Logging.Operator); err != nil {
+	if err := r.updateOperatorLogging(*s.instance.Spec.Logging.Operator); err != nil {
 		return stopWithError(err)
 	}
 	return switchState(sFnApply)

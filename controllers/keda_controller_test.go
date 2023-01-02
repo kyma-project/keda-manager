@@ -3,9 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
-	"testing"
-	"text/template"
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -371,35 +368,4 @@ func (h *testHelper) createNamespace() {
 	}
 	Expect(k8sClient.Create(h.ctx, &namespace)).To(Succeed())
 	By(fmt.Sprintf("Namespace created: %s", h.namespaceName))
-}
-
-func TestMe(t *testing.T) {
-	tpl, err := template.New("crd").ParseFiles("/tmp/templated.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	type Crds struct {
-		Install bool `json:"install"`
-	}
-
-	type Operator struct {
-		Name string `json:"name"`
-	}
-
-	type Values struct {
-		Crds     Crds     `json:"crds"`
-		Operator Operator `json:"operator"`
-	}
-
-	if err = tpl.ExecuteTemplate(os.Stdout, "crd", Values{
-		Crds: Crds{
-			Install: true,
-		},
-		Operator: Operator{
-			Name: "test-me",
-		},
-	}); err != nil {
-		t.Fatal(err)
-	}
 }

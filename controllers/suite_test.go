@@ -24,6 +24,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	uzap "go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"k8s.io/client-go/kubernetes/scheme"
@@ -33,8 +35,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	_ "github.com/kyma-project/keda-manager/api/v1alpha1"
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/pkg/reconciler"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -79,14 +81,22 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	config := uzap.NewDevelopmentConfig()
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.Encoding = "json"
+	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
+
+	kedaLogger, err := config.Build()
+	Expect(err).NotTo(HaveOccurred())
+
 	err = (&kedaReconciler{
-		//		Reconciler: reconciler.Reconciler{
-		//			Client: k8sManager.GetClient(),
-		//			Config: reconciler.Config{
-		//				Prototype: &v1alpha1.Keda{},
-		//				Finalizer: "keda-manager.kyma-project.io/deletion-hook",
-		//			},
-		//		},
+		log: kedaLogger.Sugar(),
+		K8s: reconciler.K8s{
+			Client: k8sManager.GetClient(),
+		},
+		Cfg: reconciler.Cfg{
+			Finalizer: "keda-manager.kyma-project.io/deletion-hook",
+		},
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
