@@ -61,7 +61,24 @@ func (c *Cfg) kedaOperatorDeployment() (*unstructured.Unstructured, error) {
 	return nil, fmt.Errorf("%w: operator object", ErrNotFound)
 }
 
+func (c *Cfg) kedaMatricsServerDeployment() (*unstructured.Unstructured, error) {
+	for i := range c.Objs {
+		if !isKedaMatricsServerDeployment(c.Objs[i]) {
+			continue
+		}
+		return &c.Objs[i], nil
+	}
+	return nil, fmt.Errorf("%w: matrics server object", ErrNotFound)
+}
+
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingOperatorCfg) error {
+	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
+		logCfg.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
+	}
+	return nil
+}
+
+func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingMetricsSrvCfg) error {
 	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
 		logCfg.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
 	}
@@ -76,6 +93,14 @@ func (cfg *Cfg) updateOperatorLogging(logCfg v1alpha1.LoggingOperatorCfg) error 
 	return updateObj(u, logCfg, updateKedaOperatorContainer0Args)
 }
 
+func (cfg *Cfg) updateMatricsServerLogging(logCfg v1alpha1.LoggingMetricsSrvCfg) error {
+	u, err := cfg.kedaMatricsServerDeployment()
+	if err != nil {
+		return err
+	}
+	return updateObj(u, logCfg, updateKedaMetricsServerContainer0Args)
+}
+
 // the state of controlled system (k8s cluster)
 type systemState struct {
 	instance v1alpha1.Keda
@@ -85,6 +110,7 @@ type systemState struct {
 }
 
 const operatorName = "keda-manager"
+const matricsServerName = "keda-manager-metrics-apiserver"
 
 type predicate func(unstructured.Unstructured) bool
 
@@ -94,12 +120,18 @@ var (
 	hasOperatorName predicate = func(u unstructured.Unstructured) bool {
 		return u.GetName() == operatorName
 	}
+	hasMatricsServerName predicate = func(u unstructured.Unstructured) bool {
+		return u.GetName() == matricsServerName
+	}
 	isDeployment predicate = func(u unstructured.Unstructured) bool {
 		return u.GetKind() == "Deployment" &&
 			u.GetAPIVersion() == "apps/v1"
 	}
 	isKedaOperatorDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasOperatorName(u) && isDeployment(u)
+	}
+	isKedaMatricsServerDeployment predicate = func(u unstructured.Unstructured) bool {
+		return hasMatricsServerName(u) && isDeployment(u)
 	}
 )
 

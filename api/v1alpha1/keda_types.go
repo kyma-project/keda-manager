@@ -56,6 +56,8 @@ const (
 	zapLogLevel     = "--zap-log-level"
 	zapEncoder      = "--zap-encoder"
 	zapTimeEncoding = "--zap-time-encoding"
+
+	vMetricServerLogLevel = "--v"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
@@ -131,7 +133,7 @@ func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
 		if !cfgProp.Match(arg) {
 			return
 		}
-		newValue := cfgProp.String()
+		newValue := strings.Split(*arg, "=")[0] + "=" + cfgProp.String()
 		*arg = newValue
 	}
 }
@@ -139,8 +141,36 @@ func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
 // +kubebuilder:validation:Enum="0";"4"
 type MetricsServerLogLevel string
 
+func (l *MetricsServerLogLevel) zero() string {
+	return string(MetricsServerLogLevelInfo)
+}
+
+func (l *MetricsServerLogLevel) String() string {
+	if l == nil {
+		return l.zero()
+	}
+	return string(*l)
+}
+
+func (l *MetricsServerLogLevel) Match(s *string) bool {
+	return strings.HasPrefix(*s, vMetricServerLogLevel)
+}
+
 type LoggingMetricsSrvCfg struct {
 	Level *MetricsServerLogLevel `json:"level,omitempty"`
+}
+
+func (o *LoggingMetricsSrvCfg) list() []api.MatchStringer {
+	return []api.MatchStringer{o.Level}
+}
+
+func (o *LoggingMetricsSrvCfg) UpdateArg(arg *string) {
+	for _, cfgProp := range o.list() {
+		if !cfgProp.Match(arg) {
+			return
+		}
+		*arg = vMetricServerLogLevel + "=" + cfgProp.String()
+	}
 }
 
 type LoggingCfg struct {
