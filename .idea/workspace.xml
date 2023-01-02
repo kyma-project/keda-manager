@@ -5,15 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="62cdce94-ebd1-4a7e-a26a-f41b7d7f49ba" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/operator/controllers/keda_controller_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/operator/controllers/keda_controller_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/operator/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/operator/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/v1alpha1/keda_types.go" beforeDir="false" afterPath="$PROJECT_DIR$/api/v1alpha1/keda_types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/samples/operator_v1alpha1_keda.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/samples/operator_v1alpha1_keda.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/reconciler/fsm.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/reconciler/fsm.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/reconciler/update_objects.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/reconciler/update_objects.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="GOROOT" url="file:///opt/homebrew/Cellar/go/1.19.1/libexec" />
+  <component name="GOROOT" url="file:///usr/local/opt/go/libexec" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -28,27 +31,46 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/I567085/src/2022jul/keda-manager/operator/controllers/testdata/templates"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.vendoring.notification.had.been.shown&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/mk/go/src/github.com/kyma-project/keda-manager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/operator/controllers/testdata/templates" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.Test pio (1)">
+  <component name="RunManager" selected="Go Build.go build github.com/kyma-project/keda-manager">
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="keda-manager" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build github.com/kyma-project/keda-manager" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="keda-manager" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/kyma-project/keda-manager" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
+      <method v="2" />
+    </configuration>
     <configuration name="Test pio (1)" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="keda-manager" />
       <working_directory value="$PROJECT_DIR$/operator/controllers" />
@@ -79,12 +101,24 @@
       <pattern value="^\QTestAPIs\E$" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+      <module name="keda-manager" />
+      <working_directory value="$PROJECT_DIR$" />
+      <go_parameters value="-i" />
+      <kind value="DIRECTORY" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <list>
+      <item itemvalue="Go Build.go build github.com/kyma-project/keda-manager" />
       <item itemvalue="Go Test.Test pio (1)" />
       <item itemvalue="Go Test.TestAPIs in github.com/kyma-project/keda-manager/operator/controllers" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Build.go build github.com/kyma-project/keda-manager" />
         <item itemvalue="Go Test.TestAPIs in github.com/kyma-project/keda-manager/operator/controllers" />
       </list>
     </recent_temporary>
@@ -121,7 +155,7 @@
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$USER_HOME$/Go/pkg/mod/helm.sh/helm/v3@v3.9.4/pkg/kube/ready.go</url>
+          <url>file://$PROJECT_DIR$/../../../../pkg/mod/helm.sh/helm/v3@v3.9.4/pkg/kube/ready.go</url>
           <line>125</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>

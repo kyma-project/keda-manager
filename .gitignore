@@ -19,10 +19,12 @@ testbin/*
 
 # editor and IDE paraphernalia
 .idea
+.fleet
 *.swp
 *.swo
 *~
 
+__debug_bin
 mod
 bin
 charts
