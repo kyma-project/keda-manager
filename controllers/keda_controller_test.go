@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/apimachinery/pkg/api/resource"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	rtypes "github.com/kyma-project/module-manager/pkg/types"
-
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	rtypes "github.com/kyma-project/module-manager/pkg/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("Keda controller", func() {
@@ -67,7 +65,7 @@ var _ = Describe("Keda controller", func() {
 						},
 					},
 				},
-				Env: []v1alpha1.NameValue{
+				Env: []corev1.EnvVar{
 					{
 						Name:  "some-env-name",
 						Value: "some-env-value",
@@ -94,7 +92,7 @@ var _ = Describe("Keda controller", func() {
 			shouldPropagateKedaCrdSpecProperties(h, kedaDeploymentName, metricsDeploymentName, kedaSpec)
 
 			//TODO: disabled because of bug in operator (https://github.com/kyma-project/module-manager/issues/94)
-			//shouldUpdateKeda(h, kedaName, kedaDeploymentName)
+			shouldUpdateKeda(h, kedaName, kedaDeploymentName)
 
 			shouldDeleteKeda(h, kedaName)
 		})
@@ -147,7 +145,7 @@ func shouldUpdateKeda(h testHelper, kedaName string, kedaDeploymentName string) 
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	newTestEnv := v1alpha1.NameValue{
+	newTestEnv := corev1.EnvVar{
 		Name:  "update-test-env-key",
 		Value: "update-test-env-value",
 	}
@@ -157,14 +155,11 @@ func shouldUpdateKeda(h testHelper, kedaName string, kedaDeploymentName string) 
 	Expect(k8sClient.Update(h.ctx, &keda)).To(Succeed())
 
 	// assert
-	var deployment appsv1.Deployment
-	Eventually(h.createGetKubernetesObjectFunc(kedaDeploymentName, &deployment)).
+	Eventually(h.createGetDeploymentContainer0Env(kedaDeploymentName)).
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 10).
-		Should(BeTrue())
+		Should(ContainElement(newTestEnv))
 
-	expectedEnv := ToEnvVar(newTestEnv)
-	Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(ContainElement(expectedEnv))
 }
 
 func shouldPropagateKedaCrdSpecProperties(h testHelper, kedaDeploymentName string, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
@@ -180,8 +175,6 @@ func checkKedaCrdSpecPropertyPropagationToKedaDeployment(h testHelper, kedaDeplo
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	expectedEnvs := ToEnvVars(kedaSpec.Env)
-
 	// assert
 	firstContainer := kedaDeployment.Spec.Template.Spec.Containers[0]
 	Expect(firstContainer.Args).
@@ -193,7 +186,7 @@ func checkKedaCrdSpecPropertyPropagationToKedaDeployment(h testHelper, kedaDeplo
 
 	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.Operator))
 
-	Expect(firstContainer.Env).To(ContainElements(expectedEnvs))
+	Expect(firstContainer.Env).To(ContainElements(kedaSpec.Env))
 }
 
 func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
@@ -204,8 +197,6 @@ func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metric
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	expectedEnvs := ToEnvVars(kedaSpec.Env)
-
 	// assert
 	firstContainer := metricsDeployment.Spec.Template.Spec.Containers[0]
 	Expect(firstContainer.Args).
@@ -213,22 +204,7 @@ func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metric
 
 	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.MetricsServer))
 
-	Expect(firstContainer.Env).To(ContainElements(expectedEnvs))
-}
-
-func ToEnvVar(nv v1alpha1.NameValue) corev1.EnvVar {
-	return corev1.EnvVar{
-		Name:  nv.Name,
-		Value: nv.Value,
-	}
-}
-
-func ToEnvVars(nvs []v1alpha1.NameValue) []corev1.EnvVar {
-	var result []corev1.EnvVar
-	for _, nv := range nvs {
-		result = append(result, ToEnvVar(nv))
-	}
-	return result
+	Expect(firstContainer.Env).To(ContainElements(kedaSpec.Env))
 }
 
 type testHelper struct {
@@ -259,7 +235,8 @@ func (h *testHelper) getKedaState(kedaName string) (rtypes.State, error) {
 	if err != nil {
 		return emptyState, err
 	}
-	return keda.Status.State, nil
+	// FIXME make sure to fix this
+	return rtypes.State(keda.Status.State), nil
 }
 
 func (h *testHelper) createGetKubernetesObjectFunc(serviceAccountName string, obj client.Object) func() (bool, error) {
@@ -273,6 +250,21 @@ func (h *testHelper) createGetKubernetesObjectFunc(serviceAccountName string, ob
 			return false, err
 		}
 		return true, err
+	}
+}
+
+func (h *testHelper) createGetDeploymentContainer0Env(name string) func() ([]corev1.EnvVar, error) {
+	return func() ([]corev1.EnvVar, error) {
+		var deployment appsv1.Deployment
+		key := types.NamespacedName{
+			Name:      name,
+			Namespace: h.namespaceName,
+		}
+		err := k8sClient.Get(h.ctx, key, &deployment)
+		if err != nil {
+			return nil, err
+		}
+		return deployment.Spec.Template.Spec.Containers[0].Env, nil
 	}
 }
 

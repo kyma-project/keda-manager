@@ -20,46 +20,43 @@ func TestHasExistingKedaInstallation(t *testing.T) {
 	}{
 		{
 			name:    "No deployments on the cluster",
-			c:       fake.NewFakeClient(),
+			c:       fake.NewClientBuilder().Build(),
 			want:    false,
 			wantErr: false,
 		},
 		{
 			name: "No deployment on the cluster matching the Keda Labels",
-			c: fake.NewFakeClient(
+			c: fake.NewClientBuilder().WithObjects(
 				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{Name: "d1", Labels: map[string]string{"test": "test"}},
-				},
-			),
+				}).Build(),
 			want:    false,
 			wantErr: false,
 		},
 		{
 			name: "One deployment with Keda matching Labels",
-			c: fake.NewFakeClient(
+			c: fake.NewClientBuilder().WithObjects(
 				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{Name: "d1", Labels: kedaCoreLabels},
-				},
-			),
+				}).Build(),
 			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "Multiple deployments with Keda matching Labels",
-			c: fake.NewFakeClient(
+			c: fake.NewClientBuilder().WithObjects(
 				&appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "d1", Labels: kedaCoreLabels}},
 				&appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: "d2", Labels: kedaCoreLabels}},
-			),
+			).Build(),
 			want:    true,
 			wantErr: false,
 		},
 		{
 			name: "One deployment with partially matching labels",
-			c: fake.NewFakeClient(
+			c: fake.NewClientBuilder().WithObjects(
 				&appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{Name: "d1", Labels: map[string]string{"app": "keda-operator", "test": "test"}},
-				},
-			),
+				}).Build(),
 			want:    false,
 			wantErr: false,
 		},
