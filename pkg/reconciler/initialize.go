@@ -22,7 +22,7 @@ func sFnInitialize(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 			return stopWithErrorAnNoRequeue(err)
 		}
 
-		s.instance.UpdateStateInitialized(
+		s.instance.UpdateStateProcessing(
 			v1alpha1.ConditionTypeInstalled,
 			v1alpha1.ConditionReasonInitialized,
 			"initialized",

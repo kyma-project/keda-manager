@@ -32,6 +32,10 @@ type ConditionReason string
 type ConditionType string
 
 const (
+	StateReady      = "Ready"
+	StateError      = "Error"
+	StateProcessing = "Processing"
+
 	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
 	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
 	ConditionReasonVerified            = ConditionReason("Verified")
@@ -273,7 +277,7 @@ type Keda struct {
 }
 
 func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error) {
-	k.Status.State = "Error"
+	k.Status.State = StateError
 	condition := metav1.Condition{
 		Type:               string(c),
 		Status:             "False",
@@ -285,7 +289,7 @@ func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error)
 }
 
 func (k *Keda) UpdateStateReady(c ConditionType, r ConditionReason, msg string) {
-	k.Status.State = "Ready"
+	k.Status.State = StateReady
 	condition := metav1.Condition{
 		Type:               string(c),
 		Status:             "True",
@@ -297,19 +301,7 @@ func (k *Keda) UpdateStateReady(c ConditionType, r ConditionReason, msg string) 
 }
 
 func (k *Keda) UpdateStateProcessing(c ConditionType, r ConditionReason, msg string) {
-	k.Status.State = "Processing"
-	condition := metav1.Condition{
-		Type:               string(c),
-		Status:             "Unknown",
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(r),
-		Message:            msg,
-	}
-	meta.SetStatusCondition(&k.Status.Conditions, condition)
-}
-
-func (k *Keda) UpdateStateInitialized(c ConditionType, r ConditionReason, msg string) {
-	k.Status.State = "Initialized"
+	k.Status.State = StateProcessing
 	condition := metav1.Condition{
 		Type:               string(c),
 		Status:             "Unknown",
