@@ -17,15 +17,33 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kyma-project/module-manager/pkg/types"
+	"fmt"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/api/meta"
+
+	"github.com/kyma-project/keda-manager/pkg/reconciler/api"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ConditionReason string
+
+type ConditionType string
+
 const (
-	OperatorLogLevelDebug = OperatorLogLevel("debug")
-	OperatorLogLevelInfo  = OperatorLogLevel("info")
-	OperatorLogLevelError = OperatorLogLevel("error")
+	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
+	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
+	ConditionReasonVerified            = ConditionReason("Verified")
+	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
+	ConditionReasonVerification        = ConditionReason("Verification")
+	ConditionReasonInitialized         = ConditionReason("Initialized")
+	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
+
+	ConditionTypeInstalled = ConditionType("Installed")
+	OperatorLogLevelDebug  = OperatorLogLevel("debug")
+	OperatorLogLevelInfo   = OperatorLogLevel("info")
+	OperatorLogLevelError  = OperatorLogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")
@@ -39,16 +57,71 @@ const (
 
 	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
 	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
+
+	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
+
+	zapLogLevel           = "--zap-log-level"
+	zapEncoder            = "--zap-encoder"
+	zapTimeEncoding       = "--zap-time-encoding"
+	vMetricServerLogLevel = "--v"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
 type OperatorLogLevel string
 
+func (l *OperatorLogLevel) zero() string {
+	return string(OperatorLogLevelInfo)
+}
+
+func (l *OperatorLogLevel) String() string {
+	value := l.zero()
+	if l != nil {
+		value = string(*l)
+	}
+	return fmt.Sprintf("%s=%s", zapLogLevel, value)
+}
+
+func (l *OperatorLogLevel) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapLogLevel)
+}
+
 // +kubebuilder:validation:Enum=json;console
 type LogFormat string
 
+func (f *LogFormat) zero() string {
+	return string(LogFormatConsole)
+}
+
+func (f *LogFormat) String() string {
+	value := f.zero()
+	if f != nil {
+		value = string(*f)
+	}
+	return fmt.Sprintf("%s=%s", zapEncoder, value)
+}
+
+func (f *LogFormat) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapEncoder)
+}
+
 // +kubebuilder:validation:Enum=epoch;millis;nano;iso8601;rfc3339;rfc3339nano
 type LogTimeEncoding string
+
+func (e *LogTimeEncoding) zero() string {
+	return string(TimeEncodingRFC3339)
+}
+
+func (e *LogTimeEncoding) String() string {
+	value := e.zero()
+	if e != nil {
+		value = string(*e)
+	}
+	return fmt.Sprintf("%s=%s", zapTimeEncoding, value)
+}
+
+func (e *LogTimeEncoding) Match(s *string) bool {
+	return strings.HasPrefix(*s, zapTimeEncoding)
+}
 
 type LoggingOperatorCfg struct {
 	Level        *OperatorLogLevel `json:"level,omitempty"`
@@ -56,11 +129,57 @@ type LoggingOperatorCfg struct {
 	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
 }
 
+func (o *LoggingOperatorCfg) list() []api.MatchStringer {
+	return []api.MatchStringer{
+		o.Level,
+		o.Format,
+		o.TimeEncoding,
+	}
+}
+
+func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
+	for _, cfgProp := range o.list() {
+		if !cfgProp.Match(arg) {
+			continue
+		}
+		*arg = cfgProp.String()
+	}
+}
+
 // +kubebuilder:validation:Enum="0";"4"
 type MetricsServerLogLevel string
 
+func (l *MetricsServerLogLevel) zero() string {
+	return string(MetricsServerLogLevelInfo)
+}
+
+func (l *MetricsServerLogLevel) String() string {
+	value := l.zero()
+	if l != nil {
+		value = string(*l)
+	}
+	return fmt.Sprintf("%s=%s", vMetricServerLogLevel, value)
+}
+
+func (l *MetricsServerLogLevel) Match(s *string) bool {
+	return strings.HasPrefix(*s, vMetricServerLogLevel)
+}
+
 type LoggingMetricsSrvCfg struct {
 	Level *MetricsServerLogLevel `json:"level,omitempty"`
+}
+
+func (o *LoggingMetricsSrvCfg) list() []api.MatchStringer {
+	return []api.MatchStringer{o.Level}
+}
+
+func (o *LoggingMetricsSrvCfg) UpdateArg(arg *string) {
+	for _, cfgProp := range o.list() {
+		if !cfgProp.Match(arg) {
+			continue
+		}
+		*arg = cfgProp.String()
+	}
 }
 
 type LoggingCfg struct {
@@ -73,28 +192,137 @@ type Resources struct {
 	MetricsServer *corev1.ResourceRequirements `json:"metricServer,omitempty"`
 }
 
-type NameValue struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
 	Logging   *LoggingCfg `json:"logging,omitempty"`
 	Resources *Resources  `json:"resources,omitempty"`
-	Env       []NameValue `json:"env,omitempty"`
+	Env       EnvVars     `json:"env,omitempty"`
+}
+
+type EnvVars []corev1.EnvVar
+
+var (
+	watchNamespace = corev1.EnvVar{
+		Name:  "WATCH_NAMESPACE",
+		Value: "",
+	}
+	podName = corev1.EnvVar{
+		Name: "POD_NAME",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			},
+		},
+	}
+	operatorName = corev1.EnvVar{
+		Name:  "OPERATOR_NAME",
+		Value: "keda-manager",
+	}
+	kedaHTTPdefaultTimeout = corev1.EnvVar{
+		Name:  "KEDA_HTTP_DEFAULT_TIMEOUT",
+		Value: "3000",
+	}
+)
+
+func (v *EnvVars) zero() []corev1.EnvVar {
+	return []corev1.EnvVar{
+		watchNamespace,
+		podName,
+		operatorName,
+		kedaHTTPdefaultTimeout,
+	}
+}
+
+func contains(envs []corev1.EnvVar, e corev1.EnvVar) bool {
+	for _, env := range envs {
+		if env.Name == e.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func (v *EnvVars) Sanitize() {
+	if v == nil {
+		result := v.zero()
+		*v = result
+	}
+
+	var required []corev1.EnvVar
+	for _, env := range v.zero() {
+		if !contains(*v, env) {
+			required = append(required, env)
+		}
+	}
+	*v = append(*v, required...)
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="generation",type="integer",JSONPath=".metadata.generation"
+//+kubebuilder:printcolumn:name="age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="state",type="string",JSONPath=".status.state"
 
 // Keda is the Schema for the kedas API
 type Keda struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KedaSpec     `json:"spec,omitempty"`
-	Status types.Status `json:"status,omitempty"`
+	Spec   KedaSpec `json:"spec,omitempty"`
+	Status Status   `json:"status,omitempty"`
+}
+
+func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error) {
+	k.Status.State = "Error"
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "False",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            err.Error(),
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateReady(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = "Ready"
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "True",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateProcessing(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = "Processing"
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "Unknown",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateInitialized(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = "Initialized"
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "Unknown",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+type Status struct {
+	State      string             `json:"state"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -108,18 +336,4 @@ type KedaList struct {
 
 func init() {
 	SchemeBuilder.Register(&Keda{}, &KedaList{})
-}
-
-var _ types.CustomObject = &Keda{}
-
-func (s *Keda) GetStatus() types.Status {
-	return s.Status
-}
-
-func (s *Keda) SetStatus(status types.Status) {
-	s.Status = status
-}
-
-func (s *Keda) ComponentName() string {
-	return "keda"
 }
