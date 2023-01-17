@@ -25,10 +25,14 @@ delete-k3d-cluster:
 
 .PHONY: create-k3d
 create-k3d: 
-	${KYMA} provision k3d --registry-port ${REGISTRY_PORT} --name ${CLUSTER_NAME}
+	${KYMA} provision k3d --registry-port ${REGISTRY_PORT} --name ${CLUSTER_NAME} --ci
 
 .PHONY: delete-k3d
 delete-k3d: delete-k3d-cluster delete-k3d-registry
+
+.PHONY: create-kyma-system-ns
+create-kyma-system-ns:
+	kubectl create ns kyma-system
 
 .PHONY: module-image
 module-image:
@@ -74,7 +78,16 @@ install-module:
 		--template=${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
-run: kyma create-k3d module-image yq-install module-build fix-template install-module patch-mod-mgr-role enable-module verify
+run: kyma \
+	create-k3d \
+	create-kyma-system-ns \
+	module-image \
+	yq-install \
+	module-build \
+	fix-template \
+	install-module \
+	patch-mod-mgr-role \
+	enable-module verify
 
 .PHONY: stop
 stop: delete-k3d
