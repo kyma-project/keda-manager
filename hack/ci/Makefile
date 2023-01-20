@@ -30,7 +30,7 @@ all: module-build module-template-print
 
 .PHONY: integration-test
 integration-test:
-	echo "tests not implemented yet"
+	@echo "tests not implemented yet"
 
 .PHONY: k3d-integration-test
 k3d-integration-test:
