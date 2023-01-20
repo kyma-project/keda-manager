@@ -121,12 +121,28 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+docker-build: ## Build docker image with the manager.
 	IMG=$(IMG) docker build -t ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
+
+##@ Local
+
+.PHONY: local-run
+local-run:
+	make -C hack/local run
+
+.PHONY: local-stop
+local-stop:
+	make -C hack/local stop
+
+##@ CI
+
+.PHONY: ci-k3d-integration-test
+ci-k3d-integration-test:
+	make -C hack/ci k3d-integration-test
 
 ##@ Deployment
 
