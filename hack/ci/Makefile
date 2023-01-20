@@ -1,5 +1,4 @@
 PROJECT_ROOT ?= ../..
-PROJECT_KEDA_LOCAL ?= ${PROJECT_ROOT}/hack/local/keda
 
 include ${PROJECT_ROOT}/.env
 
@@ -31,8 +30,3 @@ all: module-build module-template-print
 .PHONY: integration-test
 integration-test:
 	@echo "tests not implemented yet"
-
-.PHONY: k3d-integration-test
-k3d-integration-test:
-	make -C ${PROJECT_KEDA_LOCAL} run
-	make integration-test
