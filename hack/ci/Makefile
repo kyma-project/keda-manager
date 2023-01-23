@@ -1,4 +1,5 @@
 PROJECT_ROOT ?= ../..
+PROJECT_KEDA_LOCAL ?= ${PROJECT_ROOT}/hack/local/keda
 
 include ${PROJECT_ROOT}/.env
 
@@ -29,4 +30,4 @@ all: module-build module-template-print
 
 .PHONY: integration-test
 integration-test:
-	@echo "tests not implemented yet"
+	cd ${PROJECT_ROOT}/test && go run main.go
