@@ -1,5 +1,5 @@
 # These are the default owners for the whole content of the `keda-manager` repository. The default owners are automatically added as reviewers when you open a pull request unless different owners are specified in the file.
-* @m00g3n @pPrecel @dbadura @kwiatekus @moelsayed @cortey @anoipm
+* @m00g3n @pPrecel @dbadura @kwiatekus @moelsayed @cortey @anoipm @MichalKalke
 
 # All files and subdirectories in /docs
 /docs/ @mmitoraj @NHingerl @grego952 @IwonaLanger @nataliasitko
