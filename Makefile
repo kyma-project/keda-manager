@@ -144,6 +144,18 @@ local-stop:
 ci-k3d-integration-test: local-run
 	make -C hack/ci integration-test
 
+.PHONY: ci-k3d-upgrade-test
+ci-k3d-upgrade-test: 
+	@echo "upgrade tests not implemented yet"
+
+.PHONY: ci-k3d-k8s-compatibility-test
+ci-k3d-k8s-compatibility-test: 
+	@echo "k8s compatibility tests not implemented yet"
+
+.PHONY: ci-hyperscalers-compatibility-test
+ci-hyperscalers-compatibility-test: 
+	@echo "hyperscalers compatibility tests not implemented yet"
+
 ##@ Deployment
 
 ifndef ignore-not-found
