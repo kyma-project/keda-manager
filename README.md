@@ -218,12 +218,12 @@ cat <<EOF | kubectl apply -f -
 apiVersion: operator.kyma-project.io/v1alpha1
 kind: Keda
 metadata:
-   name: keda-sample
+  name: keda-sample
 spec:
-   dockerRegistry:
-      enableInternal: false
-      registryAddress: k3d-kyma-registry:5000
-      serverAddress: k3d-kyma-registry:5000
+  dockerRegistry:
+    enableInternal: false
+    registryAddress: k3d-kyma-registry:5000
+    serverAddress: k3d-kyma-registry:5000
 EOF
 ```
 
