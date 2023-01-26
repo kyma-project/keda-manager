@@ -207,7 +207,7 @@ kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
-> **NOTE:** keda-manager uses a safe deletion strategy to uninstall the keda module from the cluster. It means that the keda-manager would keep all keda's CRDs on the cluster after the uninstallation process.
+> **NOTE:** `keda-manager` uses a safe deletion strategy to uninstall the keda module from the cluster. It means that `keda-manager` keeps all Keda's CRDs on the cluster after the uninstallation process.
 
 - Update the Keda properties
 
