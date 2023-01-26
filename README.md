@@ -207,6 +207,8 @@ kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
+> **NOTE:** `keda-manager` uses a safe deletion strategy to uninstall the keda module from the cluster. It means that `keda-manager` keeps all Keda's CRDs on the cluster after the uninstallation process.
+
 - Update the Keda properties
 
 This example shows how you can modify the Keda docker registry address using the `keda.operator.kyma-project.io` CR
@@ -224,6 +226,7 @@ spec:
     serverAddress: k3d-kyma-registry:5000
 EOF
 ```
+
 ## Troubleshooting
 
 - For MackBook M1 users
