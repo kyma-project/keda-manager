@@ -65,7 +65,7 @@ See also:
 You should get a result similar to this example:
 
    ```json
-   {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma.project.io/module/keda"]}
+   {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma-project.io/module/keda"]}
    ```
 6. Inspect the generated module template.
 
