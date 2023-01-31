@@ -25,7 +25,7 @@
     required: true
     inputInfo: "Api group and api version of the scale target resource. For example `apps/v1`"
     subscribe:
-      kindChanged: "$root.spec.scaleTargetRef.kind = 'Function'?'function.serverless.kyma-project.io/v1alpha2':'deployment.apps/v1'"
+      kindChanged: "$root.spec.scaleTargetRef.kind = 'Function'?'serverless.kyma-project.io/v1alpha2':'apps/v1'"
   - path: name
     simple: true
     widget: Resource
