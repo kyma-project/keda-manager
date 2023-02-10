@@ -2,9 +2,10 @@ package reconciler
 
 import (
 	"context"
+
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -22,7 +23,7 @@ func sFnVerify(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result
 				v1alpha1.ConditionReasonVerificationErr,
 				err,
 			)
-			return stopWithErrorAnNoRequeue(err)
+			return stopWithErrorAndNoRequeue(err)
 		}
 
 		for _, cond := range deployment.Status.Conditions {

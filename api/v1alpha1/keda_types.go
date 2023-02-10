@@ -35,6 +35,7 @@ const (
 	StateReady      = "Ready"
 	StateError      = "Error"
 	StateProcessing = "Processing"
+	StateDeleting   = "Deleting"
 
 	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
 	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
@@ -42,6 +43,7 @@ const (
 	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
 	ConditionReasonVerification        = ConditionReason("Verification")
 	ConditionReasonInitialized         = ConditionReason("Initialized")
+	ConditionReasonDeletion            = ConditionReason("Deletion")
 	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
 
 	ConditionTypeInstalled = ConditionType("Installed")
@@ -302,6 +304,18 @@ func (k *Keda) UpdateStateReady(c ConditionType, r ConditionReason, msg string) 
 
 func (k *Keda) UpdateStateProcessing(c ConditionType, r ConditionReason, msg string) {
 	k.Status.State = StateProcessing
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "Unknown",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateDeletion(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = StateDeleting
 	condition := metav1.Condition{
 		Type:               string(c),
 		Status:             "Unknown",
