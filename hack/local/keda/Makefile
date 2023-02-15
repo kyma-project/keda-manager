@@ -39,8 +39,12 @@ module-image:
 	@make -C ${PROJECT_ROOT} module-image \
 		IMG=localhost:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
+.PHONY: clean-charts
+clean-charts:
+	@rm -rf ${PROJECT_ROOT}/charts
+
 .PHONY: module-build
-module-build:
+module-build: clean-charts
 	@make -C ${PROJECT_ROOT} module-build \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
 		MODULE_REGISTRY=localhost:${REGISTRY_PORT}/unsigned
@@ -61,15 +65,15 @@ fix-template:
 enable-module:
 	kubectl patch kymas.operator.kyma-project.io \
 		default-kyma \
-		-n kcp-system \
+		-n kyma-system \
 		--type=merge \
 		--patch-file ./k3d-patches/patch-kyma.yaml
 
 .PHONY: patch-mod-mgr-role
 patch-mod-mgr-role:
 	kubectl patch clusterrole \
-		module-manager-manager-role \
-		--patch-file=./k3d-patches/patch-k3d-module-manager-clusterrole.yaml
+		lifecycle-manager-manager-role \
+		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
 
 .PHONY: install-module
 install-module:
