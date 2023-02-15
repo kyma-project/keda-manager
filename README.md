@@ -109,7 +109,7 @@ You should get a result similar to the following example:
 
    ```bash
    NAMESPACE    NAME           STATE   AGE
-   kcp-system   default-kyma   Ready   71s
+   kyma-system  default-kyma   Ready   71s
    ```
 
 Keda Module is a known module, but not yet activated.
@@ -122,7 +122,7 @@ You should get a result similar to the following example:
 
    ```bash
    NAMESPACE    NAME                  AGE
-   kcp-system   moduletemplate-keda   2m24s
+   kyma-system  moduletemplate-keda   2m24s
    ```
 
 8.  Give Module Manager permission to install CRD cluster-wide.
@@ -151,7 +151,7 @@ Add the following element under `rules`:
 9. Enable Keda in the Kyma custom resource (CR).
 
    ```bash
-   kubectl edit kymas.operator.kyma-project.io -n kcp-system default-kyma
+   kubectl edit kymas.operator.kyma-project.io -n kyma-system default-kyma
    ```
 
    Add the following field under `spec`:
