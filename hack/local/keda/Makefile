@@ -61,7 +61,7 @@ fix-template:
 enable-module:
 	kubectl patch kymas.operator.kyma-project.io \
 		default-kyma \
-		-n kcp-system \
+		-n kyma-system \
 		--type=merge \
 		--patch-file ./k3d-patches/patch-kyma.yaml
 
