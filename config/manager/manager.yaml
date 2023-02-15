@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: keda-controller-manager
+  name: keda-manager
   namespace: kyma-system
   labels:
-    control-plane: keda-controller-manager
+    control-plane: keda-manager
 spec:
   selector:
     matchLabels:
-      control-plane: keda-controller-manager
+      control-plane: keda-manager
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: keda-controller-manager
+        control-plane: keda-manager
     spec:
       securityContext:
         runAsNonRoot: true
@@ -53,5 +53,5 @@ spec:
           periodSeconds: 10
         # TODO(user): Configure the resources accordingly based on the project requirements.
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-      serviceAccountName: keda-controller-manager
+      serviceAccountName: keda-manager
       terminationGracePeriodSeconds: 10
