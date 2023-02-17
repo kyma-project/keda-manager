@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: operator
   namespace: kyma-system
 spec:
   template:
@@ -9,11 +9,11 @@ spec:
       containers:
       - name: manager
         args:
-        - "--config=controller_manager_config.yaml"
+        - "--config=keda_operator_config.yaml"
         volumeMounts:
         - name: manager-config
-          mountPath: /controller_manager_config.yaml
-          subPath: controller_manager_config.yaml
+          mountPath: /keda_operator_config.yaml
+          subPath: keda_operator_config.yaml
       volumes:
       - name: manager-config
         configMap:

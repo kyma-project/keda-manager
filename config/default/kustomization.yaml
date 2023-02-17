@@ -6,7 +6,7 @@
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: operator-
+namePrefix: keda-
 
 # Labels to add to all resources and selectors.
 #labels:
@@ -36,5 +36,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: localhost:5001/unsigned/kyma-project.io/module/keda
+  newName: op-kcp-registry.localhost:8888/unsigned/kyma-project.io/module/keda
   newTag: 0.0.1
