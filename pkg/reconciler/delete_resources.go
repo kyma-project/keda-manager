@@ -19,7 +19,7 @@ var (
 	DeletionErr = errors.New("deletion error")
 )
 
-func sFnDeleteResources(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+func sFnDeleteResources(_ context.Context, _ *fsm, _ *systemState) (stateFn, *ctrl.Result, error) {
 	if safeDeleteStrategy {
 		return switchState(sFnSafeDeleteStrategy)
 	}
@@ -35,11 +35,7 @@ func sFnSafeDeleteStrategy(ctx context.Context, r *fsm, s *systemState) (stateFn
 }
 
 func withoutCRDFilter(u unstructured.Unstructured) bool {
-	if u.GroupVersionKind().GroupKind() == apiextensionsv1.Kind("CustomResourceDefinition") {
-		return false
-	}
-
-	return true
+	return u.GroupVersionKind().GroupKind() != apiextensionsv1.Kind("CustomResourceDefinition")
 }
 
 func alwaysTrueFilter(unstructured.Unstructured) bool {
