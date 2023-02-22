@@ -19,7 +19,7 @@ func sFnInitialize(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 
 		err := r.Update(ctx, &s.instance)
 		if err != nil {
-			return stopWithErrorAnNoRequeue(err)
+			return stopWithErrorAndNoRequeue(err)
 		}
 
 		s.instance.UpdateStateProcessing(
