@@ -17,7 +17,7 @@ func sFnUpdateKedaDeployment(_ context.Context, r *fsm, s *systemState) (stateFn
 			v1alpha1.ConditionReasonDeploymentUpdateErr,
 			err,
 		)
-		return stopWithErrorAnNoRequeue(err)
+		return stopWithErrorAndNoRequeue(err)
 	}
 	next := buildSfnUpdateOperatorLogging(u)
 	return switchState(next)
@@ -35,7 +35,7 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 				v1alpha1.ConditionReasonDeploymentUpdateErr,
 				err,
 			)
-			return stopWithErrorAnNoRequeue(err)
+			return stopWithErrorAndNoRequeue(err)
 		}
 		return switchState(next)
 	}
@@ -113,7 +113,7 @@ func sFnUpdateMetricsServerDeployment(_ context.Context, r *fsm, s *systemState)
 			v1alpha1.ConditionReasonDeploymentUpdateErr,
 			err,
 		)
-		return stopWithErrorAnNoRequeue(err)
+		return stopWithErrorAndNoRequeue(err)
 	}
 	next := buildSfnUpdateMetricsSvrLogging(u)
 	return switchState(next)

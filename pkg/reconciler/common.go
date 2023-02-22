@@ -4,7 +4,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func stopWithErrorAnNoRequeue(err error) (stateFn, *ctrl.Result, error) {
+func stopWithErrorAndNoRequeue(err error) (stateFn, *ctrl.Result, error) {
 	return sFnUpdateStatus(nil, err), nil, nil
 }
 
