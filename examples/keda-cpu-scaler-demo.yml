@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keda-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-service
+  namespace: keda-demo
+  labels:
+    app: orders-service
+    example: orders-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-service
+      example: orders-service
+  template:
+    metadata:
+      labels:
+        app: orders-service
+        example: orders-service
+    spec:
+      containers:
+        - name: orders-service
+          image: "eu.gcr.io/kyma-project/develop/orders-service:e8175c63"
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 20m
+              memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+          env:
+            - name: APP_PORT
+              value: "8080"
+            - name: APP_REDIS_PREFIX
+              value: "REDIS_"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service
+  namespace: keda-demo
+  labels:
+    app: orders-service
+    example: orders-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: orders-service
+    example: orders-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: busybox
+  name: busybox
+  namespace: keda-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: busybox
+    spec:
+      containers:
+      - image: busybox
+        name: busybox
+        command:
+         - "/bin/sh"
+         - "-c"
+         - "--"
+        args:
+          - "while true; do sleep $SLEEP; wget -q -O- $URL > /dev/null ; done"
+        env:
+          - name: URL
+            value: orders-service/orders
+          - name: SLEEP
+            value: '0.1'
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: orders-service-cpu-scaler
+  namespace: keda-demo
+spec:
+  scaleTargetRef:
+    name: orders-service
+  minReplicaCount:  1
+  maxReplicaCount:  10    
+  triggers:
+  - type: cpu
+    metadata:
+      type: Utilization
+      value: "30"
