@@ -12,7 +12,7 @@
    kyma provision k3d
    ```
 
-3. Build and push the Keda Manager image.
+3. Build and push the Keda Operator image.
 
    ```bash
    make module-image IMG_REGISTRY=localhost:5001/unsigned/operator-images IMG=localhost:5001/keda-manager-dev-local:0.0.1
@@ -34,7 +34,7 @@ You should get a result similar to this example:
    ```json
    {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma-project.io/module/keda"]}
    ```
-6. Inspect the generated module template.
+1. Inspect the generated module template.
 
 > **NOTE:** The following sub-steps are temporary workarounds.
 
