@@ -6,8 +6,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager
@@ -24,8 +24,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: clustertriggerauthentications.keda.sh
@@ -257,8 +257,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: scaledjobs.keda.sh
@@ -8018,8 +8018,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: scaledobjects.keda.sh
@@ -8404,8 +8404,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: triggerauthentications.keda.sh
@@ -8634,8 +8634,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     creationTimestamp: null
@@ -8744,8 +8744,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-external-metrics-reader
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     creationTimestamp: null
@@ -8766,8 +8766,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager
@@ -8788,8 +8788,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-system-auth-delegator
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager-system-auth-delegator
@@ -8810,8 +8810,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-hpa-controller-external-metrics
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager-hpa-controller-external-metrics
@@ -8832,8 +8832,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-auth-reader
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager-auth-reader
@@ -8855,8 +8855,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-metrics-apiserver
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: keda-manager-metrics-apiserver
@@ -8887,8 +8887,8 @@ metadata:
         app.kubernetes.io/name: keda-manager
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
 spec:
@@ -8904,8 +8904,8 @@ spec:
                 app.kubernetes.io/name: keda-manager
                 helm.sh/chart: keda-2.8.1
                 app.kubernetes.io/component: keda-operator
-                app.kubernetes.io/managed-by: Helm
-                app.kubernetes.io/instance: release-name
+                app.kubernetes.io/managed-by: keda-operator
+                app.kubernetes.io/instance: keda-manager
                 app.kubernetes.io/part-of: keda-manager
                 app.kubernetes.io/version: 2.8.0
         spec:
@@ -8980,8 +8980,8 @@ metadata:
         app.kubernetes.io/name: keda-manager-metrics-apiserver
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
 spec:
@@ -8996,8 +8996,8 @@ spec:
                 app.kubernetes.io/name: keda-manager-metrics-apiserver
                 helm.sh/chart: keda-2.8.1
                 app.kubernetes.io/component: keda-operator
-                app.kubernetes.io/managed-by: Helm
-                app.kubernetes.io/instance: release-name
+                app.kubernetes.io/managed-by: keda-operator
+                app.kubernetes.io/instance: keda-manager
                 app.kubernetes.io/part-of: keda-manager
                 app.kubernetes.io/version: 2.8.0
             annotations:
@@ -9068,8 +9068,8 @@ metadata:
         app.kubernetes.io/name: v1beta1.external.metrics.k8s.io
         helm.sh/chart: keda-2.8.1
         app.kubernetes.io/component: keda-operator
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: keda-operator
+        app.kubernetes.io/instance: keda-manager
         app.kubernetes.io/part-of: keda-manager
         app.kubernetes.io/version: 2.8.0
     name: v1beta1.external.metrics.k8s.io
