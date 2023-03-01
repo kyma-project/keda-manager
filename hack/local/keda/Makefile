@@ -80,7 +80,6 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
-		#--force \ TODO: Uncomment once feature is implemented
 		--template=${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
