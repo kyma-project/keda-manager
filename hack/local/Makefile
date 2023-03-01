@@ -20,3 +20,7 @@ test: run verify
 .PHONY: stop
 stop:
 	@make -C ./keda stop
+
+.PHONY: upgrade-to
+upgrade-to:
+	@make -C ./keda reinstall-keda

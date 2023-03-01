@@ -146,7 +146,7 @@ ci-k3d-integration-test: local-run
 
 .PHONY: ci-k3d-upgrade-test
 ci-k3d-upgrade-test: 
-	@echo "upgrade tests not implemented yet"
+	make -C hack/local upgrade-to
 
 .PHONY: ci-k3d-k8s-compatibility-test
 ci-k3d-k8s-compatibility-test: 

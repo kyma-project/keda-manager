@@ -34,6 +34,7 @@ delete-k3d: delete-k3d-cluster delete-k3d-registry
 create-kyma-system-ns:
 	kubectl create ns kyma-system
 
+
 .PHONY: module-image
 module-image:
 	@make -C ${PROJECT_ROOT} module-image \
@@ -79,12 +80,23 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
+		#--force \ TODO: Uncomment once feature is implemented
 		--template=${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
 run: kyma \
 	create-k3d \
 	create-kyma-system-ns \
+	module-image \
+	yq-install \
+	module-build \
+	fix-template \
+	install-module \
+	patch-mod-mgr-role \
+	enable-module verify
+
+.PHONY: reinstall-keda
+reinstall-keda: kyma \
 	module-image \
 	yq-install \
 	module-build \
