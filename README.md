@@ -95,7 +95,7 @@ Run the following commands to deploy Keda Operator on a target Kubernetes cluste
    ```bash
    kubectl get deployments -n kyma-system       
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   operator-keda-manager            1/1     1            1           1m
+   keda-operator            1/1     1            1           1m
    ```
 
 
@@ -113,7 +113,7 @@ Keda Operator installs KEDA based on the watched Keda CRs:
 
    ```bash
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   operator-keda-manager            1/1     1            1           3m
+   keda-operator                    1/1     1            1           3m
    keda-manager                     1/1     1            1           3m
    keda-manager-metrics-apiserver   1/1     1            1           3m
    ```
@@ -332,7 +332,7 @@ Save section's content in local file.
 kubectl apply -f <saved_module_template_path>
 ```
 
-1. Enable the Keda Operator module by patching Kyma CRD.
+4. Enable the Keda Operator module by patching Kyma CRD.
 
 ```bash
 make -C hack/local/keda enable-module
