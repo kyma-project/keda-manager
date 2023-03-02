@@ -12,7 +12,7 @@
    kyma provision k3d
    ```
 
-3. Build and push the Keda Manager image.
+3. Build and push the Keda Operator image.
 
    ```bash
    make module-image IMG_REGISTRY=localhost:5001/unsigned/operator-images IMG=localhost:5001/keda-manager-dev-local:0.0.1
