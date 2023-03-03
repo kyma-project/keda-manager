@@ -1,0 +1,3 @@
+resources:
+  #- template.yaml
+  - template-k3d.yaml

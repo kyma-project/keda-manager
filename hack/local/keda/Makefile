@@ -6,6 +6,7 @@ MANAGER_IMAGE_NAME ?= keda-manager-dev-local
 MANAGER_IMAGE_TAG ?= 0.0.1
 
 PROJECT_ROOT ?= ../../..
+TEMPLATES_DIR ?= ${PROJECT_ROOT}/config/moduletemplates
 
 TEMPLATE_PATH ?= ${PROJECT_ROOT}/template.yaml
 
@@ -48,7 +49,7 @@ clean-charts:
 module-build: clean-charts
 	@make -C ${PROJECT_ROOT} module-build \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
-		MODULE_REGISTRY=localhost:${REGISTRY_PORT}/unsigned
+		MODULE_REGISTRY=localhost:${REGISTRY_PORT}
 
 .PHONY: yq-install
 yq-install:
@@ -56,11 +57,11 @@ yq-install:
 
 .PHONY: fix-template
 fix-template:
-	@cat ${PROJECT_ROOT}/template.yaml \
+	@cat ${TEMPLATES_DIR}/template.yaml \
 	| sed -e 's/remote/control-plane/g' \
 		-e 's/${REGISTRY_PORT}/5000/g' \
 	      	-e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
-	> ${PROJECT_ROOT}/template-k3d.yaml
+	> ${TEMPLATES_DIR}/template-k3d.yaml
 
 .PHONY: enable-module
 enable-module:
@@ -80,7 +81,7 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
-		--template=${PROJECT_ROOT}/template-k3d.yaml
+		--templates=${TEMPLATES_DIR}
 
 .PHONY: run
 run: kyma \
