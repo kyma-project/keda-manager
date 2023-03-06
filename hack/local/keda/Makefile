@@ -6,7 +6,6 @@ MANAGER_IMAGE_NAME ?= keda-manager-dev-local
 MANAGER_IMAGE_TAG ?= 0.0.1
 
 PROJECT_ROOT ?= ../../..
-TEMPLATES_DIR ?= ${PROJECT_ROOT}/config/moduletemplates
 
 TEMPLATE_PATH ?= ${PROJECT_ROOT}/template.yaml
 
@@ -57,7 +56,7 @@ yq-install:
 
 .PHONY: fix-template
 fix-template:
-	@cat ${TEMPLATES_DIR}/template.yaml \
+	@cat ${PROJECT_ROOT}/template.yaml \
 	| sed -e 's/remote/control-plane/g' \
 		-e 's/${REGISTRY_PORT}/5000/g' \
 	      	-e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
@@ -81,6 +80,7 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
+		--force-conflicts \
 		--templates=${TEMPLATES_DIR}
 
 .PHONY: run
