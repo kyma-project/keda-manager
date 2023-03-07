@@ -211,7 +211,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 .PHONY: yq
 yq: $(YQUERY) ## Download yq locally if necessary.
 $(YQUERY): $(LOCALBIN)
-	test -s $(LOCALBIN)/yq || { go get github.com/mikefarah/yq/$(YQ_VERSION) ; GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/@$(YQ_VERSION) ; }
+	test -s $(LOCALBIN)/yq || { go get github.com/mikefarah/yq/$(YQ_VERSION) ; GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/$(YQ_VERSION) ; }
 
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
