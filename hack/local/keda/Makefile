@@ -81,6 +81,7 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
+		--force-conflicts \
 		--templates=${TEMPLATES_DIR}
 
 .PHONY: run
