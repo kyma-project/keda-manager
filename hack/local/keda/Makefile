@@ -60,7 +60,7 @@ fix-template:
 	| sed -e 's/remote/control-plane/g' \
 		-e 's/${REGISTRY_PORT}/5000/g' \
 	      	-e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
-	> ${TEMPLATES_DIR}/template-k3d.yaml
+	> ${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: enable-module
 enable-module:
@@ -80,8 +80,8 @@ patch-mod-mgr-role:
 install-module:
 	${KYMA} alpha deploy \
 		--ci \
-		--force-conflicts \
-		--templates=${TEMPLATES_DIR}
+		--force-conflicts
+	kubectl apply -f ${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: run
 run: kyma \
