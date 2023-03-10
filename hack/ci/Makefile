@@ -1,5 +1,4 @@
 PROJECT_ROOT ?= ../..
-TEMPLATES_DIR ?= ${PROJECT_ROOT}/config/moduletemplates
 PROJECT_KEDA_LOCAL ?= ${PROJECT_ROOT}/hack/local/keda
 
 include ${PROJECT_ROOT}/.env
@@ -22,7 +21,7 @@ module-build:
 .PHONY: module-template-print
 module-template-print:
 	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${TEMPLATES_DIR}/template.yaml
+	@cat ${PROJECT_ROOT}/template.yaml
 	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 # rename it from 'all' to something more accurate like 'module-build-and-print'
