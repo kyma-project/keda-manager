@@ -2,9 +2,9 @@
 
 function get_kyma_status () {
 	local number=1
-	while [[ $number -le 12*3 ]] ; do
+	while [[ $number -le 100 ]] ; do
 		echo ">--> checking kyma status #$number"
-		local STATUS=$(kubectl get keda -n kyma-system keda-sample -o jsonpath='{.status.state}')
+		local STATUS=$(kubectl get kyma -n kyma-system default-kyma -o jsonpath='{.status.state}')
 		echo "kyma status: ${STATUS:='UNKNOWN'}"
 		[[ "$STATUS" == "Ready" ]] && return 0
 		sleep 5
