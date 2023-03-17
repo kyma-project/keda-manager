@@ -29,21 +29,6 @@
   - path: name
     simple: true
     widget: Resource
-    inputInfo: "Name of the scale target resource"
-    visibility: $root.spec.scaleTargetRef.kind = 'Deployment'
-    overwrite: false
-    resource:
-      kind: Deployment
-      version: v1
-      group: apps
-      scope: namespace
-  - var: dummy
-    simple: false
-    required: false
-    advanced: false
-  - path: name
-    simple: true
-    widget: Resource
     visibility: $root.spec.scaleTargetRef.kind = 'Function'
     overwrite: false
     inputInfo: "Name of the scale target resource"
@@ -51,6 +36,22 @@
       kind: Function
       version: v1alpha2
       group: serverless.kyma-project.io
+      scope: namespace
+  - var: dummy
+    simple: true
+    required: false
+    visibility: false
+    advanced: false
+  - path: name
+    simple: true
+    widget: Resource
+    inputInfo: "Name of the scale target resource"
+    visibility: $root.spec.scaleTargetRef.kind = 'Deployment'
+    overwrite: false
+    resource:
+      kind: Deployment
+      version: v1
+      group: apps
       scope: namespace
 - path: spec.fallback
   widget: FormGroup
