@@ -12,14 +12,14 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
 
 ## Install
 
-To install keda manager simply apply the following script:
+To install keda-manager simply apply the following script:
 
 ```bash
 kubectl create ns kyma-system
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 ```
 
-To get Keda installed, apply the sample KEDA CR:
+To get Keda installed, apply the sample Keda CR:
 
 ```bash
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
