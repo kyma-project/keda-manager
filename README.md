@@ -2,24 +2,28 @@
 
 ## Overview 
 
-Keda Operator is an extension to the Kyma ecosystem that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation. 
+Keda Operator is an extension to the Kyma ecosystem that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
+
+![a](./docs/assets/keda-overview.drawio.svg)
 
 ### What is KEDA?
 
 KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources to make scaling decisions. To learn more about KEDA, see [KEDA documentation](https://keda.sh/docs/latest/concepts/).
 
-### Lifecycles of Keda Operator and KEDA
+## Install
 
-Keda Operator controls the KEDA installation. It follows the control loop principle to manage the lifecycle of the KEDA installations based on the existence and the content of the dedicated Keda custom resource (CR).
+To install keda-manager simply apply the following script:
 
-Taking into account the broader context of the Kyma modularization concept, you must realize that the Keda Operator's lifecycle is also managed by [lifecycle-manager](https://github.com/kyma-project/lifecycle-manager/). The lifecycle-manager controls the lifecycle of various Kyma modules using `Kyma` CR. 
+```bash
+kubectl create ns kyma-system
+kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+```
 
-For example, when you enable the Keda module in the Kyma CR in your Kyma runtime, the lifecycle-manager downloads the bundled package of the Keda Operator and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Operator to install the Keda module.
+To get Keda installed, apply the sample Keda CR:
 
-![a](./docs/assets/keda-overview.drawio.svg)
-
-In order to be consumable by lifecycle-manager, the Keda module (Keda + Keda Operator) has to be bundled in a [specific way](https://github.com/kyma-project/community/tree/main/concepts/modularization#component-packaging-and-versioning) and described using the special Module Template CR.
-
+```bash
+kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+```
 
 ##  Development
 
@@ -48,7 +52,7 @@ The Keda Operator module is scaffolded with `kubebuilder`. For more information 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kubebuilder](https://book.kubebuilder.io/)
 
-### How to deploy Keda Operator
+### Useful Make targets 
 
 You can build and run the Keda Operator in the Kubernetes cluster without Kyma.
 For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's `lifecycle-manager`.
@@ -167,6 +171,15 @@ Keda Operator installs KEDA based on the watched Keda CRs:
 
 This section describes the setup of the Keda module on top of the Kyma installation with `lifecycle manager`.
 In such a setup, you don't need to install Keda Operator, but it is installed and managed by a `lifecycle manager` instead.
+
+### Lifecycle management of Keda Operator in Kyma
+
+When you enable the Keda module in the Kyma CR in your Kyma runtime, the lifecycle-manager downloads the bundled package of the Keda Operator and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Operator to install the Keda module.
+
+![a](./docs/assets/keda-lm-overview.drawio.svg)
+
+In order to be consumable by lifecycle-manager, the Keda module (Keda + Keda Operator) is bundled in a [specific way](https://github.com/kyma-project/community/tree/main/concepts/modularization#component-packaging-and-versioning) and described using the special Module Template CR.
+
 
 ### Local mode in k3d
 
