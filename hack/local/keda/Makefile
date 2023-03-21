@@ -112,3 +112,4 @@ stop: delete-k3d
 verify:
 	@${PROJECT_ROOT}/hack/verify_kyma_status.sh
 
+#
