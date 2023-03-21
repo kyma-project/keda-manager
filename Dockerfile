@@ -22,7 +22,7 @@ FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /
 COPY --chown=65532:65532 --from=builder /workspace/manager .
-COPY --chown=65532:65532 --from=builder /workspace/keda-manager.yaml .
+COPY --chown=65532:65532 --from=builder /workspace/keda.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

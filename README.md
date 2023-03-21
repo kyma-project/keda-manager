@@ -40,7 +40,7 @@ The Keda Operator module is scaffolded with `kubebuilder`. For more information 
 - `docs`: Contains context documentation for the project.
 - `hack`: A directory containing scripts and makefiles that enchance capabilities of root `Makefile`.
 - `pkg`: Contains packages used in the project.
-- `keda-manager.yaml`: Kubernetes objects that make up the `keda-manager module`
+- `keda.yaml`: Kubernetes objects that represent `keda module`
 
 
 ### Prerequisites
