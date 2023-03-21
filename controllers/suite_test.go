@@ -18,10 +18,11 @@ package controllers
 
 import (
 	"context"
-	"k8s.io/client-go/tools/record"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"k8s.io/client-go/tools/record"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -92,7 +93,7 @@ var _ = BeforeSuite(func() {
 	kedaLogger, err := config.Build()
 	Expect(err).NotTo(HaveOccurred())
 
-	file, err := os.Open("../keda-manager.yaml")
+	file, err := os.Open("../keda.yaml")
 	Expect(err).ShouldNot(HaveOccurred())
 
 	data, err := yaml.LoadData(file)

@@ -106,7 +106,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	file, err := os.Open("keda-manager.yaml")
+	file, err := os.Open("keda.yaml")
 	if err != nil {
 		setupLog.Error(err, "unable to open k8s data")
 	}
