@@ -270,7 +270,7 @@ metadata:
     "operator.kyma-project.io/descriptor-schema-version": "v2"
 spec:
   target: remote
-  channel: alpha
+  channel: beta
   data:
     apiVersion: operator.kyma-project.io/v1alpha1
     kind: Keda

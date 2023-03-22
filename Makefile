@@ -8,7 +8,7 @@ MODULE_REGISTRY_PORT ?= 8888
 MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
 # Desired Channel of the Generated Module Template
 MODULE_TEMPLATE_CHANNEL ?= stable
-MODULE_CHANNEL ?= alpha
+MODULE_CHANNEL ?= beta
 
 # Operating system architecture
 OS_ARCH ?= $(shell uname -m)

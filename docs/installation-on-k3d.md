@@ -125,6 +125,6 @@ Add the following element under `rules`:
    ```yaml
      modules:
      - name: keda
-       channel: alpha
+       channel: beta
   ```
 
