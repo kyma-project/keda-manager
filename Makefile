@@ -7,8 +7,12 @@ MODULE_NAME ?= keda
 MODULE_REGISTRY_PORT ?= 8888
 MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
 # Desired Channel of the Generated Module Template
-MODULE_TEMPLATE_CHANNEL ?= stable
 MODULE_CHANNEL ?= beta
+
+# Image URL to use all building/pushing image targets
+IMG_REGISTRY_PORT ?= $(MODULE_REGISTRY_PORT)
+IMG_REGISTRY ?= op-skr-registry.localhost:$(IMG_REGISTRY_PORT)/unsigned/operator-images
+IMG ?= $(IMG_REGISTRY)/$(MODULE_NAME)-operator:$(MODULE_VERSION)
 
 # Operating system architecture
 OS_ARCH ?= $(shell uname -m)
@@ -26,33 +30,9 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-# Setting SHELL to bash allows bash commands to be executed by recipes.
-# Options are set to exit when a recipe line exits non-zero or a piped command fails.
-SHELL = /usr/bin/env bash -o pipefail
-.SHELLFLAGS = -ec
-
-
 # Credentials used for authenticating into the module registry
 # see `kyma alpha mod create --help for more info`
 # MODULE_CREDENTIALS ?= testuser:testpw
-
-
-# Image URL to use all building/pushing image targets
-APP_NAME = keda-manager
-
-# Image URL to use all building/pushing image targets
-IMG_REGISTRY_PORT ?= $(MODULE_REGISTRY_PORT)
-IMG_REGISTRY ?= op-skr-registry.localhost:$(IMG_REGISTRY_PORT)/unsigned/operator-images
-IMG ?= $(IMG_REGISTRY)/$(MODULE_NAME)-operator:$(MODULE_VERSION)
-
-COMPONENT_CLI_VERSION ?= latest
-
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
 
 # This will change the flags of the `kyma alpha module create` command in case we spot credentials
 # Otherwise we will assume http-based local registries without authentication (e.g. for k3d)
@@ -72,21 +52,9 @@ SHELL = /usr/bin/env bash -o pipefail
 
 ##@ General
 
-# The help target prints out all targets with their descriptions organized
-# beneath their categories. The categories are represented by '##@' and the
-# target descriptions by '##'. The awk commands is responsible for reading the
-# entire set of makefiles included in this invocation, looking for lines of the
-# file as xyz: ## something, and then pretty-format the target and help. Then,
-# if there's a line with ##@ something, that gets pretty-printed as a category.
-# More info on the usage of ANSI control characters for terminal formatting:
-# https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-# More info on the awk command:
-# http://linuxcommand.org/lc3_adv_awk.php
-
 .PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
 
 ##@ Development
 
@@ -128,47 +96,36 @@ docker-build: ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-##@ Local
+# TODO: remove DEPRECATED after changing test-infra targets
+##@ DEPRECATED
 
 .PHONY: local-run
-local-run:
-	make -C hack/local run
+local-run: ## Use "make -C hack/local run-with-lifecycle-manager" instead.
+	make -C hack/local run-with-lifecycle-manager
 
 .PHONY: local-stop
-local-stop:
+local-stop: ## Use "make -C hack/local stop" instead.
 	make -C hack/local stop
 
-##@ CI
-
 .PHONY: ci-k3d-integration-test
-ci-k3d-integration-test: local-run
-	make -C hack/ci integration-test
+ci-k3d-integration-test: ## Use "make -C hack/ci k3d-lm-integration-test" instead.
+	make -C hack/ci k3d-lm-integration-test
 
 .PHONY: ci-k3d-upgrade-test
-ci-k3d-upgrade-test: 
-	make -C hack/local upgrade-to
-
-.PHONY: ci-k3d-k8s-compatibility-test
-ci-k3d-k8s-compatibility-test: 
-	@echo "k8s compatibility tests not implemented yet"
-
-.PHONY: ci-hyperscalers-compatibility-test
-ci-hyperscalers-compatibility-test: 
-	@echo "hyperscalers compatibility tests not implemented yet"
+ci-k3d-upgrade-test: ## Use "make -C hack/ci upgrade-to" instead.
+	make -C hack/ci upgrade-to
 
 ##@ Deployment
 
-ifndef ignore-not-found
-  ignore-not-found = false
-endif
+IGNORE_NOT_FOUND ?= false
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 .PHONY: uninstall
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with IGNORE_NOT_FOUND=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(IGNORE_NOT_FOUND) -f -
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
@@ -176,47 +133,8 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
-
-##@ Build Dependencies
-
-## Location to install dependencies to
-LOCALBIN ?= $(shell pwd)/bin
-$(LOCALBIN):
-	mkdir -p $(LOCALBIN)
-
-## Tool Binaries
-KUSTOMIZE ?= $(LOCALBIN)/kustomize
-CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-ENVTEST ?= $(LOCALBIN)/setup-envtest
-YQUERY ?= $(LOCALBIN)/yq
-
-## Tool Versions
-KUSTOMIZE_VERSION ?= v4.5.5
-CONTROLLER_TOOLS_VERSION ?= v0.10.0
-YQ_VERSION ?= v4
-
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-.PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
-$(KUSTOMIZE): $(LOCALBIN)
-	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
-
-.PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
-$(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
-
-.PHONY: yq
-yq: $(YQUERY) ## Download yq locally if necessary.
-$(YQUERY): $(LOCALBIN)
-	test -s $(LOCALBIN)/yq || { go get github.com/mikefarah/yq/$(YQ_VERSION) ; GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/$(YQ_VERSION) ; }
-
-.PHONY: envtest
-envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
-$(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with IGNORE_NOT_FOUND=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(IGNORE_NOT_FOUND) -f -
 
 ##@ Module
 
@@ -230,6 +148,47 @@ module-build: kyma kustomize ## Build the Module and push it to a registry defin
 	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma-project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS) --output=template.yaml
 
 ##@ Tools
+
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+########## Kustomize ###########
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
+KUSTOMIZE_VERSION ?= v4.5.5
+KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(LOCALBIN)
+	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
+
+########## Controller-Gen ###########
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+CONTROLLER_TOOLS_VERSION ?= v0.10.0
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+
+########## Envtest ###########
+ENVTEST ?= $(LOCALBIN)/setup-envtest
+
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+########## Y-Query ###########
+YQUERY ?= $(LOCALBIN)/yq
+YQ_VERSION ?= v4
+
+.PHONY: yq
+yq: $(YQUERY) ## Download yq locally if necessary.
+$(YQUERY): $(LOCALBIN)
+	test -s $(LOCALBIN)/yq || { go get github.com/mikefarah/yq/$(YQ_VERSION) ; GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/$(YQ_VERSION) ; }
 
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable
@@ -253,6 +212,3 @@ $(KYMA):
 .PHONY: grafana-dashboard
 grafana-dashboard: ## Generating Grafana manifests to visualize controller status.
 	cd operator && kubebuilder edit --plugins grafana.kubebuilder.io/v1-alpha
-
-.PHONY: all
-all: module-build
