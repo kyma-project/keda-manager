@@ -197,9 +197,9 @@ There is a dedicated `make` target (in the `hack` folder) that does all of them,
 2. Build the operator locally and run it on the k3d cluster.
 
    ```bash
-   make -C hack/local run
+   make -C hack/local run-without-lifecycle-manager
    ```
-> **NOTE:** To clean up the k3d cluster, use the `make k3d stop` make target.
+> **NOTE:** To clean up the k3d cluster, use the `make -C hack/local stop` make target.
 
 ### Install on remote Kyma runtime
 
@@ -348,7 +348,7 @@ kubectl apply -f <saved_module_template_path>
 4. Enable the Keda Operator module by patching Kyma CRD.
 
 ```bash
-make -C hack/local/keda enable-module
+make -C hack/common module
 ```
 
 ## CI/CD
