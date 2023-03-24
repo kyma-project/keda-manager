@@ -31,10 +31,3 @@ run-k3d-with-keda-without-lifecycle-manager:
 .PHONY: busola-enable
 busola-enable:
 	@make -C ./busola busola-enable
-
-##@ DEPRECATED
-
-#TODO: remove after update doc and test-infra
-.PHONY: run
-run: run-with-lifecycle-manager ## Use "run-with-lifecycle-manager" instead.
-
