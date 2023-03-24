@@ -374,7 +374,7 @@ The following CI jobs are regenerating keda-manager's artefacts and initiate int
 |[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|re-builds operator's image and pushes it into prod registry|
 |[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|re-builds module's OCI image and pushes it to prod artifact registry|
 |[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|installs keda-manager (**using lifecycle-manager**), applies Kyma CR and enables keda module on k3d cluster. Executes smoke integration test of Keda.|
-[[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|installs keda module (using module template and lifecycle-manager) from latest released version and upgrades it to the version from main. Verifies reconciliation status on the Kyma CR and runs smoke integration tests of keda|
+|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|installs keda module (using module template and lifecycle-manager) from latest released version and upgrades it to the version from main. Verifies reconciliation status on the Kyma CR and runs smoke integration tests of keda|
 
 ### Building and publishing images manually
 
