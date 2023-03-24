@@ -353,23 +353,28 @@ make -C hack/common module
 
 ## CI/CD
 
-### Pipelines running on PRs
+### Pipelines running on pull requests
+
+The following CI jobs are part of the development cycle. They verify the functional correctness of keda-manager but do not verify the contract concerning Kyma's lifecycle-manager.
 
 | Name | Required | Description |
 |------|----------|-------------|
-|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|builds operator's image and pushes it into dev registry|
-|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|builds module's OCI image and pushes it to dev artifact registry|
-|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|executes basic create/update/delete functional tests|
-|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|executes smoke integration test using k3d|
+|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|builds Keda operator's image and pushes it to dev registry|
+|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|builds module's OCI image and pushes it to dev artifact registry. Renders Module Template for the Keda module that allows for manual integration tests against lifecycle-manager|
+|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|executes basic create/update/delete functional tests of the keda-manager's reconciliation logic|
+|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|installs keda-manager (**not using  lifecycle-manager**) and applies sample Keda CR on k3d cluster. Executes smoke integration test of Keda.  |
 |[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|linting, static code analysis|
 
-### Pipelines running on PR to main merge
+### Pipelines running on main branch 
 
-| Name | Required | Description |
-|------|----------|-------------|
-|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|true|builds operator's image and pushes it into prod registry|
-|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|true|builds module's OCI image and pushes it to prod artifact registry|
-|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|true|executes smoke integration test using k3d|
+The following CI jobs are regenerating keda-manager's artefacts and initiate integration tests of keda-manager to verify contract with respect to Kyma's lifecycle-manager.
+
+| Name | Description |
+|------|-------------|
+|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|re-builds operator's image and pushes it into prod registry|
+|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|re-builds module's OCI image and pushes it to prod artifact registry|
+|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|installs keda-manager (**using lifecycle-manager**), applies Kyma CR and enables keda module on k3d cluster. Executes smoke integration test of Keda.|
+|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|installs keda module (using module template and lifecycle-manager) from latest released version and upgrades it to the version from main. Verifies reconciliation status on the Kyma CR and runs smoke integration tests of keda|
 
 ### Building and publishing images manually
 
