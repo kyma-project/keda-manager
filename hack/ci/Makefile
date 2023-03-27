@@ -57,9 +57,3 @@ run-with-lifecycle-manager:
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
-
-##@ DEPRECATED
-
-# TODO: remove it after switching this target on the test-infra side
-.PHONY: all
-all: module-build ## Use "module-build" instead.

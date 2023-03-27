@@ -96,25 +96,6 @@ docker-build: ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-# TODO: remove DEPRECATED after changing test-infra targets
-##@ DEPRECATED
-
-.PHONY: local-run
-local-run: ## Use "make -C hack/local run-with-lifecycle-manager" instead.
-	make -C hack/local run-with-lifecycle-manager
-
-.PHONY: local-stop
-local-stop: ## Use "make -C hack/local stop" instead.
-	make -C hack/local stop
-
-.PHONY: ci-k3d-integration-test
-ci-k3d-integration-test: ## Use "make -C hack/ci k3d-lm-integration-test" instead.
-	make -C hack/ci k3d-lm-integration-test
-
-.PHONY: ci-k3d-upgrade-test
-ci-k3d-upgrade-test: ## Use "make -C hack/ci upgrade-to" instead.
-	make -C hack/ci upgrade-to
-
 ##@ Deployment
 
 IGNORE_NOT_FOUND ?= false
