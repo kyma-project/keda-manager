@@ -44,9 +44,11 @@ k3d-k8s-compatibility-test: ## K8s compatibility tests not implemented yet.
 hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not implemented yet.
 	@echo "hyperscalers compatibility tests not implemented yet"
 
-.PHONY: upgrade-to
-upgrade-to: ## Install Keda onto existing k3d cluster.
-	@make -C ${PROJECT_COMMON} reinstall-keda
+.PHONY: k3d-upgrade-test
+k3d-upgrade-test: ## Installs Keda from latest and upgrades to local.
+k3d-upgrade-test: \
+	install-latest \
+	reinstall-keda
 
 ### Internal Dependencies
 
@@ -57,3 +59,22 @@ run-with-lifecycle-manager:
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+
+.PHONY: install-latest
+install-latest:
+	@make -C ${PROJECT_COMMON} kyma create-k3d
+	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml > template-k3d.yaml
+	@make -C ${PROJECT_COMMON} install-module verify
+
+
+.PHONY: reinstall-keda
+reinstall-keda: \
+    @make -C ${PROJECT_COMMON} kyma \
+		module-image \
+		yq-install \
+		module-build \
+		fix-template \
+		install-module \
+		patch-mod-mgr-role \
+		enable-module \
+		verify-kyma

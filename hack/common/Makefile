@@ -42,19 +42,6 @@ run-without-lifecycle-manager: \
 	apply-keda \
 	verify-keda
 
-.PHONY: reinstall-keda
-reinstall-keda: ## Install Keda onto existing k3d cluster.
-reinstall-keda: \
-    kyma \
-	module-image \
-	yq-install \
-	module-build \
-	fix-template \
-	install-module \
-	patch-mod-mgr-role \
-	enable-module \
-	verify-kyma
-
 ##@ K3D
 
 .PHONY: create-k3d
