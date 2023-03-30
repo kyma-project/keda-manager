@@ -64,17 +64,17 @@ run-without-lifecycle-manager:
 install-latest:
 	@make -C ${PROJECT_COMMON} kyma create-k3d
 	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml > template-k3d.yaml
-	@make -C ${PROJECT_COMMON} install-module verify
+	@make -C ${PROJECT_COMMON} install-module verify-kyma
 
 
 .PHONY: reinstall-keda
-reinstall-keda: \
-    @make -C ${PROJECT_COMMON} kyma \
-		module-image \
-		yq-install \
-		module-build \
-		fix-template \
-		install-module \
-		patch-mod-mgr-role \
-		enable-module \
-		verify-kyma
+reinstall-keda:
+	@make -C ${PROJECT_COMMON} kyma \
+	  module-image \
+	  yq-install \
+	  module-build \
+	  fix-template \
+	  install-module \
+	  patch-mod-mgr-role \
+	  enable-module \
+	  verify-kyma
