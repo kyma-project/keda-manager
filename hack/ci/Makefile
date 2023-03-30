@@ -48,7 +48,9 @@ hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not impleme
 upgrade-to: ## Install Keda onto existing k3d cluster.
 	@make -C ${PROJECT_COMMON} reinstall-keda
 
-### Internal Dependencies
+.PHONY: render-manifest
+render-manifest:
+	@make -C ${PROJECT_ROOT} render-manifest
 
 .PHONY: run-with-lifecycle-manager
 run-with-lifecycle-manager:
