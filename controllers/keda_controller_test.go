@@ -20,19 +20,21 @@ import (
 var _ = Describe("Keda controller", func() {
 	Context("When creating fresh instance", func() {
 		const (
-			namespaceName = "kyma-system"
-			kedaName      = "test"
-			operatorName  = "keda-manager"
+			namespaceName        = "kyma-system"
+			kedaName             = "test"
+			operatorName         = "keda-operator"
+			admissionWebhookName = "keda-admission-webhooks"
 		)
 
 		var (
-			metricsDeploymentName           = fmt.Sprintf("%s-metrics-apiserver", operatorName)
-			kedaDeploymentName              = operatorName
-			notDefaultOperatorLogLevel      = v1alpha1.OperatorLogLevelDebug
-			notDefaultLogFormat             = v1alpha1.LogFormatJSON
-			notDefaultLogTimeEncoding       = v1alpha1.TimeEncodingEpoch
-			notDefaultMetricsServerLogLevel = v1alpha1.MetricsServerLogLevelDebug
-			kedaSpec                        = v1alpha1.KedaSpec{
+			metricsDeploymentName              = fmt.Sprintf("%s-metrics-apiserver", operatorName)
+			kedaDeploymentName                 = operatorName
+			kedaAdmissionWebhookDeploymentName = admissionWebhookName
+			notDefaultOperatorLogLevel         = v1alpha1.OperatorLogLevelDebug
+			notDefaultLogFormat                = v1alpha1.LogFormatJSON
+			notDefaultLogTimeEncoding          = v1alpha1.TimeEncodingEpoch
+			notDefaultMetricsServerLogLevel    = v1alpha1.MetricsServerLogLevelDebug
+			kedaSpec                           = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
 					Operator: &v1alpha1.LoggingOperatorCfg{
 						Level:        &notDefaultOperatorLogLevel,
@@ -87,11 +89,10 @@ var _ = Describe("Keda controller", func() {
 
 			// operations like C(R)UD can be tested in separated tests,
 			// but we have time-consuming flow and decided do it in one test
-			shouldCreateKeda(h, kedaName, kedaDeploymentName, metricsDeploymentName, kedaSpec)
+			shouldCreateKeda(h, kedaName, kedaDeploymentName, metricsDeploymentName, kedaAdmissionWebhookDeploymentName, kedaSpec)
 
 			shouldPropagateKedaCrdSpecProperties(h, kedaDeploymentName, metricsDeploymentName, kedaSpec)
 
-			//TODO: disabled because of bug in operator (https://github.com/kyma-project/module-manager/issues/94)
 			shouldUpdateKeda(h, kedaName, kedaDeploymentName)
 
 			shouldDeleteKeda(h, kedaName)
@@ -99,13 +100,14 @@ var _ = Describe("Keda controller", func() {
 	})
 })
 
-func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
+func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploymentName, kedaAdmissionWebhookDeploymentName string, kedaSpec v1alpha1.KedaSpec) {
 	// act
 	h.createKeda(kedaName, kedaSpec)
 
 	// we have to update deployment status manually
 	h.updateDeploymentStatus(metricsDeploymentName)
 	h.updateDeploymentStatus(kedaDeploymentName)
+	h.updateDeploymentStatus(kedaAdmissionWebhookDeploymentName)
 
 	// assert
 	Eventually(h.createGetKedaStateFunc(kedaName)).

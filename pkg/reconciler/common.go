@@ -1,6 +1,8 @@
 package reconciler
 
 import (
+	"time"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -14,6 +16,10 @@ func stopWithNoRequeue() (stateFn, *ctrl.Result, error) {
 
 func stopWithRequeue() (stateFn, *ctrl.Result, error) {
 	return sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil), nil, nil
+}
+
+func stopWithRequeueAfter(requeueAfter time.Duration) (stateFn, *ctrl.Result, error) {
+	return sFnUpdateStatus(&ctrl.Result{RequeueAfter: requeueAfter}, nil), nil, nil
 }
 
 func switchState(fn stateFn) (stateFn, *ctrl.Result, error) {

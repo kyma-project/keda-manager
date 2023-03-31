@@ -64,7 +64,7 @@ func (c *Cfg) firstUnstructed(p predicate) (*unstructured.Unstructured, error) {
 	return nil, fmt.Errorf("%w: no object for given predicate", ErrNotFound)
 }
 
-func (c *Cfg) kedaManagerDeployment() (*unstructured.Unstructured, error) {
+func (c *Cfg) kedaOperatorDeployment() (*unstructured.Unstructured, error) {
 	return c.firstUnstructed(isKedaOperatorDeployment)
 }
 
@@ -117,8 +117,8 @@ func (s *systemState) saveKedaStatus() {
 }
 
 const (
-	operatorName      = "keda-manager"
-	matricsServerName = "keda-manager-metrics-apiserver"
+	operatorName      = "keda-operator"
+	matricsServerName = "keda-operator-metrics-apiserver"
 )
 
 type predicate func(unstructured.Unstructured) bool

@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -9,7 +10,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func sFnVerify(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var count int
 	for _, obj := range s.objs {
 		if !isDeployment(obj) {
@@ -28,18 +29,20 @@ func sFnVerify(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result
 
 		for _, cond := range deployment.Status.Conditions {
 			if cond.Type == appsv1.DeploymentAvailable && cond.Status == v1.ConditionTrue {
+				r.log.Debugf("successfully verified keda deployment %s/%s", obj.GetNamespace(), obj.GetName())
 				count++
 			}
 		}
 	}
 
-	if count != 2 {
+	if count != 3 {
+		r.log.Debugf("%d deployments in ready state found ( 3 are expected ) ", count)
 		s.instance.UpdateStateProcessing(
 			v1alpha1.ConditionTypeInstalled,
 			v1alpha1.ConditionReasonVerification,
 			"verification in progress",
 		)
-		return stopWithNoRequeue()
+		return stopWithRequeueAfter(time.Second * 10)
 	}
 
 	if s.instance.Status.State == "Ready" {
@@ -49,7 +52,7 @@ func sFnVerify(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result
 	s.instance.UpdateStateReady(
 		v1alpha1.ConditionTypeInstalled,
 		v1alpha1.ConditionReasonVerified,
-		"keda-manager and keda-manager-metrics-server ready",
+		"keda-operator and keda-operator-metrics-server ready",
 	)
 	return stopWithNoRequeue()
 }

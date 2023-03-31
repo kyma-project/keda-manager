@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: operator-role
+  name: manager-role
 rules:
 - apiGroups:
   - ""
@@ -47,6 +47,17 @@ rules:
   - '*/scale'
   verbs:
   - '*'
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
@@ -172,6 +183,7 @@ rules:
   - clusterrolebindings
   - clusterroles
   - rolebindings
+  - roles
   verbs:
   - create
   - delete

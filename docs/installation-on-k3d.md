@@ -12,16 +12,16 @@
    kyma provision k3d
    ```
 
-3. Build and push the Keda Operator image.
+3. Build and push the Keda Manager image.
 
    ```bash
-   make module-image IMG_REGISTRY=localhost:5001/unsigned/operator-images IMG=localhost:5001/keda-manager-dev-local:0.0.1
+   make module-image IMG_REGISTRY=localhost:5001/unsigned/manager-images IMG=localhost:5001/keda-manager-dev-local:0.0.2
    ```
 
 4. Build and push the Keda module.
 
    ```bash
-   make module-build IMG=k3d-kyma-registry:5001/keda-manager-dev-local:0.0.1 MODULE_REGISTRY=localhost:5001/unsigned
+   make module-build IMG=k3d-kyma-registry:5001/keda-manager-dev-local:0.0.2 MODULE_REGISTRY=localhost:5001/unsigned
    ```
 
 5. Verify if the module and the manager's image are pushed to the local registry.

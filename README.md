@@ -1,8 +1,8 @@
-# Keda Operator
+# Keda Manager
 
 ## Overview 
 
-Keda Operator is an extension to the Kyma ecosystem that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
+Keda Manager is an extension to the Kyma ecosystem that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
@@ -69,7 +69,7 @@ Run the following commands to deploy Keda Operator on a target Kubernetes cluste
 
    > NOTE: You can use local k3d registry or your dockerhub account to push intermediate images.  
    ```bash
-   export IMG=<DOCKER_USERNAME>/custom-keda-manager:0.0.1
+   export IMG=<DOCKER_USERNAME>/custom-keda-manager:0.0.2
    ```
 
 3. Verify the compatibility.
@@ -99,7 +99,7 @@ Run the following commands to deploy Keda Operator on a target Kubernetes cluste
    ```bash
    kubectl get deployments -n kyma-system       
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   keda-operator            1/1     1            1           1m
+   keda-manager            1/1     1            1           1m
    ```
 
 
@@ -117,9 +117,9 @@ Keda Operator installs KEDA based on the watched Keda CRs:
 
    ```bash
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   keda-operator                    1/1     1            1           3m
    keda-manager                     1/1     1            1           3m
-   keda-manager-metrics-apiserver   1/1     1            1           3m
+   keda-operator                    1/1     1            1           3m
+   keda-operator-metrics-apiserver  1/1     1            1           3m
    ```
 
    Now you can use KEDA to scale workloads on the Kubernetes cluster. Check the [demo application](docs/keda-demo-application.md).
@@ -129,7 +129,7 @@ Keda Operator installs KEDA based on the watched Keda CRs:
    ```bash
    kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
    ```
-   This uninstalls all Keda workloads but leaves `operator-keda-manager`.
+   This uninstalls all Keda workloads but leaves `keda-manager`.
 
    > **NOTE:** Keda Operator uses finalizers to uninstall the Keda module from the cluster. It means that Keda Operator blocks the uninstallation process of KEDA until there are user-created custom resources (for example ScaledObjects).
 
@@ -194,7 +194,7 @@ There is a dedicated `make` target (in the `hack` folder) that does all of them,
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
    ```
-2. Build the operator locally and run it on the k3d cluster.
+2. Build the manager locally and run it on the k3d cluster.
 
    ```bash
    make -C hack/local run-without-lifecycle-manager
@@ -265,7 +265,7 @@ metadata:
     "operator.kyma-project.io/controller-name": "manifest"
     "operator.kyma-project.io/module-name": "keda"
   annotations:
-    "operator.kyma-project.io/module-version": "0.0.1-PR-101"
+    "operator.kyma-project.io/module-version": "0.0.2-PR-101"
     "operator.kyma-project.io/module-provider": "internal"
     "operator.kyma-project.io/descriptor-schema-version": "v2"
 spec:
@@ -311,14 +311,14 @@ spec:
         name: keda
         relation: local
         type: helm-chart
-        version: 0.0.1-PR-101
+        version: 0.0.2-PR-101
       - access:
           digest: sha256:f4a599c4310b0fe9133b67b72d9b15ee96b52a1872132528c83978239b5effef
           type: localOciBlob
         name: config
         relation: local
         type: yaml
-        version: 0.0.1-PR-101
+        version: 0.0.2-PR-101
       sources:
       - access:
           commit: f3b1b7ed6c175e89a7d29202b8a4cc4fc74cf998
@@ -327,8 +327,8 @@ spec:
           type: github
         name: keda-manager
         type: git
-        version: 0.0.1-PR-101
-      version: 0.0.1-PR-101
+        version: 0.0.2-PR-101
+      version: 0.0.2-PR-101
     meta:
       schemaVersion: v2
 
