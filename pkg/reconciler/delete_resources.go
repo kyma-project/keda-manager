@@ -17,11 +17,26 @@ import (
 
 const (
 	defaultDeletionStrategy = safeDeletionStrategy
+	kedaOperatorLeaseName   = "operator.keda.sh"
+	kedaManagerLeaseName    = "4123c01c.operator.kyma-project.io"
 )
 
 var (
 	DeletionErr = errors.New("deletion error")
 )
+
+func fixLeaseObject(leaseName string) unstructured.Unstructured {
+	return unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       "Lease",
+			"apiVersion": "coordination.k8s.io/v1",
+			"metadata": map[string]interface{}{
+				"name":      leaseName,
+				"namespace": "kyma-system",
+			},
+		},
+	}
+}
 
 func sFnDeleteResources(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	if !isKedaDeleting(s) {
@@ -90,6 +105,12 @@ type filterFunc func(unstructured.Unstructured) bool
 
 func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filterFunc ...filterFunc) (stateFn, *ctrl.Result, error) {
 	var err error
+
+	//ensure lease object will be removed as well
+	kedaOperatorLease := fixLeaseObject(kedaOperatorLeaseName)
+	kedaManagerLease := fixLeaseObject(kedaManagerLeaseName)
+	r.Objs = append(r.Objs, kedaManagerLease, kedaOperatorLease)
+
 	for _, obj := range r.Objs {
 		if !fitToFilters(obj, filterFunc...) {
 			r.log.
