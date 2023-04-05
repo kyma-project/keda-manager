@@ -22,9 +22,7 @@ const (
 )
 
 var (
-	DeletionErr       = errors.New("deletion error")
-	KedaOperatorLease = fixLeaseObject(kedaOperatorLeaseName)
-	KedaManagerLease  = fixLeaseObject(kedaManagerLeaseName)
+	DeletionErr = errors.New("deletion error")
 )
 
 func fixLeaseObject(leaseName string) unstructured.Unstructured {
@@ -109,7 +107,9 @@ func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filt
 	var err error
 
 	//ensure lease object will be removed as well
-	r.Objs = append(r.Objs, KedaManagerLease, KedaOperatorLease)
+	kedaOperatorLease := fixLeaseObject(kedaOperatorLeaseName)
+	kedaManagerLease := fixLeaseObject(kedaManagerLeaseName)
+	r.Objs = append(r.Objs, kedaManagerLease, kedaOperatorLease)
 
 	for _, obj := range r.Objs {
 		if !fitToFilters(obj, filterFunc...) {
