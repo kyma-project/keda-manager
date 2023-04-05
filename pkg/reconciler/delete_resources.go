@@ -21,6 +21,26 @@ const (
 
 var (
 	DeletionErr = errors.New("deletion error")
+	leaseObj1   = unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       "Lease",
+			"apiVersion": "coordination.k8s.io/v1",
+			"metadata": map[string]interface{}{
+				"name":      "operator.keda.sh",
+				"namespace": "kyma-system",
+			},
+		},
+	}
+	leaseObj2 = unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       "Lease",
+			"apiVersion": "coordination.k8s.io/v1",
+			"metadata": map[string]interface{}{
+				"name":      "4123c01c.operator.kyma-project.io",
+				"namespace": "kyma-system",
+			},
+		},
+	}
 )
 
 func sFnDeleteResources(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
@@ -90,6 +110,10 @@ type filterFunc func(unstructured.Unstructured) bool
 
 func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filterFunc ...filterFunc) (stateFn, *ctrl.Result, error) {
 	var err error
+
+	//ensure no lease object will stay
+	r.Objs = append(r.Objs, leaseObj1, leaseObj2)
+
 	for _, obj := range r.Objs {
 		if !fitToFilters(obj, filterFunc...) {
 			r.log.
