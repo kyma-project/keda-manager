@@ -220,13 +220,25 @@ var (
 			},
 		},
 	}
+	podNamespace = corev1.EnvVar{
+		Name: "POD_NAMESPACE",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.namespace",
+			},
+		},
+	}
 	operatorName = corev1.EnvVar{
 		Name:  "OPERATOR_NAME",
-		Value: "keda-manager",
+		Value: "keda-operator",
 	}
 	kedaHTTPdefaultTimeout = corev1.EnvVar{
 		Name:  "KEDA_HTTP_DEFAULT_TIMEOUT",
 		Value: "3000",
+	}
+	kedaHTTPMinTLSVersion = corev1.EnvVar{
+		Name:  "KEDA_HTTP_MIN_TLS_VERSION",
+		Value: "TLS12",
 	}
 )
 
@@ -234,8 +246,10 @@ func (v *EnvVars) zero() []corev1.EnvVar {
 	return []corev1.EnvVar{
 		watchNamespace,
 		podName,
+		podNamespace,
 		operatorName,
 		kedaHTTPdefaultTimeout,
+		kedaHTTPMinTLSVersion,
 	}
 }
 

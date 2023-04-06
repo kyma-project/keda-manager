@@ -4,6 +4,7 @@ import (
 	"github.com/kyma-project/keda-manager/test/utils"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8sresource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,6 +43,11 @@ func createTestDeployment(testutil *utils.TestUtils) *v1.Deployment {
 							Name:  testutil.DeploymentName,
 							Command: []string{
 								"tail", "-f", "/dev/null",
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU: k8sresource.MustParse("100m"),
+								},
 							},
 						},
 					},

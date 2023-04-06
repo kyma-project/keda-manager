@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: operator
+  name: manager
   namespace: kyma-system
   labels:
-    control-plane: operator
+    control-plane: manager
 spec:
   selector:
     matchLabels:
-      control-plane: operator
+      control-plane: manager
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: operator
+        control-plane: manager
     spec:
       securityContext:
         runAsNonRoot: true
@@ -53,5 +53,5 @@ spec:
           periodSeconds: 10
         # TODO(user): Configure the resources accordingly based on the project requirements.
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-      serviceAccountName: operator
+      serviceAccountName: manager
       terminationGracePeriodSeconds: 10

@@ -9,5 +9,5 @@ roleRef:
   name: leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: operator
+  name: manager
   namespace: kyma-system

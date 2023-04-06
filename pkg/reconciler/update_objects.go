@@ -10,7 +10,7 @@ import (
 )
 
 func sFnUpdateKedaDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	u, err := r.kedaManagerDeployment()
+	u, err := r.kedaOperatorDeployment()
 	if err != nil {
 		s.instance.UpdateStateFromErr(
 			v1alpha1.ConditionTypeInstalled,
