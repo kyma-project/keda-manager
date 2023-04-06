@@ -65,7 +65,7 @@ run-without-lifecycle-manager:
 .PHONY: install-latest
 install-latest:
 	@make -C ${PROJECT_COMMON} kyma create-k3d
-	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml > template-k3d.yaml
+	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml > ${PROJECT_ROOT}/template-k3d.yaml
 	@make -C ${PROJECT_COMMON} install-module verify-kyma
 
 
