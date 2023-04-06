@@ -1,6 +1,9 @@
 module-name: keda-manager
 protecode:
   - eu.gcr.io/kyma-project/keda-manager:v20230405-03a2ca00
+  - ghcr.io/kedacore/keda:2.10.0
+  - ghcr.io/kedacore/keda-admission-webhooks:2.10.0
+  - ghcr.io/kedacore/keda-metrics-apiserver:2.10.0
 whitesource:
   language: golang-mod
   subprojects: false
