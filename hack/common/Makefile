@@ -129,7 +129,6 @@ module-build: clean-charts
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
 		MODULE_REGISTRY=localhost:${REGISTRY_PORT}
 
-
 .PHONY: deploy
 deploy:
 	@make -C ${PROJECT_ROOT} deploy \
