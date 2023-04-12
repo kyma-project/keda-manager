@@ -10,10 +10,11 @@ endif
 ##@ General
 
 .PHONY: module-build
-module-build: clean-charts
+module-build: ## Build the Module, push it to a registry and print it based on the commit hash.
 	@make -C ${PROJECT_ROOT} module-build \
-		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
-		MODULE_REGISTRY=localhost:${REGISTRY_PORT}
+		IMG=${IMG} \
+		MODULE_REGISTRY=${MODULE_REGISTRY} \
+		MODULE_VERSION=${MODULE_VERSION}-${MODULE_SHA} \
 
 	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
 	@cat ${PROJECT_ROOT}/template.yaml
