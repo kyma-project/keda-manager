@@ -13,17 +13,6 @@ endif
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: module-build
-module-build: ## Build the Module, push it to a registry and print it based on the commit hash.
-	@make -C ${PROJECT_ROOT} module-build \
-		IMG=${IMG} \
-		MODULE_REGISTRY=${MODULE_REGISTRY} \
-		MODULE_VERSION=${MODULE_VERSION}-${MODULE_SHA} \
-
-	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/template.yaml
-	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
-
 .PHONY: integration-test
 integration-test: ## Run integration tests
 	cd ${PROJECT_ROOT}/test && go run main.go
@@ -60,7 +49,11 @@ run-with-lifecycle-manager:
 
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager \
+
+	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
+	@cat ${PROJECT_ROOT}/template.yaml
+	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: install-latest
 install-latest:
