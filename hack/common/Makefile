@@ -127,7 +127,11 @@ clean-charts:
 module-build: clean-charts
 	@make -C ${PROJECT_ROOT} module-build \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
-		MODULE_REGISTRY=localhost:${REGISTRY_PORT}
+		MODULE_REGISTRY=localhost:${REGISTRY_PORT} \
+
+	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
+	@cat ${PROJECT_ROOT}/template.yaml
+	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: deploy
 deploy:

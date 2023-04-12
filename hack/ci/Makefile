@@ -60,11 +60,7 @@ run-with-lifecycle-manager:
 
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager \
-
-	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/template.yaml
-	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
+	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
 
 .PHONY: install-latest
 install-latest:
