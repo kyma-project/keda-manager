@@ -2,6 +2,10 @@ module github.com/kyma-project/keda-manager/test
 
 go 1.18
 
+replace (
+	golang.org/x/oauth2 => golang.org/x/oauth2 v0.6.0
+)
+
 require (
 	github.com/avast/retry-go/v4 v4.3.2
 	github.com/google/uuid v1.3.0
