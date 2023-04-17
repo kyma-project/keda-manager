@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -16,7 +17,7 @@ func sFnUpdateStatus(result *ctrl.Result, err error) stateFn {
 			return nil, nil, err
 		}
 
-		next := sFnEmmitEventfunc(nil, result, err)
+		next := sFnEmitEventfunc(nil, result, err)
 		return next, nil, nil
 	}
 }
