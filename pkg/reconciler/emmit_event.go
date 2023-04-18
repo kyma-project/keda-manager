@@ -2,7 +2,6 @@ package reconciler
 
 import (
 	"context"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,7 +21,7 @@ func sFnEmitStrictEventFunc(next stateFn, result *ctrl.Result, err error, eventT
 	}
 }
 
-func sFnEmmitEventfunc(next stateFn, result *ctrl.Result, err error) stateFn {
+func sFnEmitEventfunc(next stateFn, result *ctrl.Result, err error) stateFn {
 	return func(_ context.Context, m *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 		// compare if any condition change
 		for _, condition := range s.instance.Status.Conditions {
@@ -39,7 +38,7 @@ func sFnEmmitEventfunc(next stateFn, result *ctrl.Result, err error) stateFn {
 				&s.instance,
 				eventType(condition),
 				condition.Reason,
-				fmt.Sprintf("%s: %s/%s", condition.Message, s.instance.Namespace, s.instance.Name),
+				condition.Message,
 			)
 		}
 		return next, result, err
