@@ -107,7 +107,7 @@ func Test_sFnDeleteResources(t *testing.T) {
 		stateFn, result, err := sFnDeleteResources(context.Background(), &fsm{}, &system)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.Equal(t, fnName(stateFn), fnName(sFnUpdateStatus(nil, nil)))
+		require.Equal(t, fnName(stateFn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 	})
 
 	t.Run("choose right deletion strategy", func(t *testing.T) {
@@ -116,8 +116,7 @@ func Test_sFnDeleteResources(t *testing.T) {
 				Status: v1alpha1.Status{
 					Conditions: []metav1.Condition{
 						{
-							Type:   string(v1alpha1.ConditionTypeInstalled),
-							Reason: string(v1alpha1.ConditionReasonDeletion),
+							Type: string(v1alpha1.ConditionTypeInstalled),
 						},
 					},
 				},
@@ -127,7 +126,7 @@ func Test_sFnDeleteResources(t *testing.T) {
 		stateFn, result, err := sFnDeleteResources(context.Background(), &fsm{}, &system)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.Equal(t, fnName(stateFn), fnName(deletionStrategyBuilder(defaultDeletionStrategy)))
+		require.Equal(t, fnName(stateFn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 	})
 }
 
@@ -151,7 +150,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &systemState{})
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, fnName(fn), fnName(sFnRemoveFinalizer))
+		require.Equal(t, fnName(fn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 
 		// check deletion progress
 		require.False(t, canGetFakeResource(client, testDeployment))
@@ -178,7 +177,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &systemState{})
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, fnName(fn), fnName(sFnRemoveFinalizer))
+		require.Equal(t, fnName(fn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 
 		// check deletion progress
 		require.False(t, canGetFakeResource(client, testDeployment))
@@ -205,7 +204,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &systemState{})
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, fnName(fn), fnName(sFnRemoveFinalizer))
+		require.Equal(t, fnName(fn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 
 		// check deletion progress
 		require.False(t, canGetFakeResource(client, testDeployment))
@@ -233,7 +232,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &systemState{})
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, fnName(fn), fnName(sFnUpdateStatus(nil, nil)))
+		require.Equal(t, fnName(fn), fnName(sFnEmitStrictEventFunc(nil, nil, nil, "test-type", "test-reason", "test-message")))
 
 		// check deletion progress
 		require.True(t, canGetFakeResource(client, testDeployment))
