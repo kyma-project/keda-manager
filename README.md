@@ -270,7 +270,7 @@ metadata:
     "operator.kyma-project.io/descriptor-schema-version": "v2"
 spec:
   target: remote
-  channel: beta
+  channel: fast
   data:
     apiVersion: operator.kyma-project.io/v1alpha1
     kind: Keda
@@ -407,7 +407,6 @@ This means that new versions are submitted to a given channel.
 
 Current versions per each channel are represented by the Module Templates CR submitted to a matching folder in the Kyma git repository:
 
- - [beta](https://github.com/kyma-project/kyma/blob/main/modules/alpha/moduletemplate-keda.yaml)
  - fast (not available yet)
  - regular (not available yet)
 

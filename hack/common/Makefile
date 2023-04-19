@@ -79,12 +79,8 @@ fix-template: ## Create template-k3d.yaml based on template.yaml with right URLs
 	> ${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: enable-module
-enable-module: ## Patch serverless module in the right Kyma CR.
-	kubectl patch kymas.operator.kyma-project.io \
-		default-kyma \
-		-n kyma-system \
-		--type=merge \
-		--patch-file ./k3d-patches/patch-kyma.yaml
+enable-module:
+	${KYMA} alpha enable module keda -c fast
 
 .PHONY: patch-mod-mgr-role
 patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.

@@ -1,4 +1,0 @@
-spec:
-  modules:
-  - name: keda
-    channel: beta
