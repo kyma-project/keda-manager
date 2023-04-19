@@ -143,7 +143,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda CRs:
    apiVersion: operator.kyma-project.io/v1alpha1
    kind: Keda
    metadata:
-   name: keda-sample
+   name: default
    spec:
    logging:
       operator:
@@ -275,7 +275,7 @@ spec:
     apiVersion: operator.kyma-project.io/v1alpha1
     kind: Keda
     metadata:
-      name: keda-sample
+      name: default
     spec:
       logging:
         operator:
