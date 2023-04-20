@@ -117,14 +117,7 @@ Add the following element under `rules`:
 9. Enable Keda in the Kyma custom resource (CR).
 
    ```bash
-   kubectl edit kymas.operator.kyma-project.io -n kcp-system default-kyma
+   kyma alpha enable module keda -c fast
    ```
 
-   Add the following field under `spec`:
-
-   ```yaml
-     modules:
-     - name: keda
-       channel: beta
-  ```
 

@@ -73,7 +73,6 @@ install-latest:
 reinstall-keda:
 	@make -C ${PROJECT_COMMON} kyma \
 	  module-image \
-	  yq-install \
 	  module-build \
 	  fix-template \
 	  install-module \
