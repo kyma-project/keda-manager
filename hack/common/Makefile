@@ -23,7 +23,6 @@ run-with-lifecycle-manager: \
 	create-k3d \
 	create-kyma-system-ns \
 	module-image \
-	yq-install \
 	module-build \
 	fix-template \
 	install-module \
@@ -94,6 +93,7 @@ install-module: ## Kyma alpha deploy with k3d moduletemplate.
 		--ci \
 		--force-conflicts
 	kubectl apply -f ${PROJECT_ROOT}/template-k3d.yaml
+	kubectl label -n kcp-system moduletemplate moduletemplate-keda operator.kyma-project.io/use-local-template=true
 
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
@@ -134,6 +134,3 @@ deploy:
 	@make -C ${PROJECT_ROOT} deploy \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
-.PHONY: yq-install
-yq-install:
-	@make -C ${PROJECT_ROOT} yq

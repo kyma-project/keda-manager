@@ -40,7 +40,8 @@ ifneq (,$(PROW_JOB_ID))
 GCP_ACCESS_TOKEN=$(shell gcloud auth application-default print-access-token)
 MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite -c oauth2accesstoken:$(GCP_ACCESS_TOKEN)
 else ifeq (,$(MODULE_CREDENTIALS))
-MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite --insecure
+# when built locally we should not include security content.
+MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite --insecure --sec-scanners-config=sec-scanners-config-local.yaml
 else
 MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite -c $(MODULE_CREDENTIALS)
 endif
@@ -166,15 +167,6 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-
-########## Y-Query ###########
-YQUERY ?= $(LOCALBIN)/yq
-YQ_VERSION ?= v4
-
-.PHONY: yq
-yq: $(YQUERY) ## Download yq locally if necessary.
-$(YQUERY): $(LOCALBIN)
-	test -s $(LOCALBIN)/yq || { go get github.com/mikefarah/yq/$(YQ_VERSION) ; GOBIN=$(LOCALBIN) go install github.com/mikefarah/yq/$(YQ_VERSION) ; }
 
 ########## Kyma CLI ###########
 KYMA_STABILITY ?= unstable

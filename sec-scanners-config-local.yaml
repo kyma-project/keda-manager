@@ -1,0 +1,4 @@
+# This is an empty security scanner config for local setup
+module-name: keda-manager
+protecode:
+whitesource:
