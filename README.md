@@ -103,7 +103,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    ```
 
 
-### How to use Keda Menager to install Keda
+### How to use Keda Manager to install Keda
 
 Keda Manager reconciles KEDA deployment based on the watched Keda CRs:
 
