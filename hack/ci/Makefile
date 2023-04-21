@@ -48,7 +48,8 @@ hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not impleme
 k3d-upgrade-test: ## Installs Keda from latest and upgrades to local.
 k3d-upgrade-test: \
 	install-latest \
-	reinstall-keda
+	reinstall-keda \
+	integration-test
 
 .PHONY: render-manifest
 render-manifest:
