@@ -3,7 +3,7 @@ REGISTRY_PORT ?= 5001
 REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
 MANAGER_IMAGE_NAME ?= keda-manager-dev-local
-MANAGER_IMAGE_TAG ?= 0.0.3
+MANAGER_IMAGE_TAG ?= 0.0.4
 
 PROJECT_ROOT ?= ../..
 
