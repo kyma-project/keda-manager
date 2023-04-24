@@ -4,7 +4,7 @@ Learn how to install and configure your Keda Manager.
 
 ## Installation
 
-To learn how to install Keda Manager locally on k3d or on your runtime, visit the [How to install Keda Manager](keda-installation.md) tutorial.
+To learn how to install Keda Manager locally on k3d or set it up on your runtime, visit the [How to install Keda Manager](keda-installation.md) tutorial.
 
 ## Configuration
 
