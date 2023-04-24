@@ -29,7 +29,6 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"github.com/kyma-project/keda-manager/pkg/keda"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -71,16 +70,6 @@ func main() {
 
 	ctrl.SetLogger(zapk8s.New(zapk8s.UseFlagOptions(&opts)))
 	restConfig := ctrl.GetConfigOrDie()
-
-	kedaInstalled, err := keda.IsInstalled(restConfig, setupLog)
-	if err != nil {
-		setupLog.Error(err, "failed to check for existing Keda installations")
-		os.Exit(1)
-	}
-	if kedaInstalled {
-		setupLog.Error(nil, "keda-manager can't be installed on a cluster with an existing Keda installation, exiting..")
-		os.Exit(1)
-	}
 
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                 scheme,

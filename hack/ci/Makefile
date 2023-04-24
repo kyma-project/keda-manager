@@ -48,7 +48,8 @@ hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not impleme
 k3d-upgrade-test: ## Installs Keda from latest and upgrades to local.
 k3d-upgrade-test: \
 	install-latest \
-	reinstall-keda
+	reinstall-keda \
+	integration-test
 
 .PHONY: render-manifest
 render-manifest:
@@ -65,8 +66,8 @@ run-without-lifecycle-manager:
 .PHONY: install-latest
 install-latest:
 	@make -C ${PROJECT_COMMON} kyma create-k3d
-	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml > ${PROJECT_ROOT}/template-k3d.yaml
-	@make -C ${PROJECT_COMMON} install-module verify-kyma
+	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/moduletemplate.yaml > ${PROJECT_ROOT}/template-k3d.yaml
+	@make -C ${PROJECT_COMMON} install-kyma-with-lm patch-mod-mgr-role install-module-template enable-module verify-kyma
 
 
 .PHONY: reinstall-keda
@@ -75,7 +76,5 @@ reinstall-keda:
 	  module-image \
 	  module-build \
 	  fix-template \
-	  install-module \
-	  patch-mod-mgr-role \
-	  enable-module \
+	  install-module-template \
 	  verify-kyma
