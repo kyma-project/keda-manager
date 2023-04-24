@@ -19,9 +19,3 @@ resources:
 - ../manager
 - ../ui-extensions
 
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-images:
-- name: controller
-  newName: localhost:5001/unsigned/kyma-project.io/module/keda
-  newTag: 0.0.4

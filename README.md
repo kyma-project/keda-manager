@@ -348,7 +348,7 @@ kubectl apply -f <saved_module_template_path>
 4. Enable the Keda Manager module by patching Kyma CRD.
 
 ```bash
-make -C hack/common module
+kyma alpha enable module keda -c fast
 ```
 
 ## CI/CD
