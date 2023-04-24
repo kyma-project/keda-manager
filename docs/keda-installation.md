@@ -1,6 +1,6 @@
 # How to install Keda Manager
 
-To install keda-manager, apply the following script:
+To install Keda Manager, apply the following script:
 
 ```bash
 kubectl create ns kyma-system
@@ -14,16 +14,16 @@ kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 ## Installation on Kyma runtime
 
-This section describes the setup of the Keda module on top of the Kyma installation with `lifecycle manager`.
-In such a setup, you don't need to install Keda Manager. It is installed and managed by `lifecycle manager`.
+This section describes how to set up the Keda module (Keda + Keda Manager) on top of the Kyma installation with `lifecycle-manager`.
+In such a setup, you don't need to install Keda Manager. It is installed and managed by `lifecycle-manager`.
 
 ### Lifecycle management of Keda Manager in Kyma
 
-When you enable the Keda module in the Kyma CR in your Kyma runtime, the lifecycle-manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
+When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the `lifecycle-manager` downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
 
 ![a](./docs/assets/keda-lm-overview.drawio.svg)
 
-In order to be consumable by lifecycle-manager, the Keda module (Keda + Keda Manager) is bundled in a [specific way](https://github.com/kyma-project/community/tree/main/concepts/modularization#component-packaging-and-versioning) and described using the special ModuleTemplate CR.
+In order to be consumable by `lifecycle-manager`, the Keda module is bundled in a [specific way](https://github.com/kyma-project/community/tree/main/concepts/modularization#component-packaging-and-versioning) and described using the special ModuleTemplate CR.
 
 ## Local k3d setup for the local lifecycle-manager & Keda Manager
 
@@ -119,9 +119,9 @@ You should get a result similar to the following example:
    kcp-system   moduletemplate-keda   2m24s
    ```
 
-8.  Give Module Manager permission to install CRD cluster-wide.
+8.  Give Module Manager permission to install CustomResourceDefinition (CRD) cluster-wide.
 
-> **NOTE:** `module-manager` must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
+> **NOTE:** Module Manager must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
 
 Run the following to make sure Module Manager's Service Account gets an administrative role:
 
@@ -142,7 +142,7 @@ Add the following element under `rules`:
 
 > **NOTE:** This is a temporary workaround and is only required in the single-cluster mode.
 
-9. Enable Keda in the Kyma custom resource (CR).
+9. Enable Keda in the Kyma CR.
 
    ```bash
    kyma alpha enable module keda -c fast
@@ -151,7 +151,7 @@ Add the following element under `rules`:
 ### Local mode in k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
-Thanks to that, you don't need to push the Keda module images to a remote registry and test the changes in the Kyma installation that is set up entirely on your machine.
+Thanks to that, you don't need to push the Keda module images to a remote registry and test the changes in the Kyma installation set up entirely on your machine.
 
 1. Clone the project.
 
@@ -176,7 +176,7 @@ CI jobs that are running on PRs and on main branch will help to achieve that.
 1. Create a pull request (PR) or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository,
 on the PR page, scroll to the PROW job status list. 
 
-2. Click the `Details` hyperlink in the `pull-keda-module-build` row (make sure the job has finished with success).
+1. Click **Details** next to the `pull-keda-module-build` job (make sure the job has finished with success).
 
 ![a](./docs/assets/pull_keda_module_build.png)
 
