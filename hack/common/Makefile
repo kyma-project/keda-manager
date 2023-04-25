@@ -91,7 +91,7 @@ patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.
 		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
 
 .PHONY: install-kyma-with-lm
-install-kyma-with-lm:
+install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
 	${KYMA} alpha deploy \
 		--ci \
 		--force-conflicts
