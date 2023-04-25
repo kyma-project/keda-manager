@@ -12,7 +12,7 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
 
 ## Install
 
-For the installation options check the [How to install Keda Manager](/docs/keda-installation.md) tutorial.
+For the installation options, check the [How to install Keda Manager](/docs/keda-installation.md) tutorial.
 
 ##  Development
 

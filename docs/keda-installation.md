@@ -58,14 +58,14 @@ In order to be consumable by `lifecycle-manager`, the Keda module is bundled in 
    ```bash
    curl localhost:5001/v2/_catalog
    ```
-You should get a result similar to this example:
+   You should get a result similar to this example:
 
    ```json
    {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma-project.io/module/keda"]}
    ```
 6. Inspect the generated module template.
 
-> **NOTE:** The following sub-steps are temporary workarounds.
+   > **NOTE:** The following sub-steps are temporary workarounds.
 
 Edit `template.yaml` and:
 - change `target` to `control-plane`
@@ -87,9 +87,9 @@ Edit `template.yaml` and:
 
 7. Install the modular Kyma on the k3d cluster.
 
-> **NOTE** This installs the latest versions of `lifecycle-manager`.
+   > **NOTE** This installs the latest versions of `lifecycle-manager`.
 
-Use the `--template` flag to deploy the Keda module manifest from the beggining, or apply it using kubectl later.
+   To deploy the Keda module manifest from the beginning, use the `--template` flag. You can also apply it later with kubectl.
 
    ```bash
    kyma alpha deploy --template=./template.yaml
@@ -99,20 +99,20 @@ Kyma installation is ready, but the module is not yet activated.
    ```bash
    kubectl get kymas.operator.kyma-project.io -A
    ```
-You should get a result similar to the following example:
+   You should get a result similar to the following example:
 
    ```bash
    NAMESPACE    NAME           STATE   AGE
    kcp-system   default-kyma   Ready   71s
    ```
 
-Keda module is a known module, but not yet activated.
+   When Keda module is a known module, activate it:
 
    ```bash
    kubectl get moduletemplates.operator.kyma-project.io -A 
    ```
 
-You should get a result similar to the following example:
+   You should get a result similar to the following example:
 
    ```bash
    NAMESPACE    NAME                  AGE
@@ -121,9 +121,9 @@ You should get a result similar to the following example:
 
 8.  Give Module Manager permission to install CustomResourceDefinition (CRD) cluster-wide.
 
-> **NOTE:** Module Manager must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
+   > **NOTE:** Module Manager must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
 
-Run the following to make sure Module Manager's Service Account gets an administrative role:
+   To make sure Module Manager's Service Account gets an administrative role, edit the cluster role:
 
    ```bash
    kubectl edit clusterrole module-manager-manager-role
@@ -167,16 +167,16 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
 
 ### Install on remote Kyma runtime
 
-> **Prerequisite:** `lifecycle-manager` must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
+Prerequisite: `lifecycle-manager` must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
 
-In this section, you will learn how to install a PR version of the Keda module by a `lifecycle-manager` on a remote cluster.
+In this section, you will learn how to install a pull request (PR) version of the Keda module by a `lifecycle-manager` on a remote cluster.
 Such a setup requires OCI images for the Keda module version to be built and pushed into a public registry. Also, a module template matching the version must be available so that it can be applied on the remote cluster.
 CI jobs that are running on PRs and on main branch will help to achieve that.
 
 1. Create a pull request (PR) or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository,
 on the PR page, scroll to the PROW job status list. 
 
-1. Click **Details** next to the `pull-keda-module-build` job (make sure the job has finished with success).
+1. After the job has finished with success, click **Details** next to the `pull-keda-module-build` job.
 
 ![a](./docs/assets/pull_keda_module_build.png)
 
@@ -303,13 +303,13 @@ make: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager/
 
 Save section's content in local file.
 
-3. Apply module template on remote cluster:
+3. Apply the module template on your remote cluster:
 
 ```bash
 kubectl apply -f <saved_module_template_path>
 ```
 
-4. Enable the Keda Manager module by patching Kyma CRD.
+4. Enable the Keda Manager module by patching the Kyma CRD.
 
 ```bash
 make -C hack/common module
