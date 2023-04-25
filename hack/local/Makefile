@@ -8,11 +8,11 @@ help: ## Display this help.
 
 .PHONY: run-with-lifecycle-manager
 run-with-lifecycle-manager: ## Create k3d cluster with module installed by the lifecycle-manager.
-run-with-lifecycle-manager: run-k3d-with-keda-and-lifecycle-manager busola-enable
+run-with-lifecycle-manager: run-k3d-with-keda-and-lifecycle-manager
 
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager: ## Create k3d cluster with module.
-run-without-lifecycle-manager: run-k3d-with-keda-without-lifecycle-manager busola-enable
+run-without-lifecycle-manager: run-k3d-with-keda-without-lifecycle-manager
 
 .PHONY: stop
 stop: ## Delete k3d cluster and registry.
@@ -27,7 +27,3 @@ run-k3d-with-keda-and-lifecycle-manager:
 .PHONY: run-k3d-with-keda-without-lifecycle-manager
 run-k3d-with-keda-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
-
-.PHONY: busola-enable
-busola-enable:
-	@make -C ./busola busola-enable

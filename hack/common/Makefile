@@ -1,11 +1,13 @@
+PROJECT_ROOT ?= ../..
+include ${PROJECT_ROOT}/.env
+
 CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
 REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
 MANAGER_IMAGE_NAME ?= keda-manager-dev-local
-MANAGER_IMAGE_TAG ?= 0.0.4
+MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
 
-PROJECT_ROOT ?= ../..
 
 KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
 
@@ -25,8 +27,9 @@ run-with-lifecycle-manager: \
 	module-image \
 	module-build \
 	fix-template \
-	install-module \
+	install-kyma-with-lm \
 	patch-mod-mgr-role \
+	install-module-template \
 	enable-module \
 	verify-kyma
 
@@ -87,11 +90,14 @@ patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.
 		lifecycle-manager-manager-role \
 		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
 
-.PHONY: install-module
-install-module: ## Kyma alpha deploy with k3d moduletemplate.
+.PHONY: install-kyma-with-lm
+install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
 	${KYMA} alpha deploy \
 		--ci \
 		--force-conflicts
+
+.PHONY: install-module-template
+install-module-template: ## Apply k3d-ready moduletemplate.
 	kubectl apply -f ${PROJECT_ROOT}/template-k3d.yaml
 	kubectl label -n kcp-system moduletemplate moduletemplate-keda operator.kyma-project.io/use-local-template=true
 
@@ -111,7 +117,7 @@ kyma:
 	@make -C ${PROJECT_ROOT} kyma
 
 .PHONY: module-image
-module-image:
+module-image: 
 	@make -C ${PROJECT_ROOT} module-image \
 		IMG=localhost:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
