@@ -1,11 +1,13 @@
+PROJECT_ROOT ?= ../..
+include ${PROJECT_ROOT}/.env
+
 CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
 REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
 MANAGER_IMAGE_NAME ?= keda-manager-dev-local
-MANAGER_IMAGE_TAG ?= 0.0.4
+MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
 
-PROJECT_ROOT ?= ../..
 
 KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
 
@@ -89,7 +91,7 @@ patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.
 		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
 
 .PHONY: install-kyma-with-lm
-install-kyma-with-lm:
+install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
 	${KYMA} alpha deploy \
 		--ci \
 		--force-conflicts
@@ -115,7 +117,7 @@ kyma:
 	@make -C ${PROJECT_ROOT} kyma
 
 .PHONY: module-image
-module-image:
+module-image: 
 	@make -C ${PROJECT_ROOT} module-image \
 		IMG=localhost:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
