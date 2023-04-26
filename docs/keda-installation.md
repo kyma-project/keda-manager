@@ -9,7 +9,7 @@ In such a setup, you don't need to install Keda Manager. It is installed and man
 
 When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the `lifecycle-manager` downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
 
-![a](./docs/assets/keda-lm-overview.drawio.svg)
+![a](assets/keda-lm-overview.drawio.svg)
 
 To enable the Keda module run:
 
@@ -150,7 +150,7 @@ CI jobs that are running on PRs and on main branch will help to achieve that.
 
 2. After the job has finished with success, click **Details** next to the `pull-keda-module-build` job.
 
-   ![a](./docs/assets/pull_keda_module_build.png)
+   ![a](assets/pull_keda_module_build.png)
 
 The module template will be printed in the module template section, between the tags.
 
