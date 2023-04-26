@@ -154,7 +154,7 @@ CI jobs that are running on PRs and on main branch will help to achieve that.
 
 The module template will be printed in the module template section, between the tags.
 
-	> `~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~`
+> `~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~`
 
 	```yaml
 	apiVersion: operator.kyma-project.io/v1alpha1
@@ -164,10 +164,10 @@ The module template will be printed in the module template section, between the 
 	...
 	```
 
-	> `~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~`
+> `~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~`
 
-	<details>
-	<summary><b>Example of full job build result</b></summary>
+<details>
+<summary><b>Example of full job build result</b></summary>
 
 	```text
 	make: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
@@ -271,7 +271,7 @@ The module template will be printed in the module template section, between the 
 	~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~
 	make: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
 	```
-	</details>
+</details>
 
 Save section's content in local file.
 
