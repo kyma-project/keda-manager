@@ -6,13 +6,28 @@ Keda Manager is an extension to the Kyma ecosystem that allows users to install 
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
+For more information how to manage KEDA through Keda Manager, see [How to use Keda Manager to manage KEDA](/docs/keda-management.md).
+
 ### What is KEDA?
 
 KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources to make scaling decisions. To learn more about KEDA, see [KEDA documentation](https://keda.sh/docs/latest/concepts/).
 
 ## Install
 
-For the installation options, check the [How to install Keda Manager](/docs/keda-installation.md) tutorial.
+1. To install Keda Manager manually, apply the following script:
+
+```bash
+kubectl create ns kyma-system
+kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+```
+
+2. To get Keda installed, apply the sample Keda CR:
+
+```bash
+kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+```
+
+For more installation options, check the [How to install Keda Manager](/docs/keda-installation.md) tutorial.
 
 ##  Development
 
@@ -89,70 +104,6 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    kubectl get deployments -n kyma-system       
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
    keda-manager            1/1     1            1           1m
-   ```
-
-
-### How to use Keda Manager to install Keda
-
-Keda Manager reconciles KEDA deployment based on the watched Keda CRs:
-
-- Apply Keda CR (sample) to have Keda installed.
-
-   ```bash
-   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
-   ```
-
-   After a while, you will have Keda installed, and you should see its workloads:
-
-   ```bash
-   NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   keda-manager                     1/1     1            1           3m
-   keda-operator                    1/1     1            1           3m
-   keda-operator-metrics-apiserver  1/1     1            1           3m
-   ```
-
-   Now you can use KEDA to scale workloads on the Kubernetes cluster. Check the [demo application](docs/keda-demo-application.md).
-
-- Remove Keda CR to have Keda uninstalled.
-
-   ```bash
-   kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
-   ```
-   This uninstalls all Keda workloads but leaves `keda-manager`.
-
-   > **NOTE:** Keda Manager uses finalizers to uninstall the Keda module from the cluster. It means that Keda Manager blocks the uninstallation process of KEDA until there are user-created custom resources (for example ScaledObjects).
-
-- Update the specification of Keda CR to change the Keda installation
-
-   [This example](docs/keda-configuration.md) shows how to modify the Keda properties using the `keda.operator.kyma-project.io` CR.
-
-
-   ```bash
-   cat <<EOF | kubectl apply -f -
-   apiVersion: operator.kyma-project.io/v1alpha1
-   kind: Keda
-   metadata:
-   name: default
-   spec:
-   logging:
-      operator:
-         level: "debug"
-   resources:
-      operator:
-         limits:
-         cpu: "1"
-         memory: "200Mi"
-         requests:
-         cpu: "0.5"
-         memory: "150Mi"
-      metricServer:
-         limits:
-         cpu: "1"
-         memory: "1000Mi"
-         requests:
-         cpu: "300m"
-         memory: "500Mi"
-   EOF
    ```
 
 ## CI/CD
