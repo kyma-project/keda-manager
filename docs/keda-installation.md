@@ -273,15 +273,15 @@ The module template will be printed in the module template section, between the 
 	```
 </details>
 
-Save section's content in local file.
+3. Save section's content in local file.
 
-3. Apply the module template on your remote cluster:
+4. Apply the module template on your remote cluster:
 
    ```bash
    kubectl apply -f <saved_module_template_path>
    ```
 
-4. Enable the Keda Manager module by patching the Kyma CRD.
+5. Enable the Keda Manager module by patching the Kyma CRD.
 
    ```bash
    make -C hack/common module
