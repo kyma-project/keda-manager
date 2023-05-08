@@ -119,7 +119,7 @@ Add the following element under `rules`:
    kyma alpha enable module keda -c fast
    ```
    
-### Local mode in k3d
+### Run locally on bare k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
 Thanks to that, you don't need to push the Keda module images to a remote registry and you can test the changes in the Kyma installation set up entirely on your machine.
