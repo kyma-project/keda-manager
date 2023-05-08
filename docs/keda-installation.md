@@ -17,106 +17,12 @@ To enable the Keda module run:
    kyma alpha enable module keda -c fast
    ```
 
-## Local k3d setup for the local lifecycle-manager & Keda Manager
+## Run locally with Kyma and lifecycle-manager on k3d
 
-> **TIP:** Use the dedicated `make` target (in the `hack` folder) to execute the following steps automatically.
-
-1. Clone the project.
+Use the dedicated `make` target (in the `hack` folder) to run Keda module on k3d.
 
    ```bash
-   git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
-   ```
-
-2. Provide the k3d cluster.
-
-   ```bash
-   kyma provision k3d
-   ```
-
-3. Build and push the Keda Manager image.
-
-   ```bash
-   make module-image IMG_REGISTRY=localhost:5001/unsigned/manager-images IMG=localhost:5001/keda-manager-dev-local:0.0.2
-   ```
-
-4. Build and push the Keda module.
-
-   ```bash
-   make module-build IMG=k3d-kyma-registry:5001/keda-manager-dev-local:0.0.2 MODULE_REGISTRY=localhost:5001/unsigned
-   ```
-
-5. Verify if the module and the manager's image are pushed to the local registry.
-
-   ```bash
-   curl localhost:5001/v2/_catalog
-   ```
-   You should get a result similar to this example:
-
-   ```json
-   {"repositories":["keda-manager-dev-local","unsigned/component-descriptors/kyma-project.io/module/keda"]}
-   ```
-6. Inspect the generated module template.
-
-   > **NOTE:** The following sub-steps are temporary workarounds.
-
-Edit `template.yaml` and:
-- change `target` to `control-plane`
-
-   ```yaml
-   spec:
-    target: control-plane
-    ```
-> **NOTE:** This is required in the single-cluster mode only.
-
-- change the existing repository context in `spec.descriptor.component`:
-
-   ```yaml
-   repositoryContexts:      
-     - baseUrl: k3d-kyma-registry.localhost:5000/unsigned
-       componentNameMapping: urlPath
-       type: ociRegistry
-   ```
-
-7. Install the modular Kyma on the k3d cluster.
-
-   > **NOTE** This installs the latest versions of `lifecycle-manager`.
-
-   ```bash
-   kyma alpha deploy
-   ```
-8. Deploy the Keda module manifest.
-
-   ```bash
-   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/moduletemplate.yaml
-   ```
-
-9.  Give Module Manager permission to install CustomResourceDefinition (CRD) cluster-wide.
-
-   > **NOTE:** Module Manager must be able to apply CRDs to install modules. In the remote mode (with control-plane managing remote clusters) it gets an administrative kubeconfig, targeting the remote cluster to do so. But in the local mode (single-cluster mode), it uses Service Account and does not have permission to create CRDs by default.
-
-   To make sure Module Manager's Service Account gets an administrative role, edit the cluster role:
-
-   ```bash
-   kubectl edit clusterrole module-manager-manager-role
-   ```
-
-Add the following element under `rules`:
-
-   ```yaml
-   - apiGroups:
-     - "*"
-     resources:
-     - "*"                  
-     verbs:                  
-     - "*"
-  ```
-
-> **NOTE:** This is a temporary workaround and is only required in the single-cluster mode.
-
-10. Enable Keda in the Kyma CR.
-
-   ```bash
-   kyma alpha enable module keda -c fast
+   make -C hack/local run-with-lifecycle-manager
    ```
    
 ### Run locally on bare k3d
