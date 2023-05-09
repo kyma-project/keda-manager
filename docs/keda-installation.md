@@ -62,13 +62,13 @@ The module template will be printed in the module template section, between the 
 
 > `~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~`
 
-	```yaml
-	apiVersion: operator.kyma-project.io/v1alpha1
-	kind: ModuleTemplate
-	metadata:
-	name: moduletemplate-keda
-	...
-	```
+   ```yaml
+   apiVersion: operator.kyma-project.io/v1alpha1
+   kind: ModuleTemplate
+   metadata:
+   name: moduletemplate-keda
+   ...
+   ```
 
 > `~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~`
 
