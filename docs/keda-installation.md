@@ -75,108 +75,108 @@ The module template will be printed in the module template section, between the 
 <details>
 <summary><b>Example of full job build result</b></summary>
 
-	```text
-	make: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
-	make[1]: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
-	mkdir -p /home/prow/go/src/github.com/kyma-project/keda-manager/bin
-	## Detect if operating system 
-	test -f /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable || curl -s -Lo /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable https://storage.googleapis.com/kyma-cli-unstable/kyma-linux
-	chmod 0100 /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable
-	test -s /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize || { curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s -- 4.5.6 /home/prow/go/src/github.com/kyma-project/keda-manager/bin; }
-	{Version:kustomize/v4.5.6 GitCommit:29ca6935bde25565795e1b4e13ca211c4aa56417 BuildDate:2022-07-29T20:42:23Z GoOs:linux GoArch:amd64}
-	kustomize installed to /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize
-	cd config/manager && /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize edit set image controller=europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-101
-	[0;33;1mWARNING: This command is experimental and might change in its final version. Use at your own risk.
-	[0m- Kustomize ready
-	- Module built
-	- Default CR validation succeeded
-	- Creating module archive at "./mod"
-	- Image created
-	- Pushing image to "europe-docker.pkg.dev/kyma-project/dev/unsigned"
-	- Generating module template
-	make[1]: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
+   ```text
+   make: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
+   make[1]: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
+   mkdir -p /home/prow/go/src/github.com/kyma-project/keda-manager/bin
+   ## Detect if operating system 
+   test -f /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable || curl -s -Lo /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable https://storage.googleapis.com/kyma-cli-unstable/kyma-linux
+   chmod 0100 /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable
+   test -s /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize || { curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s -- 4.5.6 /home/prow/go/src/github.com/kyma-project/keda-manager/bin; }
+   {Version:kustomize/v4.5.6 GitCommit:29ca6935bde25565795e1b4e13ca211c4aa56417 BuildDate:2022-07-29T20:42:23Z GoOs:linux GoArch:amd64}
+   kustomize installed to /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize
+   cd config/manager && /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize edit set image controller=europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-101
+   [0;33;1mWARNING: This command is experimental and might change in its final version. Use at your own risk.
+   [0m- Kustomize ready
+   - Module built
+   - Default CR validation succeeded
+   - Creating module archive at "./mod"
+   - Image created
+   - Pushing image to "europe-docker.pkg.dev/kyma-project/dev/unsigned"
+   - Generating module template
+   make[1]: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
 
-	~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~
-	apiVersion: operator.kyma-project.io/v1alpha1
-	kind: ModuleTemplate
-	metadata:
-	name: moduletemplate-keda
-	namespace: kcp-system
-	labels:
-		"operator.kyma-project.io/managed-by": "lifecycle-manager"
-		"operator.kyma-project.io/controller-name": "manifest"
-		"operator.kyma-project.io/module-name": "keda"
-	annotations:
-		"operator.kyma-project.io/module-version": "0.0.2-PR-101"
-		"operator.kyma-project.io/module-provider": "internal"
-		"operator.kyma-project.io/descriptor-schema-version": "v2"
-	spec:
-	target: remote
-	channel: fast
-	data:
-		apiVersion: operator.kyma-project.io/v1alpha1
-		kind: Keda
-		metadata:
-			name: default
-		spec:
-			logging:
-			operator:
-				level: "debug"
-			resources:
-			operator:
-				limits:
-					cpu: "1"
-					memory: "200Mi"
-				requests:
-					cpu: "0.5"
-					memory: "150Mi"
-			metricServer:
-				limits:
-					cpu: "1"
-					memory: "1000Mi"
-				requests:
-					cpu: "300m"
-					memory: "500Mi"
-	descriptor:
-		component:
-			componentReferences: []
-			name: kyma-project.io/module/keda
-			provider: internal
-			repositoryContexts:
-			- baseUrl: europe-docker.pkg.dev/kyma-project/dev/unsigned
-			componentNameMapping: urlPath
-			type: ociRegistry
-			resources:
-			- access:
-				digest: sha256:3bf7c3bc2d666165ae2ae6cbcad2e3fcaa3a66ca3afebda8c9d008ab93413453
-				type: localOciBlob
-			name: keda
-			relation: local
-			type: helm-chart
-			version: 0.0.2-PR-101
-			- access:
-				digest: sha256:f4a599c4310b0fe9133b67b72d9b15ee96b52a1872132528c83978239b5effef
-				type: localOciBlob
-			name: config
-			relation: local
-			type: yaml
-			version: 0.0.2-PR-101
-			sources:
-			- access:
-				commit: f3b1b7ed6c175e89a7d29202b8a4cc4fc74cf998
-				ref: refs/heads/main
-				repoUrl: github.com/kyma-project/keda-manager
-				type: github
-			name: keda-manager
-			type: git
-			version: 0.0.2-PR-101
-			version: 0.0.2-PR-101
-		meta:
-			schemaVersion: v2
+   ~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~
+   apiVersion: operator.kyma-project.io/v1alpha1
+   kind: ModuleTemplate
+   metadata:
+   name: moduletemplate-keda
+   namespace: kcp-system
+   labels:
+	   "operator.kyma-project.io/managed-by": "lifecycle-manager"
+	   "operator.kyma-project.io/controller-name": "manifest"
+	   "operator.kyma-project.io/module-name": "keda"
+   annotations:
+	   "operator.kyma-project.io/module-version": "0.0.2-PR-101"
+	   "operator.kyma-project.io/module-provider": "internal"
+	   "operator.kyma-project.io/descriptor-schema-version": "v2"
+   spec:
+   target: remote
+   channel: fast
+   data:
+	   apiVersion: operator.kyma-project.io/v1alpha1
+	   kind: Keda
+	   metadata:
+		   name: default
+	   spec:
+		   logging:
+		   operator:
+			   level: "debug"
+		   resources:
+		   operator:
+			   limits:
+				   cpu: "1"
+				   memory: "200Mi"
+			   requests:
+				   cpu: "0.5"
+				   memory: "150Mi"
+		   metricServer:
+			   limits:
+				   cpu: "1"
+				   memory: "1000Mi"
+			   requests:
+				   cpu: "300m"
+				   memory: "500Mi"
+   descriptor:
+	   component:
+		   componentReferences: []
+		   name: kyma-project.io/module/keda
+		   provider: internal
+		   repositoryContexts:
+		   - baseUrl: europe-docker.pkg.dev/kyma-project/dev/unsigned
+		   componentNameMapping: urlPath
+		   type: ociRegistry
+		   resources:
+		   - access:
+			   digest: sha256:3bf7c3bc2d666165ae2ae6cbcad2e3fcaa3a66ca3afebda8c9d008ab93413453
+			   type: localOciBlob
+		   name: keda
+		   relation: local
+		   type: helm-chart
+		   version: 0.0.2-PR-101
+		   - access:
+			   digest: sha256:f4a599c4310b0fe9133b67b72d9b15ee96b52a1872132528c83978239b5effef
+			   type: localOciBlob
+		   name: config
+		   relation: local
+		   type: yaml
+		   version: 0.0.2-PR-101
+		   sources:
+		   - access:
+			   commit: f3b1b7ed6c175e89a7d29202b8a4cc4fc74cf998
+			   ref: refs/heads/main
+			   repoUrl: github.com/kyma-project/keda-manager
+			   type: github
+		   name: keda-manager
+		   type: git
+		   version: 0.0.2-PR-101
+		   version: 0.0.2-PR-101
+	   meta:
+		   schemaVersion: v2
 
-	~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~
-	make: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
-	```
+   ~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~
+   make: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
+   ```
 </details>
 
 3. Save section's content in local file.
