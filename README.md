@@ -115,7 +115,7 @@ The following CI jobs are part of the development cycle. They verify the functio
 | Name | Required | Description |
 |------|----------|-------------|
 |[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|Builds Keda operator's image and pushes it to the `dev` registry.|
-|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|Builds module's OCI image and pushes it to the `dev` artifact registry. Renders Module Template for the Keda module that allows for manual integration tests against Lifecycle Manager.|
+|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|Builds module's OCI image and pushes it to the `dev` artifact registry. Renders ModuleTemplate for the Keda module that allows for manual integration tests against Lifecycle Manager.|
 |[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|Executes basic create/update/delete functional tests of Keda Manager's reconciliation logic.|
 |[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|installs Keda Manager, not using Lifecycle Manager, and applies the sample Keda CR on a k3d cluster. Executes smoke integration test of KEDA.  |
 |[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|Is responsible for linting, static code analysis.|
@@ -162,8 +162,8 @@ This means that new versions are submitted to a given channel.
 
 Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma git repository, fast or regular:
 
-Having merged all the changes into the `main` branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate a module template for you.
-Take the module template and submit it into the desired channel using a pull request to the Kyma repository.
+Having merged all the changes into the `main` branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate ModuleTemplate for you.
+Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
 A series of governance jobs will start testing if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 
 

@@ -1,13 +1,13 @@
-# How to install Keda Manager
+# Install Keda Manager
 
-## Installation on Kyma runtime
+## Install on Kyma runtime
 
-This section describes how to set up the Keda module (Keda + Keda Manager) on top of the Kyma installation with `lifecycle-manager`.
-In such a setup, you don't need to install Keda Manager. It is installed and managed by `lifecycle-manager`.
+This section describes how to set up the Keda module (KEDA + Keda Manager) on top of the Kyma installation with Lifecycle Manager.
+In such a setup, you don't need to install Keda Manager. It is installed and managed by Lifecycle Manager.
 
 ### Lifecycle management of Keda Manager in Kyma
 
-When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the `lifecycle-manager` downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
+When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the Lifecycle Manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
 
 ![a](assets/keda-lm-overview.drawio.svg)
 
@@ -44,11 +44,11 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
 
 ### Install on remote Kyma runtime
 
-Prerequisite: `lifecycle-manager` must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
+Prerequisite: Lifecycle Manager must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
 
-In this section, you will learn how to install a pull request (PR) version of the Keda module by a `lifecycle-manager` on a remote cluster.
-You need OCI images for the Keda module version to be built and pushed into a public registry. You also need a module template matching the version, to apply it on the remote cluster.
-CI jobs that are running on PRs and on main branch will help to achieve that.
+In this section, you will learn how to install a pull request (PR) version of the Keda module with Lifecycle Manager on a remote cluster.
+You need OCI images for the Keda module version to be built and pushed into a public registry. You also need ModuleTemplate matching the version, to apply it on the remote cluster.
+CI jobs running on PRs and on main branch help you to achieve that.
 
 1. Create a PR or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository; on the PR page, scroll down to the Prow jobs status list. 
 
@@ -58,7 +58,7 @@ CI jobs that are running on PRs and on main branch will help to achieve that.
 
    ![a](assets/pull_keda_module_build.png)
 
-The module template will be printed in the module template section, between the tags.
+The ModuleTemplate will be printed in the MODULE TEMPLATE section, between the tags.
 
 > `~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~`
 
@@ -179,15 +179,15 @@ The module template will be printed in the module template section, between the 
    ```
 </details>
 
-3. Save section's content in local file.
+1. Save the section's content in the local file.
 
-4. Apply the module template on your remote cluster:
+2. Apply ModuleTemplate on your remote cluster:
 
    ```bash
    kubectl apply -f <saved_module_template_path>
    ```
 
-5. Enable the Keda Manager module by patching the Kyma CRD.
+3. Enable the Keda Manager module by patching the Kyma CRD.
 
    ```bash
    make -C hack/common module
