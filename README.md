@@ -6,7 +6,7 @@ Keda Manager is an extension to the Kyma ecosystem that allows users to install 
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
-For more information, see [How to use Keda Manager to manage KEDA](/docs/keda-management.md).
+For more information, see [Use Keda Manager to manage KEDA](/docs/keda-management.md).
 
 ### What is KEDA?
 

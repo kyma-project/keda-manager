@@ -17,9 +17,9 @@ To enable the Keda module run:
    kyma alpha enable module keda -c fast
    ```
 
-## Run locally with Kyma and lifecycle-manager on k3d
+## Run locally with Kyma and Lifecycle Manager on k3d
 
-Use the dedicated `make` target (in the `hack` folder) to run Keda module on k3d.
+Use the dedicated `make` target (in the `hack` folder) to run the Keda module on k3d.
 
    ```bash
    make -C hack/local run-with-lifecycle-manager

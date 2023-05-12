@@ -1,4 +1,4 @@
-### How to use Keda Manager to manage KEDA
+### Use Keda Manager to manage KEDA
 
 Keda Manager reconciles KEDA deployment based on the watched Keda custom resources (CRs):
 
@@ -17,7 +17,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
    keda-operator-metrics-apiserver  1/1     1            1           3m
    ```
 
-   Now you can use KEDA to scale workloads on the Kubernetes cluster. Check the [demo application](docs/keda-demo-application.md).
+   Now you can use KEDA to scale workloads on the Kubernetes cluster. Check the [demo application](keda-demo-application.md).
 
 - Remove Keda CR to have KEDA uninstalled.
 
@@ -30,7 +30,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
 
 - Update the specification of Keda CR to change the Keda installation
 
-   [This example](docs/keda-configuration.md) shows how to modify the Keda properties using the `keda.operator.kyma-project.io` CR.
+   [This example](keda-configuration.md) shows how to modify the Keda properties using the `keda.operator.kyma-project.io` CR.
 
 
    ```bash
