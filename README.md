@@ -6,7 +6,7 @@ Keda Manager is an extension to the Kyma ecosystem that allows users to install 
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
-For more information how to manage KEDA through Keda Manager, see [How to use Keda Manager to manage KEDA](/docs/keda-management.md).
+For more information, see [How to use Keda Manager to manage KEDA](/docs/keda-management.md).
 
 ### What is KEDA?
 
@@ -21,7 +21,7 @@ kubectl create ns kyma-system
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 ```
 
-2. To get Keda installed, apply the sample Keda CR:
+1. To get KEDA installed, apply the sample Keda CR:
 
 ```bash
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
@@ -33,9 +33,9 @@ For more installation options, check the [How to install Keda Manager](/docs/ked
 
 ###  Project structure
 
-Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder)).
+Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder).
 
-- `config`: A directory containing the [kustomize](https://github.com/kubernetes-sigs/kustomize) YAML definitions of the module for more information, see [kubebuilder's documentation on launch configuration](https://book.kubebuilder.io/cronjob-tutorial/basic-project.html#launch-configuration)).
+- `config`: A directory containing the [kustomize](https://github.com/kubernetes-sigs/kustomize) YAML definitions of the module for more information, see [kubebuilder's documentation on launch configuration](https://book.kubebuilder.io/cronjob-tutorial/basic-project.html#launch-configuration).
 - `api`: Packages containing Keda CustomResourceDefinitions (CRD). 
 - `controllers`: Package containing the implementation of the module's reconciliation loop responsible for managing Keda CRs.
 - `Dockerfile`: The definition of the `keda-manager-module` image.
@@ -44,7 +44,7 @@ Keda Manager codebase is scaffolded with `kubebuilder`. For more information on 
 - `docs`: Contains context documentation for the project.
 - `hack`: A directory containing scripts and makefiles that enchance capabilities of root `Makefile`.
 - `pkg`: Contains packages used in the project.
-- `keda.yaml`: Kubernetes objects that represent `keda module`
+- `keda.yaml`: Kubernetes objects that represent `keda module`.
 
 
 ### Prerequisites
@@ -59,9 +59,9 @@ Keda Manager codebase is scaffolded with `kubebuilder`. For more information on 
 ### Useful Make targets 
 
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
-For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's `lifecycle-manager`.
+For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
 
-Run the following commands to deploy Keda Manager on a target Kubernetes cluster (i.e., on k3d):
+Run the following commands to deploy Keda Manager on a target Kubernetes cluster (for example, on k3d):
 
 1. Clone the project.
 
@@ -98,7 +98,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    make deploy
    ```
 
-7. Verify if Keda Manager is deployed
+7. Verify if Keda Manager is deployed.
 
    ```bash
    kubectl get deployments -n kyma-system       
@@ -110,33 +110,33 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
 
 ### Pipelines running on pull requests
 
-The following CI jobs are part of the development cycle. They verify the functional correctness of keda-manager but do not verify the contract concerning Kyma's lifecycle-manager.
+The following CI jobs are part of the development cycle. They verify the functional correctness of Keda Manager but do not verify the contract concerning Kyma's Lifecycle Manager.
 
 | Name | Required | Description |
 |------|----------|-------------|
-|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|builds Keda operator's image and pushes it to dev registry|
-|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|builds module's OCI image and pushes it to dev artifact registry. Renders Module Template for the Keda module that allows for manual integration tests against lifecycle-manager|
-|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|executes basic create/update/delete functional tests of the keda-manager's reconciliation logic|
-|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|installs keda-manager (**not using  lifecycle-manager**) and applies sample Keda CR on k3d cluster. Executes smoke integration test of Keda.  |
-|[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|linting, static code analysis|
+|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|Builds Keda operator's image and pushes it to the `dev` registry.|
+|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|Builds module's OCI image and pushes it to the `dev` artifact registry. Renders Module Template for the Keda module that allows for manual integration tests against Lifecycle Manager.|
+|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|Executes basic create/update/delete functional tests of Keda Manager's reconciliation logic.|
+|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|installs Keda Manager, not using Lifecycle Manager, and applies the sample Keda CR on a k3d cluster. Executes smoke integration test of KEDA.  |
+|[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|Is responsible for linting, static code analysis.|
 
 ### Pipelines running on main branch 
 
-The following CI jobs are regenerating keda-manager's artefacts and initiate integration tests of keda-manager to verify contract with respect to Kyma's lifecycle-manager.
+The following CI jobs are regenerating Keda Manager’s artifacts and initiating integration tests of Keda Manager to verify the contract with respect to Kyma’s Lifecycle Manager.
 
 | Name | Description |
 |------|-------------|
-|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|re-builds manager's image and pushes it into prod registry|
-|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|re-builds module's OCI image and pushes it to prod artifact registry|
-|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|installs keda-manager (**using lifecycle-manager**), applies Kyma CR and enables keda module on k3d cluster. Executes smoke integration test of Keda.|
-|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|installs keda module (using module template and lifecycle-manager) from latest released version and upgrades it to the version from main. Verifies reconciliation status on the Kyma CR and runs smoke integration tests of keda|
+|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|Re-builds manager's image and pushes it into the `prod` registry.|
+|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|Re-builds module's OCI image and pushes it to the `prod` artifact registry.|
+|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|Installs Keda Manager, using Lifecyle Manager, applies Kyma CR and enables Keda module on a k3d cluster. Executes smoke integration test of KEDA.|
+|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|Installs Keda module, using ModuleTemplate and Lifecycle Manager, from the latest released version and upgrades it to the version from `main`. Verifies reconciliation status on Kyma CR and runs smoke integration tests of KEDA.|
 
 ### Building and publishing images manually
 
 - Export required environmental variables
 
 ```
-export IMG="IMG"           // keda manager's image
+export IMG="IMG"           // Keda Manager's image
 export REGISTRY="REGISTRY" // the OCI registry the module will be published to
 ```
 
@@ -152,7 +152,7 @@ make module-build \
 
 Keda Manager is not only an API extension to the Kyma ecosystem, but it also extends the UI of the Kyma Dashboard.
 It uses the [UI extensibility](https://github.com/kyma-project/busola/tree/main/docs/extensibility) feature of Kyma dashboard.
-In the [ui-extensions](config/ui-extensions) folder you will find configuration for the UI components (i.e., list view, form view, details view) that will help Kyma users manipulate with Keda CRs - `ScaledObjects`.
+In the [ui-extensions](config/ui-extensions) folder you will find configuration for the UI components (for example, list view, form view, details view) that will help Kyma users manipulate with Keda CRs - `ScaledObjects`.
 This configuration is applied as part of the Keda Manager resources. Thanks to that, it comes and goes depending on whether the Keda module is enabled or disabled.
 
 ## Releasing new versions 
@@ -160,12 +160,9 @@ This configuration is applied as part of the Keda Manager resources. Thanks to t
 The release of a new version of the Keda module is realized using the [release channels](https://github.com/kyma-project/community/tree/main/concepts/modularization#release-channels).
 This means that new versions are submitted to a given channel.
 
-Current versions per each channel are represented by the Module Templates CR submitted to a matching folder in the Kyma git repository:
+Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma git repository, fast or regular:
 
- - fast (not available yet)
- - regular (not available yet)
-
-Having merged all the changes into the main branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate a module template for you.
+Having merged all the changes into the `main` branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate a module template for you.
 Take the module template and submit it into the desired channel using a pull request to the Kyma repository.
 A series of governance jobs will start testing if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 
