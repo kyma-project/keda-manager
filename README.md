@@ -140,7 +140,7 @@ export IMG="IMG"           // Keda Manager's image
 export REGISTRY="REGISTRY" // the OCI registry the module will be published to
 ```
 
-- Run recipe to build and publish module
+- Run the following recipe to build and publish module
 
 ```
 make module-build \
