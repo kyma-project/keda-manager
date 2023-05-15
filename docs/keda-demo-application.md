@@ -2,7 +2,7 @@
 
 This demo application shows how to scale the Kubernetes workloads using Keda API based on a simple CPU consumption case.
 
-See the Keda documentation:
+See the KEDA documentation:
  - [API of Scaled Object Custom Resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
  - [Available scalers](https://keda.sh/docs/latest/scalers/)
 
@@ -27,7 +27,7 @@ NAME                        SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   T
 orders-service-cpu-scaler   apps/v1.Deployment   orders-service    1     10    cpu                         True    True     Unknown    8m3s
 ```
 
-You should also see that after a while, Keda has engaged the Kubernetes HorizontalPodAutoscaler, which controls the number of replicas of the target deployment.
+You should also see that after a while, KEDA has engaged the Kubernetes HorizontalPodAutoscaler, which controls the number of replicas of the target deployment.
 
 ```bash
 kubectl get hpa -n keda-demo

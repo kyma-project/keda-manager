@@ -1,7 +1,15 @@
-# Docs
+# Keda Manager
 
-## Overview
+Learn how to install and configure your Keda Manager.
 
-This folder contains documents that relate to the project.
+## Installation
 
-> In this document, provide the list of all documents that this folder contains, together with links to those documents and short information on what they describe.
+To learn how to install Keda Manager locally on k3d or set it up on your runtime, visit the [Install Keda Manager](keda-installation.md) tutorial.
+
+## Configuration
+
+For Keda Manager configuration options, see [Keda configuration](keda-configuration.md).
+
+## Demo 
+
+Visit [Keda Demo Application](keda-demo-application.md) to see how to scale the Kubernetes workloads using Keda API based on a simple CPU consumption case.

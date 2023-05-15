@@ -6,41 +6,45 @@ Keda Manager is an extension to the Kyma ecosystem that allows users to install 
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
+For more information, see [Use Keda Manager to manage KEDA](/docs/keda-management.md).
+
 ### What is KEDA?
 
-KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources to make scaling decisions. To learn more about KEDA, see [KEDA documentation](https://keda.sh/docs/latest/concepts/).
+KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources for making scaling decisions. To learn more about KEDA, see the [KEDA documentation](https://keda.sh/docs/latest/concepts/).
 
-## Install
+## Install Keda module
 
-To install keda-manager simply apply the following script:
+1. To install Keda Manager manually, apply the following script:
 
 ```bash
 kubectl create ns kyma-system
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 ```
 
-To get Keda installed, apply the sample Keda CR:
+1. To get KEDA installed, apply the sample Keda CR:
 
 ```bash
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
+For more installation options, check the [Install Keda Manager](/docs/keda-installation.md) tutorial.
+
 ##  Development
 
 ###  Project structure
 
-Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder)).
+Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder).
 
-- `config`: A directory containing the [kustomize](https://github.com/kubernetes-sigs/kustomize) YAML definitions of the module for more information, see [kubebuilder's documentation on launch configuration](https://book.kubebuilder.io/cronjob-tutorial/basic-project.html#launch-configuration)).
+- `config`: A directory containing the [kustomize](https://github.com/kubernetes-sigs/kustomize) YAML definitions of the module. For more information, see [kubebuilder's documentation on launch configuration](https://book.kubebuilder.io/cronjob-tutorial/basic-project.html#launch-configuration).
 - `api`: Packages containing Keda CustomResourceDefinitions (CRD). 
 - `controllers`: Package containing the implementation of the module's reconciliation loop responsible for managing Keda CRs.
 - `Dockerfile`: The definition of the `keda-manager-module` image.
 - `bin`: A directory with binaries that are used to build/run project.
 - `config.yaml`: Configuration file to override module's Helm chart properties.
 - `docs`: Contains context documentation for the project.
-- `hack`: A directory containing scripts and makefiles that enchance capabilities of root `Makefile`.
+- `hack`: A directory containing scripts and makefiles that enhance the root `Makefile` capabilities.
 - `pkg`: Contains packages used in the project.
-- `keda.yaml`: Kubernetes objects that represent `keda module`
+- `keda.yaml`: Kubernetes objects that represent `keda module`.
 
 
 ### Prerequisites
@@ -55,9 +59,9 @@ Keda Manager codebase is scaffolded with `kubebuilder`. For more information on 
 ### Useful Make targets 
 
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
-For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's `lifecycle-manager`.
+For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
 
-Run the following commands to deploy Keda Manager on a target Kubernetes cluster (i.e., on k3d):
+Run the following commands to deploy Keda Manager on a target Kubernetes cluster (for example, on k3d):
 
 1. Clone the project.
 
@@ -94,7 +98,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    make deploy
    ```
 
-7. Verify if Keda Manager is deployed
+7. Verify if Keda Manager is deployed.
 
    ```bash
    kubectl get deployments -n kyma-system       
@@ -102,290 +106,41 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    keda-manager            1/1     1            1           1m
    ```
 
-
-### How to use Keda Menager to install Keda
-
-Keda Manager reconciles KEDA deployment based on the watched Keda CRs:
-
-- Apply Keda CR (sample) to have Keda installed.
-
-   ```bash
-   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
-   ```
-
-   After a while, you will have Keda installed, and you should see its workloads:
-
-   ```bash
-   NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
-   keda-manager                     1/1     1            1           3m
-   keda-operator                    1/1     1            1           3m
-   keda-operator-metrics-apiserver  1/1     1            1           3m
-   ```
-
-   Now you can use KEDA to scale workloads on the Kubernetes cluster. Check the [demo application](docs/keda-demo-application.md).
-
-- Remove Keda CR to have Keda uninstalled.
-
-   ```bash
-   kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
-   ```
-   This uninstalls all Keda workloads but leaves `keda-manager`.
-
-   > **NOTE:** Keda Manager uses finalizers to uninstall the Keda module from the cluster. It means that Keda Manager blocks the uninstallation process of KEDA until there are user-created custom resources (for example ScaledObjects).
-
-- Update the specification of Keda CR to change the Keda installation
-
-   [This example](docs/keda-configuration.md) shows how to modify the Keda properties using the `keda.operator.kyma-project.io` CR.
-
-
-   ```bash
-   cat <<EOF | kubectl apply -f -
-   apiVersion: operator.kyma-project.io/v1alpha1
-   kind: Keda
-   metadata:
-   name: default
-   spec:
-   logging:
-      operator:
-         level: "debug"
-   resources:
-      operator:
-         limits:
-         cpu: "1"
-         memory: "200Mi"
-         requests:
-         cpu: "0.5"
-         memory: "150Mi"
-      metricServer:
-         limits:
-         cpu: "1"
-         memory: "1000Mi"
-         requests:
-         cpu: "300m"
-         memory: "500Mi"
-   EOF
-   ```
-
-
-## Installation on Kyma runtime
-
-This section describes the setup of the Keda module on top of the Kyma installation with `lifecycle manager`.
-In such a setup, you don't need to install Keda Manager, but it is installed and managed by a `lifecycle manager` instead.
-
-### Lifecycle management of Keda Manager in Kyma
-
-When you enable the Keda module in the Kyma CR in your Kyma runtime, the lifecycle-manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
-
-![a](./docs/assets/keda-lm-overview.drawio.svg)
-
-In order to be consumable by lifecycle-manager, the Keda module (Keda + Keda Manager) is bundled in a [specific way](https://github.com/kyma-project/community/tree/main/concepts/modularization#component-packaging-and-versioning) and described using the special Module Template CR.
-
-
-### Local mode in k3d
-
-When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
-Thanks to that, you don't need to push the Keda module images to a remote registry and test the changes in the Kyma installation that is set up entirely on your machine.
-
-Installation steps on local k3d environments are explained in details [here](docs/installation-on-k3d.md).
-There is a dedicated `make` target (in the `hack` folder) that does all of them, so it is recommended to use it.
-
-1. Clone the project.
-
-   ```bash
-   git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
-   ```
-2. Build the manager locally and run it on the k3d cluster.
-
-   ```bash
-   make -C hack/local run-without-lifecycle-manager
-   ```
-> **NOTE:** To clean up the k3d cluster, use the `make -C hack/local stop` make target.
-
-### Install on remote Kyma runtime
-
-> **Prerequisite:** `lifecycle-manager` must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
-
-In this section, you will learn how to install a PR version of the Keda module by a `lifecycle-manager` on a remote cluster.
-Such a setup requires OCI images for the Keda module version to be built and pushed into a public registry. Also, a module template matching the version must be available so that it can be applied on the remote cluster.
-CI jobs that are running on PRs and on main branch will help to achieve that.
-
-1. Create a pull request (PR) or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository,
-on the PR page, scroll to the PROW job status list. 
-
-2. Click the `Details` hyperlink in the `pull-keda-module-build` row (make sure the job has finished with success).
-
-![a](./docs/assets/pull_keda_module_build.png)
-
-The module template will be printed in the module template section, between the tags.
-
-> `~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~`
-
-```yaml
-apiVersion: operator.kyma-project.io/v1alpha1
-kind: ModuleTemplate
-metadata:
-  name: moduletemplate-keda
-...
-```
-
-> `~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~`
-
-<details>
-<summary><b>Example of full job build result</b></summary>
-
-```text
-make: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
-make[1]: Entering directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
-mkdir -p /home/prow/go/src/github.com/kyma-project/keda-manager/bin
-## Detect if operating system 
-test -f /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable || curl -s -Lo /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable https://storage.googleapis.com/kyma-cli-unstable/kyma-linux
-chmod 0100 /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kyma-unstable
-test -s /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize || { curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash -s -- 4.5.6 /home/prow/go/src/github.com/kyma-project/keda-manager/bin; }
-{Version:kustomize/v4.5.6 GitCommit:29ca6935bde25565795e1b4e13ca211c4aa56417 BuildDate:2022-07-29T20:42:23Z GoOs:linux GoArch:amd64}
-kustomize installed to /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize
-cd config/manager && /home/prow/go/src/github.com/kyma-project/keda-manager/bin/kustomize edit set image controller=europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-101
-[0;33;1mWARNING: This command is experimental and might change in its final version. Use at your own risk.
-[0m- Kustomize ready
-- Module built
-- Default CR validation succeeded
-- Creating module archive at "./mod"
-- Image created
-- Pushing image to "europe-docker.pkg.dev/kyma-project/dev/unsigned"
-- Generating module template
-make[1]: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager'
-
-~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~
-apiVersion: operator.kyma-project.io/v1alpha1
-kind: ModuleTemplate
-metadata:
-  name: moduletemplate-keda
-  namespace: kcp-system
-  labels:
-    "operator.kyma-project.io/managed-by": "lifecycle-manager"
-    "operator.kyma-project.io/controller-name": "manifest"
-    "operator.kyma-project.io/module-name": "keda"
-  annotations:
-    "operator.kyma-project.io/module-version": "0.0.2-PR-101"
-    "operator.kyma-project.io/module-provider": "internal"
-    "operator.kyma-project.io/descriptor-schema-version": "v2"
-spec:
-  target: remote
-  channel: fast
-  data:
-    apiVersion: operator.kyma-project.io/v1alpha1
-    kind: Keda
-    metadata:
-      name: default
-    spec:
-      logging:
-        operator:
-          level: "debug"
-      resources:
-        operator:
-          limits:
-            cpu: "1"
-            memory: "200Mi"
-          requests:
-            cpu: "0.5"
-            memory: "150Mi"
-        metricServer:
-          limits:
-            cpu: "1"
-            memory: "1000Mi"
-          requests:
-            cpu: "300m"
-            memory: "500Mi"
-  descriptor:
-    component:
-      componentReferences: []
-      name: kyma-project.io/module/keda
-      provider: internal
-      repositoryContexts:
-      - baseUrl: europe-docker.pkg.dev/kyma-project/dev/unsigned
-        componentNameMapping: urlPath
-        type: ociRegistry
-      resources:
-      - access:
-          digest: sha256:3bf7c3bc2d666165ae2ae6cbcad2e3fcaa3a66ca3afebda8c9d008ab93413453
-          type: localOciBlob
-        name: keda
-        relation: local
-        type: helm-chart
-        version: 0.0.2-PR-101
-      - access:
-          digest: sha256:f4a599c4310b0fe9133b67b72d9b15ee96b52a1872132528c83978239b5effef
-          type: localOciBlob
-        name: config
-        relation: local
-        type: yaml
-        version: 0.0.2-PR-101
-      sources:
-      - access:
-          commit: f3b1b7ed6c175e89a7d29202b8a4cc4fc74cf998
-          ref: refs/heads/main
-          repoUrl: github.com/kyma-project/keda-manager
-          type: github
-        name: keda-manager
-        type: git
-        version: 0.0.2-PR-101
-      version: 0.0.2-PR-101
-    meta:
-      schemaVersion: v2
-
-~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~
-make: Leaving directory '/home/prow/go/src/github.com/kyma-project/keda-manager/hack/ci'
-```
-</details>
-
-Save section's content in local file.
-
-3. Apply module template on remote cluster:
-
-```bash
-kubectl apply -f <saved_module_template_path>
-```
-
-4. Enable the Keda Manager module by patching Kyma CRD.
-
-```bash
-kyma alpha enable module keda -c fast
-```
-
 ## CI/CD
 
 ### Pipelines running on pull requests
 
-The following CI jobs are part of the development cycle. They verify the functional correctness of keda-manager but do not verify the contract concerning Kyma's lifecycle-manager.
+The following CI jobs are part of the development cycle. They verify the functional correctness of Keda Manager but do not verify the contract concerning Kyma's Lifecycle Manager.
 
 | Name | Required | Description |
 |------|----------|-------------|
-|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|builds Keda operator's image and pushes it to dev registry|
-|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|builds module's OCI image and pushes it to dev artifact registry. Renders Module Template for the Keda module that allows for manual integration tests against lifecycle-manager|
-|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|executes basic create/update/delete functional tests of the keda-manager's reconciliation logic|
-|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|installs keda-manager (**not using  lifecycle-manager**) and applies sample Keda CR on k3d cluster. Executes smoke integration test of Keda.  |
-|[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|linting, static code analysis|
+|[`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L144)|true|Builds Keda operator's image and pushes it to the `dev` registry.|
+|[`pull-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L102)|true|Builds module's OCI image and pushes it to the `dev` artifact registry. Renders ModuleTemplate for the Keda module that allows for manual integration tests against Lifecycle Manager.|
+|[`pre-keda-manager-operator-tests`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L127)|true|Executes basic create/update/delete functional tests of Keda Manager's reconciliation logic.|
+|[`pre-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L175)|true|Installs Keda Manager, not using Lifecycle Manager, and applies the sample Keda CR on a k3d cluster. Executes smoke integration test of KEDA.  |
+|[`pre-keda-manager-operator-lint`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L61)|false|Is responsible for linting, static code analysis.|
 
 ### Pipelines running on main branch 
 
-The following CI jobs are regenerating keda-manager's artefacts and initiate integration tests of keda-manager to verify contract with respect to Kyma's lifecycle-manager.
+The following CI jobs are regenerating Keda Manager’s artifacts and initiating integration tests of Keda Manager to verify the contract with respect to Kyma’s Lifecycle Manager.
 
 | Name | Description |
 |------|-------------|
-|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|re-builds manager's image and pushes it into prod registry|
-|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|re-builds module's OCI image and pushes it to prod artifact registry|
-|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|installs keda-manager (**using lifecycle-manager**), applies Kyma CR and enables keda module on k3d cluster. Executes smoke integration test of Keda.|
-|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|installs keda module (using module template and lifecycle-manager) from latest released version and upgrades it to the version from main. Verifies reconciliation status on the Kyma CR and runs smoke integration tests of keda|
+|[`post-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L158)|Re-builds manager's image and pushes it into the `prod` registry.|
+|[`post-keda-module-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L80)|Re-builds module's OCI image and pushes it to the `prod` artifact registry.|
+|[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|Installs Keda Manager, using Lifecyle Manager, applies Kyma CR and enables Keda module on a k3d cluster. Executes smoke integration test of KEDA.|
+|[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|Installs Keda module, using ModuleTemplate and Lifecycle Manager, from the latest released version and upgrades it to the version from `main`. Verifies reconciliation status on Kyma CR and runs smoke integration tests of KEDA.|
 
 ### Building and publishing images manually
 
-- Export required environmental variables
+- Export the required environmental variables
 
 ```
-export IMG="IMG"           // keda manager's image
+export IMG="IMG"           // Keda Manager's image
 export REGISTRY="REGISTRY" // the OCI registry the module will be published to
 ```
 
-- Run recipe to build and publish module
+- Run the following recipe to build and publish module
 
 ```
 make module-build \
@@ -397,21 +152,18 @@ make module-build \
 
 Keda Manager is not only an API extension to the Kyma ecosystem, but it also extends the UI of the Kyma Dashboard.
 It uses the [UI extensibility](https://github.com/kyma-project/busola/tree/main/docs/extensibility) feature of Kyma dashboard.
-In the [ui-extensions](config/ui-extensions) folder you will find configuration for the UI components (i.e., list view, form view, details view) that will help Kyma users manipulate with Keda CRs - `ScaledObjects`.
+In the [ui-extensions](config/ui-extensions) folder you will find configuration for the UI components (for example, list view, form view, details view) that will help Kyma users manipulate with Keda CRs - `ScaledObjects`.
 This configuration is applied as part of the Keda Manager resources. Thanks to that, it comes and goes depending on whether the Keda module is enabled or disabled.
 
 ## Releasing new versions 
 
-The release of a new version of the Keda module is realized using the [release channels](https://github.com/kyma-project/community/tree/main/concepts/modularization#release-channels).
+The release of a new version of the Keda module is realized using the release channels.
 This means that new versions are submitted to a given channel.
 
-Current versions per each channel are represented by the Module Templates CR submitted to a matching folder in the Kyma git repository:
+Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository.
 
- - fast (not available yet)
- - regular (not available yet)
-
-Having merged all the changes into the main branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate a module template for you.
-Take the module template and submit it into the desired channel using a pull request to the Kyma repository.
+Having merged all the changes into the `main` branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate ModuleTemplate for you.
+Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
 A series of governance jobs will start testing if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 
 
