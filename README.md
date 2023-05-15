@@ -157,10 +157,10 @@ This configuration is applied as part of the Keda Manager resources. Thanks to t
 
 ## Releasing new versions 
 
-The release of a new version of the Keda module is realized using the [release channels](https://github.com/kyma-project/community/tree/main/concepts/modularization#release-channels).
+The release of a new version of the Keda module is realized using the release channels.
 This means that new versions are submitted to a given channel.
 
-Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository, fast or regular:
+Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository.
 
 Having merged all the changes into the `main` branch in the `keda-manager` repository, the CI/CD jobs will bundle module images and generate ModuleTemplate for you.
 Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
