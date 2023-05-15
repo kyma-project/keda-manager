@@ -8,7 +8,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
    kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
    ```
 
-   After a while, you will have KEDA installed, and you should see its workloads:
+   After a while, you have KEDA installed, and you see its workloads:
 
    ```bash
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
@@ -26,7 +26,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
    ```
    This uninstalls all KEDA workloads but leaves Keda Manager.
 
-   > **NOTE:** Keda Manager uses finalizers to uninstall the Keda module from the cluster. It means that Keda Manager blocks the uninstallation process of KEDA until there are user-created CRs (for example ScaledObjects).
+   > **NOTE:** Keda Manager uses finalizers to uninstall the Keda module from the cluster. It means that Keda Manager blocks the uninstallation process of KEDA until there are user-created CRs (for example, ScaledObjects).
 
 - Update the specification of Keda CR to change the Keda installation
 
