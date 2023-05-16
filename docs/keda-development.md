@@ -73,7 +73,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    kubectl get deployments -n kyma-system
    ```
 
-You should get a result similar to this example:
+   You should get a result similar to this example:
 
    ```
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
