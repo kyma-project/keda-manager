@@ -1,5 +1,7 @@
 # Keda Manager
 
+> **NOTE:** For more detailed documentation, check the [`docs`](/docs/README.md) folder.
+
 ## Overview 
 
 Keda Manager is an extension to the Kyma ecosystem that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
