@@ -61,7 +61,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    kubectl create ns kyma-system
    ```
 
-6. Deploy.
+6. Deploy Keda Manager.
 
    ```bash
    make deploy

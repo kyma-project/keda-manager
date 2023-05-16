@@ -1,5 +1,20 @@
 # Install Keda Manager
 
+## Install Keda module manually
+
+1. To install Keda Manager manually, apply the following script:
+
+   ```bash
+   kubectl create ns kyma-system
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+   ```
+
+2. To get KEDA installed, apply the sample Keda CR:
+
+   ```bash
+   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   ```
+
 ## Install on Kyma runtime
 
 This section describes how to set up the Keda module (KEDA + Keda Manager) on top of the Kyma installation with Lifecycle Manager.

@@ -23,7 +23,7 @@ kubectl create ns kyma-system
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 ```
 
-1. To get KEDA installed, apply the sample Keda CR:
+2. To get KEDA installed, apply the sample Keda CR:
 
 ```bash
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
@@ -35,7 +35,7 @@ For more installation options, check the [Install Keda Manager](/docs/keda-insta
 
 Keda Manager is not only an API extension to the Kyma ecosystem, but it also extends the UI of the Kyma Dashboard.
 It uses the [UI extensibility](https://github.com/kyma-project/busola/tree/main/docs/extensibility) feature of Kyma Dashboard.
-In the [ui-extensions](config/ui-extensions) folder, you can find configuration for the UI components (for example, `list` view, `form` view, `details` view) that helps you manipulate with Keda CRs - `ScaledObjects`.
+In the [ui-extensions](config/ui-extensions) folder, you can find configuration for the UI components (for example, `list` view, `form` view, `details` view) that allows you to create a dedicated user interface page for your Keda CRs - `ScaledObjects`.
 This configuration is applied as part of the Keda Manager resources. Thanks to that, it comes and goes depending on whether the Keda module is enabled or disabled.
 
 ## Releasing new versions 
@@ -45,7 +45,7 @@ This means that new versions are submitted to a given channel.
 
 Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository.
 
-Having merged all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/CI-CD-description.md) will bundle module images and generate ModuleTemplate for you.
+After you merge all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/CI-CD-description.md) bundles module images and generates the ModuleTemplate for you.
 Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
 A series of governance jobs will start testing if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 

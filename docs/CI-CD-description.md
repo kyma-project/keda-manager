@@ -14,7 +14,7 @@ The following CI jobs are part of the development cycle. They verify the functio
 
 ### Pipelines running on main branch 
 
-The following CI jobs are regenerating Keda Manager’s artifacts and initiating integration tests of Keda Manager to verify the contract with respect to Kyma’s Lifecycle Manager.
+The following CI jobs regenerate Keda Manager’s artifacts and initiate integration tests of Keda Manager to verify the contract with respect to Kyma’s Lifecycle Manager.
 
 | Name | Description |
 |------|-------------|
@@ -27,15 +27,15 @@ The following CI jobs are regenerating Keda Manager’s artifacts and initiating
 
 1. Export the required environmental variables
 
-```
-export IMG="IMG"           // Keda Manager's image
-export REGISTRY="REGISTRY" // the OCI registry the module will be published to
-```
+   ```
+   export IMG="IMG"           // Keda Manager's image
+   export REGISTRY="REGISTRY" // the OCI registry the module will be published to
+   ```
 
 2. Run the following recipe to build and publish module
 
-```
-make module-build \
-  IMG=${IMG} \
-  REGISTRY={REGISTRY}
-```
+   ```
+   make module-build \
+     IMG=${IMG} \
+     REGISTRY={REGISTRY}
+   ```
