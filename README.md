@@ -53,15 +53,3 @@ A series of governance jobs will start testing if the new candidate version fulf
 This section describes the impact the installed Keda module has on the cluster resources.
 
 TBD
-
-## Troubleshooting
-
-- For MackBook M1 users
-
-Some parts of the scripts may not work because Kyma CLI is not released for Apple Silicon users. To fix it install [Kyma CLI manually](https://github.com/kyma-project/cli#installation) and export the path to it.
-
-   ```bash
-   export KYMA=$(which kyma)
-   ```
-
-The example error may look like this: `Error: unsupported platform OS_TYPE: Darwin, OS_ARCH: arm64; to mitigate this problem set variable KYMA with the absolute path to kyma-cli binary compatible with your operating system and architecture. Stop.`

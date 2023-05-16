@@ -14,6 +14,10 @@ For more information about the structure and make targets useful for development
 
 For Keda Manager configuration options, see [Keda configuration](keda-configuration.md).
 
+## CI/CD descrption
+
+Check the [CI/CD](CI-CD-description.md) document for more information about the CI jobs and to learn how to build and publish images manually.
+
 ## Demo 
 
 Visit [Keda Demo Application](keda-demo-application.md) to see how to scale the Kubernetes workloads using Keda API based on a simple CPU consumption case.

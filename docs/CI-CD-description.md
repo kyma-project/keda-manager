@@ -23,16 +23,16 @@ The following CI jobs are regenerating Keda Manager’s artifacts and initiating
 |[`post-main-keda-manager-verify`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L193)|Installs Keda Manager, using Lifecyle Manager, applies Kyma CR and enables Keda module on a k3d cluster. Executes smoke integration test of KEDA.|
 |[`post-main-keda-manager-upgrade-latest-to-main`](https://github.com/kyma-project/test-infra/blob/main/templates/data/generic_module_data.yaml#L239)|Installs Keda module, using ModuleTemplate and Lifecycle Manager, from the latest released version and upgrades it to the version from `main`. Verifies reconciliation status on Kyma CR and runs smoke integration tests of KEDA.|
 
-### Building and publishing images manually
+### Build and publish images manually
 
-- Export the required environmental variables
+1. Export the required environmental variables
 
 ```
 export IMG="IMG"           // Keda Manager's image
 export REGISTRY="REGISTRY" // the OCI registry the module will be published to
 ```
 
-- Run the following recipe to build and publish module
+2. Run the following recipe to build and publish module
 
 ```
 make module-build \
