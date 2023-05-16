@@ -70,7 +70,12 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
 7. Verify if Keda Manager is deployed.
 
    ```bash
-   kubectl get deployments -n kyma-system       
+   kubectl get deployments -n kyma-system
+   ```
+
+You should get a result similar to this example:
+
+   ```
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
    keda-manager            1/1     1            1           1m
    ```
