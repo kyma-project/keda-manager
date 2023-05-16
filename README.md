@@ -47,7 +47,7 @@ Current versions per each channel are represented by the [ModuleTemplate CR](htt
 
 Having merged all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/CI-CD-description.md) will bundle module images and generate ModuleTemplate for you.
 Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
-A series of governance jobs will start testing if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
+A series of governance jobs tests if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 
 
 ## Keda module footprint
