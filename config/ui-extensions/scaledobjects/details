@@ -16,14 +16,14 @@ body:
         widget: Panel
         children:
           - name: Kind
-            source: spec.scaleTargetRef.kind
+            source: spec.scaleTargetRef.kind?spec.scaleTargetRef.kind:"Deployment"
           - name: Name
             source: spec.scaleTargetRef.name
             widget: ResourceLink
             resource:
               name: spec.scaleTargetRef.name
               namespace: $root.metadata.namespace
-              kind: spec.scaleTargetRef.kind
+              kind: spec.scaleTargetRef.kind?spec.scaleTargetRef.kind:"Deployment"
       - name: Scale Config
         widget: Panel
         children:
