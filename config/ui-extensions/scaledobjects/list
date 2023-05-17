@@ -1,5 +1,5 @@
 - name: Target
-  source: $join([spec.scaleTargetRef.name, ' (', spec.scaleTargetRef.kind, ')'])
+  source: $join([spec.scaleTargetRef.name, ' (', spec.scaleTargetRef.kind?spec.scaleTargetRef.kind:"Deployment", ')'])
 - name: Triggers
   source: spec.triggers[].type
   widget: JoinedArray
