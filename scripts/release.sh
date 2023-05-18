@@ -36,12 +36,7 @@ MODULE_VERSION=${PULL_BASE_REF} make module-build
 echo "Generated template.yaml:"
 cat template.yaml
 
-sed 's/target: remote/target: control-plane/g' <template.yaml >template_control_plane.yaml
-
-echo "Generated template_control_plane.yaml:"
-cat template_control_plane.yaml
-
-echo "Updating github release with template.yaml, template_control_plane.yaml, rendered.yaml"
+echo "Updating github release with template.yaml"
 
 echo "Finding release id for: ${PULL_BASE_REF}"
 CURL_RESPONSE=$(curl -w "%{http_code}" -sL \
@@ -64,6 +59,4 @@ fi
 
 UPLOAD_URL="https://uploads.github.com/repos/kyma-project/keda-manager/releases/${RELEASE_ID}/assets"
 
-uploadFile "template.yaml" "${UPLOAD_URL}?name=template.yaml"
-
-uploadFile "template_control_plane.yaml" "${UPLOAD_URL}?name=template_control_plane.yaml"
+uploadFile "template.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
