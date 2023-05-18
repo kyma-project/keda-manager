@@ -1,0 +1,72 @@
+name: "Create release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Create release'
+        default: ""
+        required: true
+      credentials:
+        type: choice
+        description: SM credentials
+        default: real
+        options:
+          - dummy
+          - real
+
+jobs:
+  run-local-tests:
+    name: Local tests
+    uses: "./.github/workflows/run-unit-tests-reusable.yaml"
+
+  create-draft:
+    name: Create draft release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/create_changelog.sh ${{ github.event.inputs.name }}
+
+      - name: Create draft release
+        id: create-draft
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.name }}
+          release_name: Release ${{ github.event.inputs.name }}
+          body_path: CHANGELOG.md
+          draft: true
+          prerelease: false
+
+      - name: Create lightweight tag
+        run: |
+          git tag ${{ github.event.inputs.name }}
+          git push origin ${{ github.event.inputs.name }}
+
+    outputs:
+      release_id: ${{ steps.create-draft.outputs.id }}
+
+  publish-release:
+    name: Publish release
+    needs: [create-draft, run-unit-tests]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }}
