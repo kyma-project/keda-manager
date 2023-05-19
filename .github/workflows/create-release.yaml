@@ -16,8 +16,8 @@ on:
           - real
 
 jobs:
-  run-local-tests:
-    name: Local tests
+  run-unit-tests:
+    name: Unit tests
     uses: "./.github/workflows/run-unit-tests-reusable.yaml"
 
   create-draft:
