@@ -57,7 +57,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: [create-draft, run-unit-tests]
+    needs: [create-draft, run-unit-tests-reusable]
     runs-on: ubuntu-latest
 
     steps:
