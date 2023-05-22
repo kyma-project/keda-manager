@@ -1,4 +1,4 @@
-# Keda Manager
+# Keda Module
 
 > **NOTE:** For more detailed documentation, check the [`docs`](/docs/README.md) folder.
 
@@ -30,6 +30,10 @@ kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
 For more installation options, check the [Install Keda Manager](/docs/keda-installation.md) tutorial.
+
+## Development
+
+For more information about the project structure, make targets, and the CI/CD jobs useful for development, check [CONTRIBUTING](/CONTRIBUTING.md).
 
 ## User interface
 

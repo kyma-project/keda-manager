@@ -1,22 +1,14 @@
-# Keda Manager
+# Keda Module
 
-Learn how to install and configure your Keda Manager.
+Learn how to install and configure your Keda Module.
 
 ## Installation
 
-To learn how to install Keda Manager locally on k3d or set it up on your runtime, visit the [Install Keda Manager](keda-installation.md) tutorial.
-
-## Development
-
-For more information about the structure and make targets useful for development, check [Development](keda-development.md).
+For different installation options,, visit the [Install Keda Module](keda-installation.md) tutorial.
 
 ## Configuration
 
 For Keda Manager configuration options, see [Keda configuration](keda-configuration.md).
-
-## CI/CD descrption
-
-Check the [CI/CD](CI-CD-description.md) document for more information about the CI jobs and to learn how to build and publish images manually.
 
 ## Demo 
 
