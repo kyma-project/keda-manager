@@ -4,7 +4,7 @@ Learn how to install and configure your Keda Module.
 
 ## Installation
 
-For different installation options,, visit the [Install Keda Module](keda-installation.md) tutorial.
+For different installation options, visit the [Install Keda Module](keda-installation.md) tutorial.
 
 ## Configuration
 
