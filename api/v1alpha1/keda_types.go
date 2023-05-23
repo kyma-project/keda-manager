@@ -37,12 +37,16 @@ const (
 	StateProcessing = "Processing"
 	StateDeleting   = "Deleting"
 
+	ServedTrue  = "True"
+	ServedFalse = "False"
+
 	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
 	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
 	ConditionReasonVerified            = ConditionReason("Verified")
 	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
 	ConditionReasonVerification        = ConditionReason("Verification")
 	ConditionReasonInitialized         = ConditionReason("Initialized")
+	ConditionReasonKedaDuplicated      = ConditionReason("KedaDuplicated")
 
 	ConditionTypeInstalled = ConditionType("Installed")
 	OperatorLogLevelDebug  = OperatorLogLevel("debug")
@@ -330,8 +334,17 @@ func (k *Keda) UpdateStateDeletion() {
 	k.Status.State = StateDeleting
 }
 
+func (k *Keda) UpdateServed(served string) {
+	k.Status.Served = served
+}
+
+func (k *Keda) IsServedEmpty() bool {
+	return k.Status.Served == ""
+}
+
 type Status struct {
 	State      string             `json:"state"`
+	Served     string             `json:"served"`
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
