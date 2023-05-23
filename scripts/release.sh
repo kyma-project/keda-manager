@@ -31,7 +31,7 @@ uploadFile() {
 
 echo "PULL_BASE_REF ${PULL_BASE_REF}"
 
-MODULE_VERSION=${PULL_BASE_REF} make -C hack/ci module-build
+MODULE_VERSION=${PULL_BASE_REF} make render-manifest
 
 echo "Generated template.yaml:"
 cat template.yaml
