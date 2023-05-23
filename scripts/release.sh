@@ -59,4 +59,4 @@ fi
 
 UPLOAD_URL="https://uploads.github.com/repos/kyma-project/keda-manager/releases/${RELEASE_ID}/assets"
 
-uploadFile "template.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
+uploadFile "keda-manager.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
