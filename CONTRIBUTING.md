@@ -1,3 +1,20 @@
+- [Overview](#overview)
+- [Development](#development)
+  - [Project structure](#project-structure)
+  - [Prerequisites](#prerequisites)
+  - [Useful Make targets](#useful-make-targets)
+  - [Build and publish images manually](#build-and-publish-images-manually)
+- [Install Keda Module](#install-keda-module)
+  - [Install Keda module manually](#install-keda-module-manually)
+  - [Install on Kyma runtime](#install-on-kyma-runtime)
+    - [Lifecycle management of Keda Manager in Kyma](#lifecycle-management-of-keda-manager-in-kyma)
+  - [Run Keda module locally with Kyma and Lifecycle Manager on k3d](#run-keda-module-locally-with-kyma-and-lifecycle-manager-on-k3d)
+    - [Run Keda module locally on bare k3d](#run-keda-module-locally-on-bare-k3d)
+    - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
+- [CI/CD](#cicd)
+  - [Pipelines running on pull requests](#pipelines-running-on-pull-requests)
+  - [Pipelines running on main branch](#pipelines-running-on-main-branch)
+
 
 ## Overview
 
@@ -23,7 +40,7 @@ Keda Manager codebase is scaffolded with `kubebuilder`. For more information on 
 
 ### Prerequisites
 
-- Access to a Kubernetes cluster
+- Access to a Kubernetes (v1.24 or higher) cluster
 - [Go](https://go.dev/)
 - [k3d](https://k3d.io/v5.4.6/)
 - [Docker](https://www.docker.com/)
@@ -85,7 +102,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    keda-manager            1/1     1            1           1m
    ```
 
-   ### Build and publish images manually
+### Build and publish images manually
 
 1. Export the required environmental variables
 
@@ -101,6 +118,39 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
      IMG=${IMG} \
      REGISTRY={REGISTRY}
    ```
+## Install Keda Module
+
+### Install Keda module manually
+
+1. Apply the following script to install Keda Manager:
+
+   ```bash
+   kubectl create ns kyma-system
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+   ```
+
+2. To get KEDA installed, apply the sample Keda CR:
+
+   ```bash
+   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   ```
+
+### Install on Kyma runtime
+
+This section describes how to set up the Keda module (KEDA + Keda Manager) on top of the Kyma installation with Lifecycle Manager.
+In such a setup, you don't need to install Keda Manager. It is installed and managed by Lifecycle Manager.
+
+#### Lifecycle management of Keda Manager in Kyma
+
+When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the Lifecycle Manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
+
+![a](assets/keda-lm-overview.drawio.svg)
+
+To enable the Keda module run:
+
+   ```bash
+   kyma alpha enable module keda -c fast
+   ```
 
 ### Run Keda module locally with Kyma and Lifecycle Manager on k3d
 
@@ -110,7 +160,7 @@ Use the dedicated `make` target (in the `hack` folder).
    make -C hack/local run-with-lifecycle-manager
    ```
    
-### Run Keda module locally on bare k3d
+#### Run Keda module locally on bare k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
 Thanks to that, you don't need to push the Keda module images to a remote registry and you can test the changes in the Kyma installation set up entirely on your machine.
@@ -127,7 +177,7 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
    ```
 3. If you want to clean up the k3d cluster, use the `make -C hack/local stop` make target.
 
-### Install Keda module on remote Kyma runtime
+#### Install Keda module on remote Kyma runtime
 
 Prerequisite: Lifecycle Manager must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
 
