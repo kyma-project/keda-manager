@@ -26,7 +26,7 @@ export MODULE_TAG=$2
 PROTOCOL=docker://
 
 RELEASES_URL="https://api.github.com/repos/kyma-project/keda-manager/releases"
-ARTIFACTS_REGEX="(rendered.yaml|template.yaml|template_control_plane.yaml)"
+ARTIFACTS_REGEX="(rendered.yaml|keda-manager.yaml)"
 
 if [ "${SKIP_ASSETS}" != "--skip-templates" ]
 then
