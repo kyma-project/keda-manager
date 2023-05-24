@@ -33,10 +33,10 @@ echo "PULL_BASE_REF ${PULL_BASE_REF}"
 
 MODULE_VERSION=${PULL_BASE_REF} make render-manifest
 
-echo "Generated template.yaml:"
-cat template.yaml
+echo "Generated keda-manager.yaml:"
+cat keda-manager.yaml
 
-echo "Updating github release with template.yaml"
+echo "Updating github release with keda-manager.yaml"
 
 echo "Finding release id for: ${PULL_BASE_REF}"
 CURL_RESPONSE=$(curl -w "%{http_code}" -sL \
