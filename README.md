@@ -1,10 +1,8 @@
-# Keda Module
-
-> **NOTE:** For more detailed documentation, check the [`docs`](/docs/README.md) folder.
+# Keda module
 
 ## Overview 
 
-Keda Manager is an extension to the Kyma runtime that allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
+Keda module consists of Keda Manager that is an extension to the Kyma runtime. It allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
 
 ![a](./docs/assets/keda-overview.drawio.svg)
 
