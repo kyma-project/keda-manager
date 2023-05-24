@@ -4,7 +4,7 @@
 
 Kubernetes-based Event Driven Autoscaler [(KEDA)](https://keda.sh/) is an autoscaler that allows you to scale easily your Kubernetes-based resources. You can scale your applications on the basis of data of your choice.
 
-Keda supports a great number of scalers that help you manage your deployments. For the complete list, check the KEDA [Scalers](https://keda.sh/docs/2.10/scalers/) documentation.
+Keda supports a great number of scalers that help you manage your deployments. For the complete list, check the KEDA [Scalers](https://keda.sh/docs/scalers/) documentation.
 
 For more information about KEDA features, see [KEDA documentation](https://keda.sh/docs).
 
