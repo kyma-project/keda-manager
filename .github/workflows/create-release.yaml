@@ -65,4 +65,6 @@ jobs:
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }}
+        run: |
+          echo ${{ create-draft.outputs.release_id }}
+          ./scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }}
