@@ -33,13 +33,6 @@ For more installation options, check [CONTRIBUTING](/CONTRIBUTING.md#install-ked
 
 For more information about the project structure, make targets, and the CI/CD jobs useful for development, check [CONTRIBUTING](/CONTRIBUTING.md).
 
-## User interface
-
-Keda Manager is not only an API extension to the Kyma ecosystem, but it also extends the UI of the Kyma Dashboard.
-It uses the [UI extensibility](https://github.com/kyma-project/busola/tree/main/docs/extensibility) feature of Kyma Dashboard.
-In the [ui-extensions](config/ui-extensions) folder, you can find configuration for the UI components (for example, `list` view, `form` view, `details` view) that allows you to create a dedicated user interface page for your Keda CRs - `ScaledObjects`.
-This configuration is applied as part of the Keda Manager resources. Thanks to that, it comes and goes depending on whether the Keda module is enabled or disabled.
-
 ## Releasing new versions 
 
 The release of a new version of the Keda module is realized using the release channels.
