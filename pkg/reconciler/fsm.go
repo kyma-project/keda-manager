@@ -203,7 +203,7 @@ loop:
 
 func NewFsm(log *zap.SugaredLogger, cfg Cfg, k8s K8s) Fsm {
 	return &fsm{
-		fn:  sFnTakeSnapshot,
+		fn:  sFnServedFilter,
 		Cfg: cfg,
 		log: log,
 		K8s: k8s,
