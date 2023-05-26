@@ -27,11 +27,11 @@ kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/do
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
-For more installation options, check [CONTRIBUTING](/CONTRIBUTING.md#install-keda-module).
+For more installation options, check [Installation](/docs/contributor/02-01-installation.md).
 
 ## Development
 
-For more information about the project structure, make targets, and the CI/CD jobs useful for development, check [CONTRIBUTING](/CONTRIBUTING.md).
+For more information about the project structure, make targets, and the CI/CD jobs useful for development, check the [contributor](/docs/contributor/) folder.
 
 ## Releasing new versions 
 
@@ -40,7 +40,7 @@ This means that new versions are submitted to a given channel.
 
 Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository.
 
-After you merge all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/CI-CD-description.md) bundles module images and generates the ModuleTemplate for you.
+After you merge all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/contributor/ci-cd.md) bundle module images and generate the ModuleTemplate for you.
 Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
 A series of governance jobs tests if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
 

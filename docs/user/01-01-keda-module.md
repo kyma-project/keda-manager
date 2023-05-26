@@ -28,6 +28,7 @@ This configuration is applied as part of the Keda Manager resources. Thanks to t
 - [KEDA configuration](02-01-keda-configuration.md) - provides exemplary configuation of the KEDA components.
 - [Use Keda Manager to manage KEDA](02-02-keda-management.md) - describes how you can manage your KEDA instance using Keda Manager.
 - [KEDA Demo Application](03-01-keda-demo-application.md) - shows how to scale the Kubernetes workloads using KEDA API.
+- [Installation] - describes different ways of installing Keda Manager.
 
 For troubleshooting, see:
 - [Scripts don't work](04-01-scripts-not-working.md)
