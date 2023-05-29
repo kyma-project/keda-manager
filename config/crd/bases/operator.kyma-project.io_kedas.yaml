@@ -315,9 +315,12 @@ spec:
                   - type
                   type: object
                 type: array
+              served:
+                type: string
               state:
                 type: string
             required:
+            - served
             - state
             type: object
         type: object
