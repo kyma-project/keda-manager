@@ -47,11 +47,16 @@ const (
 	ConditionReasonVerification        = ConditionReason("Verification")
 	ConditionReasonInitialized         = ConditionReason("Initialized")
 	ConditionReasonKedaDuplicated      = ConditionReason("KedaDuplicated")
+	ConditionReasonDeletion            = ConditionReason("Deletion")
+	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
+	ConditionReasonDeleted             = ConditionReason("Deleted")
 
 	ConditionTypeInstalled = ConditionType("Installed")
-	OperatorLogLevelDebug  = OperatorLogLevel("debug")
-	OperatorLogLevelInfo   = OperatorLogLevel("info")
-	OperatorLogLevelError  = OperatorLogLevel("error")
+	ConditionTypeDeleted   = ConditionType("Deleted")
+
+	OperatorLogLevelDebug = OperatorLogLevel("debug")
+	OperatorLogLevelInfo  = OperatorLogLevel("info")
+	OperatorLogLevelError = OperatorLogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")
@@ -330,8 +335,28 @@ func (k *Keda) UpdateStateProcessing(c ConditionType, r ConditionReason, msg str
 	meta.SetStatusCondition(&k.Status.Conditions, condition)
 }
 
-func (k *Keda) UpdateStateDeletion() {
+func (k *Keda) UpdateStateDeletion(c ConditionType, r ConditionReason, msg string) {
 	k.Status.State = StateDeleting
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "Unknown",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateDeletionTrue(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = StateDeleting
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "True",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
 }
 
 func (k *Keda) UpdateServed(served string) {

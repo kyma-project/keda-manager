@@ -201,6 +201,12 @@ loop:
 	}, err
 }
 
+func (m *fsm) AddLeaseObjs() {
+	kedaOperatorLease := fixLeaseObject(kedaOperatorLeaseName)
+	kedaManagerLease := fixLeaseObject(kedaManagerLeaseName)
+	m.Objs = append(m.Objs, kedaManagerLease, kedaOperatorLease)
+}
+
 func NewFsm(log *zap.SugaredLogger, cfg Cfg, k8s K8s) Fsm {
 	return &fsm{
 		fn:  sFnServedFilter,
