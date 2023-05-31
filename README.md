@@ -33,20 +33,8 @@ For more installation options, check [Installation](/docs/contributor/02-01-inst
 
 For more information about the project structure, make targets, and the CI/CD jobs useful for development, check the [contributor](/docs/contributor/) folder.
 
-## Releasing new versions 
+## More information
 
-The release of a new version of the Keda module is realized using the release channels.
-This means that new versions are submitted to a given channel.
+If you want to use Kyma's Keda module, check the [user](/docs/user/) folder to learn more about it. In this folder, you can also find information on how to enable, configure and manage your module and how to create a user interface (UI) for your ScaledObjects custom resource (CR). You can also find a demo application that shows how to scale the Kubernetes workloads using Keda API.
 
-Current versions per each channel are represented by the [ModuleTemplate CR](https://github.com/kyma-project/lifecycle-manager/blob/main/docs/technical-reference/api/moduleTemplate-cr.md) submitted to a matching folder in the Kyma Git repository.
-
-After you merge all the changes into the `main` branch in the `keda-manager` repository, the [CI/CD jobs](/docs/contributor/ci-cd.md) bundle module images and generate the ModuleTemplate for you.
-Submit your ModuleTemplate into the desired channel using a pull request to the Kyma repository.
-A series of governance jobs tests if the new candidate version fulfills the criteria described in the [module submission process](https://github.com/kyma-project/community/tree/main/concepts/modularization#module-submission-process).
-
-
-## Keda module footprint
-
-This section describes the impact the installed Keda module has on the cluster resources.
-
-TBD
+The [contributor](/docs/contributor/) folder includes all the necessary information you may need if you want to extend the module with new features. You can learn more about the project structure, make targets, CI/CD jobs that are part of the developing cycle, and different installation options.
