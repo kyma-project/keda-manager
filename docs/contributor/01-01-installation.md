@@ -131,7 +131,7 @@ CI jobs running on PRs and on main branch help you to achieve that.
 
 2. After the job has finished with success, click **Details** next to the `pull-keda-module-build` job.
 
-   ![a](/docs/assets/pull_keda_module_build.png)
+   ![Pull Keda module build](/docs/assets/pull_keda_module_build.png)
 
 The ModuleTemplate will be printed in the MODULE TEMPLATE section, between the tags.
 
