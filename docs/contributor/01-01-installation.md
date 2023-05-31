@@ -22,7 +22,7 @@ Learn how to install Keda Manager locally (on k3d) or on your remote cluster.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kubebuilder](https://book.kubebuilder.io/)
 
-## Install Keda Manager without Kyma 
+## Install Keda Manager from the local sources 
 
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
 For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
@@ -76,24 +76,8 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
    keda-manager            1/1     1            1           1m
    ```
-## Build and publish images manually
 
-1. Export the required environmental variables
-
-   ```
-   export IMG="IMG"           // Keda Manager's image
-   export REGISTRY="REGISTRY" // the OCI registry the module will be published to
-   ```
-
-2. Run the following recipe to build and publish module
-
-   ```
-   make module-build \
-     IMG=${IMG} \
-     REGISTRY={REGISTRY}
-   ```
-
-## Install Keda module manually
+## Install Keda module from the latest release
 
 1. Apply the following script to install Keda Manager:
 
@@ -106,23 +90,6 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
 
    ```bash
    kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
-   ```
-
-## Install on Kyma runtime
-
-This section describes how to set up the Keda module (KEDA + Keda Manager) on top of the Kyma installation with Lifecycle Manager.
-In such a setup, you don't need to install Keda Manager. It is installed and managed by Lifecycle Manager.
-
-### Lifecycle management of Keda Manager in Kyma
-
-When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the Lifecycle Manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
-
-![a](/docs/assets/keda-lm-overview.drawio.svg)
-
-To enable the Keda module run:
-
-   ```bash
-   kyma alpha enable module keda -c fast
    ```
 
 ## Run Keda module locally with Kyma and Lifecycle Manager on k3d
