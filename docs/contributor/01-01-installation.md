@@ -100,7 +100,7 @@ Use the dedicated `make` target (in the `hack` folder).
    make -C hack/local run-with-lifecycle-manager
    ```
    
-### Run Keda module locally on bare k3d
+### Run Keda module on bare k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
 Thanks to that, you don't need to push the Keda module images to a remote registry and you can test the changes in the Kyma installation set up entirely on your machine.
