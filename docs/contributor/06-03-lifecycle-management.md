@@ -4,10 +4,10 @@ When you enable the Keda module using your Kyma runtime Kyma custom resource (CR
 
 ![Enable Keda module with LM](/docs/assets/keda-lm-overview.drawio.svg)
 
-1. User enables Keda module in Kyma CR.
-2. Lifecycle Manager reads the module template of Keda module.
+1. User enables the Keda module in Kyma CR.
+2. Lifecycle Manager reads the module template of the Keda module.
 3. Lifecycle Manager deploys Keda Manager, using artifacts from the module template.
 4. Lifecycle Manager applies the default Keda CR from the module template.
 5. Keda Manager watches Keda CR.
 6. Keda Manager reconciles the KEDA workloads.
-7. User can configure Keda module by changing the Keda CR spec. Keda Manager reconciles accordingly.
+7. User can configure the Keda module by changing the Keda CR spec. Keda Manager reconciles accordingly.
