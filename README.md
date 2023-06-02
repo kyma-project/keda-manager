@@ -31,7 +31,7 @@ kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/do
 kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 ```
 
-For more installation options, check [Installation](/docs/contributor/02-01-installation.md).
+For more installation options, check [Installation](/docs/contributor/01-01-installation.md).
 
 ## Development
 
