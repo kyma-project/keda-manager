@@ -1,3 +1,7 @@
+# Conditions
+
+This section describes the possible states of the Keda CR. Two conditions of type `Installed` and `Deleted` are used.
+
 | No | CR State   | Condition type | Condition status | Condition reason    | Remark                               |
 |----|------------|----------------|------------------|---------------------|--------------------------------------|
 | 1  | Ready      | Installed      | true             | Verified            | Server ready                         |
