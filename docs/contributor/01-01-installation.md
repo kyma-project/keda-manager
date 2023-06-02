@@ -1,31 +1,106 @@
-# Install Keda Manager
+# Install Keda Manager 
 
-## Install on Kyma runtime
+- [Install Keda Manager](#install-keda-manager)
+  - [Prerequisites](#prerequisites)
+  - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
+  - [Install Keda module from the latest release](#install-keda-module-from-the-latest-release)
+  - [Make targets to run Keda module locally k3d](#make-targets-to-run-keda-module-locally-k3d)
+    - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
+    - [Run Keda module on bare k3d](#run-keda-module-on-bare-k3d)
+    - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
 
-This section describes how to set up the Keda module (KEDA + Keda Manager) on top of the Kyma installation with Lifecycle Manager.
-In such a setup, you don't need to install Keda Manager. It is installed and managed by Lifecycle Manager.
 
-### Lifecycle management of Keda Manager in Kyma
+Learn how to install Keda Manager locally (on k3d) or on your remote cluster.
 
-When you enable the Keda module using your Kyma runtime Kyma custom resource (CR), the Lifecycle Manager downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
+## Prerequisites
 
-![a](assets/keda-lm-overview.drawio.svg)
+- Access to a Kubernetes (v1.24 or higher) cluster or [k3d](https://k3d.io/v5.4.6/)
+- [Go](https://go.dev/)
+- [Docker](https://www.docker.com/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [kubebuilder](https://book.kubebuilder.io/)
 
-To enable the Keda module run:
+## Install Keda Manager from the local sources 
+
+You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
+For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
+
+Run the following commands to deploy Keda Manager on a target Kubernetes cluster (for example, on k3d):
+
+1. Clone the project.
 
    ```bash
-   kyma alpha enable module keda -c fast
+   git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
    ```
 
-## Run locally with Kyma and Lifecycle Manager on k3d
+2. Set the Keda Manager image name.
 
-Use the dedicated `make` target (in the `hack` folder) to run the Keda module on k3d.
+   > NOTE: You can use local k3d registry or your Docker Hub account to push intermediate images.  
+   ```bash
+   export IMG=<DOCKER_USERNAME>/custom-keda-manager:0.0.2
+   ```
+
+3. Verify the compatibility.
+
+   ```bash
+   make test
+   ```
+4. Build and push the image to the registry.
+
+   ```bash
+   make module-image
+   ```
+5. Create a target Namespace.
+
+   ```bash
+   kubectl create ns kyma-system
+   ```
+
+6. Deploy Keda Manager.
+
+   ```bash
+   make deploy
+   ```
+
+7. Verify if Keda Manager is deployed.
+
+   ```bash
+   kubectl get deployments -n kyma-system
+   ```
+
+   You should get a result similar to this example:
+
+   ```
+   NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+   keda-manager            1/1     1            1           1m
+   ```
+
+## Install Keda module from the latest release
+
+1. Apply the following script to install Keda Manager:
+
+   ```bash
+   kubectl create ns kyma-system
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+   ```
+
+2. To get KEDA installed, apply the sample Keda CR:
+
+   ```bash
+   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   ```
+
+## Make targets to run Keda module locally k3d
+
+### Run Keda module with Lifecycle Manager
+
+Use the dedicated `make` target (in the `hack` folder).
 
    ```bash
    make -C hack/local run-with-lifecycle-manager
    ```
    
-### Run locally on bare k3d
+### Run Keda module on bare k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
 Thanks to that, you don't need to push the Keda module images to a remote registry and you can test the changes in the Kyma installation set up entirely on your machine.
@@ -42,7 +117,7 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
    ```
 3. If you want to clean up the k3d cluster, use the `make -C hack/local stop` make target.
 
-### Install on remote Kyma runtime
+### Install Keda module on remote Kyma runtime
 
 Prerequisite: Lifecycle Manager must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
 
@@ -52,11 +127,11 @@ CI jobs running on PRs and on main branch help you to achieve that.
 
 1. Create a PR or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository; on the PR page, scroll down to the Prow jobs status list. 
 
-   ![Prow job status](assets/prow_job_status.png)
+   ![Prow job status](/docs/assets/prow_job_status.png)
 
 2. After the job has finished with success, click **Details** next to the `pull-keda-module-build` job.
 
-   ![a](assets/pull_keda_module_build.png)
+   ![Pull Keda module build](/docs/assets/pull_keda_module_build.png)
 
 The ModuleTemplate will be printed in the MODULE TEMPLATE section, between the tags.
 
