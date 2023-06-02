@@ -117,7 +117,7 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
    ```
 3. If you want to clean up the k3d cluster, use the `make -C hack/local stop` make target.
 
-### Install Keda module on remote Kyma runtime
+## Install Keda module on remote Kyma runtime
 
 Prerequisite: Lifecycle Manager must be installed on the cluster (locally), or the cluster itself must be managed remotely by the central control-plane.
 
