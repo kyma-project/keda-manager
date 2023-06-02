@@ -7,7 +7,7 @@
   - [Make targets to run Keda module locally k3d](#make-targets-to-run-keda-module-locally-k3d)
     - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
     - [Run Keda module on bare k3d](#run-keda-module-on-bare-k3d)
-    - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
+  - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
 
 
 Learn how to install Keda Manager locally (on k3d) or on your remote cluster.
