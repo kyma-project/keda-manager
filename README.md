@@ -10,7 +10,7 @@ Keda module consists of Keda Manager that is an extension to the Kyma runtime. I
 2. Keda Manager watches the Keda CR.
 3. Keda Manager reconciles the KEDA workloads.
 
-For more information, see [Use Keda Manager to manage KEDA](/docs/keda-management.md).
+For more information, see [Use Keda Manager to manage KEDA](docs/contributor/03-01-management.md).
 
 ### What is KEDA?
 
