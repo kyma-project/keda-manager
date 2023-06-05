@@ -1,6 +1,6 @@
 # Conditions
 
-This section describes the possible states of the Keda CR. Two conditions of type `Installed` and `Deleted` are used.
+This section describes the possible states of the Keda CR. Two condition types, `Installed` and `Deleted`, are used.
 
 | No | CR State   | Condition type | Condition status | Condition reason    | Remark                               |
 |----|------------|----------------|------------------|---------------------|--------------------------------------|
