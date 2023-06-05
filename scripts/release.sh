@@ -37,8 +37,6 @@ echo "Generated keda-manager.yaml:"
 cat keda-manager.yaml
 
 echo "Testing"
-make -C ../ kyma
-../bin/kyma-unstable provision k3d
 
 kubectl create namespace kyma-system
 kubectl apply -f ../keda-manager.yaml
