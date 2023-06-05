@@ -34,7 +34,7 @@ k3d-lm-integration-test: run-with-lifecycle-manager integration-test
 
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
-k3d-integration-test: run-without-lifecycle-manager integration-test
+k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
 
 .PHONY: k3d-k8s-compatibility-test
 k3d-k8s-compatibility-test: ## K8s compatibility tests not implemented yet.
@@ -50,6 +50,10 @@ k3d-upgrade-test: \
 	install-latest \
 	reinstall-keda \
 	integration-test
+
+.PHONY: remove-keda
+remove-keda: ## Remove Keda CR
+	kubectl delete keda -n kyma-system default --timeout 1m || (kubectl get keda -n kyma-system -oyaml && false)
 
 .PHONY: render-manifest
 render-manifest:
