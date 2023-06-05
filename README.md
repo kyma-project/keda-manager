@@ -33,10 +33,6 @@ kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
 
 For more installation options, check [Installation](/docs/contributor/01-01-installation.md).
 
-## Development
-
-For more information about the project structure, make targets, and the CI/CD jobs useful for development, check the [contributor](/docs/contributor/) folder.
-
 ## Read More
 
 If you want to use Kyma's Keda module, check the [user](/docs/user/) folder to learn more about it. In this folder, you can also find information on how to configure and manage your module. You can also find a demo application that shows how to scale the Kubernetes workloads using Keda API.
