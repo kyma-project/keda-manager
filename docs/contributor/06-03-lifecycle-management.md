@@ -10,4 +10,4 @@ When you enable the Keda module using your Kyma runtime Kyma custom resource (CR
 4. Lifecycle Manager applies the default Keda CR from the module template.
 5. Keda Manager watches the Keda CR.
 6. Keda Manager reconciles the KEDA workloads.
-7. User can configure the Keda module by changing the Keda CR spec. Keda Manager reconciles accordingly.
+7. User can configure the Keda module by changing the Keda CR **spec**. Keda Manager reconciles the workloads accordingly.
