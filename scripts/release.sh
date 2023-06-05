@@ -38,6 +38,9 @@ cat keda-manager.yaml
 
 echo "Testing"
 
+make kyma
+make -C hack/common create-k3d
+
 kubectl create namespace kyma-system
 kubectl apply -f keda-manager.yaml
 
@@ -54,25 +57,6 @@ while [[ $(kubectl get keda/default -o 'jsonpath={..status.conditions[?(@.type==
 do echo -e "\n---Waiting for Keda to be ready"; sleep 5; done
 
 make -C hack/ci integration-test
-
-echo "End of testing"
-
-kubectl create namespace kyma-system
-kubectl apply -f keda-manager.yaml
-
-# check if deployment is available
-while [[ $(kubectl get deployment/keda-manager -n kyma-system -o 'jsonpath={..status.conditions[?(@.type=="Available")].status}') != "True" ]];
-do echo -e "\n---Waiting for deployment to be available"; sleep 5; done
-
-echo -e "\n---Deployment available"
-
-echo -e "\n---Installing Keda operator"
-kubectl apply -f ../config/samples/operator_v1alpha1_keda.yaml
-
-while [[ $(kubectl get keda/default -o 'jsonpath={..status.conditions[?(@.type=="Installed")].status}') != "True" ]];
-do echo -e "\n---Waiting for Keda to be ready"; sleep 5; done
-
-make -C ../hack/ci integration-test
 
 echo "Updating github release with keda-manager.yaml"
 
