@@ -100,8 +100,8 @@ install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
 .PHONY: install-module-template
 install-module-template: ## Apply k3d-ready moduletemplate.
 	kubectl apply -f ${PROJECT_ROOT}/template-k3d.yaml
-	kubectl label -n kcp-system moduletemplate moduletemplate-keda operator.kyma-project.io/use-local-template=true
-	kubectl label -n kcp-system moduletemplate moduletemplate-keda operator.kyma-project.io/beta=true
+	kubectl label -n kcp-system moduletemplate keda-fast operator.kyma-project.io/use-local-template=true
+	kubectl label -n kcp-system moduletemplate keda-fast operator.kyma-project.io/beta=true
 
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
