@@ -26,7 +26,7 @@ export IMAGE_TAG=$1
 PROTOCOL=docker://
 
 RELEASES_URL="https://api.github.com/repos/kyma-project/keda-manager/releases"
-ARTIFACTS_REGEX="(keda-manager.yaml)"
+ARTIFACTS_REGEX="keda-manager.yaml"
 
 
 echo "Finding assets for: ${IMAGE_TAG}"
