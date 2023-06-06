@@ -21,34 +21,18 @@ set -o pipefail # prevents errors in a pipeline from being masked
 #             GITHUB_TOKEN - github token
 
 export IMAGE_TAG=$1
-export MODULE_TAG=$2
+
 
 PROTOCOL=docker://
 
 RELEASES_URL="https://api.github.com/repos/kyma-project/keda-manager/releases"
-ARTIFACTS_REGEX="(rendered.yaml|keda-manager.yaml)"
+ARTIFACTS_REGEX="(keda-manager.yaml)"
 
-if [ "${SKIP_ASSETS}" != "--skip-templates" ]
-then
-  echo "Finding assets for: ${IMAGE_TAG}"
-  # all 3  artifacts available?
-  until [ $(curl -sL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" ${RELEASES_URL} | jq '.[] | select(.tag_name == env.IMAGE_TAG) | .assets[] | .browser_download_url | split("/") | last ' | sort -u | grep -Ec ${ARTIFACTS_REGEX}) -eq 3 ]; do
-    echo 'waiting for the assets'
-    sleep 10
-  done
-  echo "assets available"
-fi
 
-until $(skopeo list-tags ${PROTOCOL}${KEDA_OPERATOR_REPO} | jq '.Tags|any(. == env.MODULE_TAG)'); do
-  echo "Waiting for Keda Operator OCI module image: ${KEDA_OPERATOR_REPO}:${MODULE_TAG}"
+echo "Finding assets for: ${IMAGE_TAG}"
+# all 3  artifacts available?
+until [ $(curl -sL -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" ${RELEASES_URL} | jq '.[] | select(.tag_name == env.IMAGE_TAG) | .assets[] | .browser_download_url | split("/") | last ' | sort -u | grep -Ec ${ARTIFACTS_REGEX}) -eq 3 ]; do
+  echo 'waiting for the assets'
   sleep 10
 done
-
-echo "Keda Operator OCI module image available"
-
-until $(skopeo list-tags ${PROTOCOL}${KEDA_MANAGER_REPO} | jq '.Tags|any(. == env.IMAGE_TAG)'); do
-  echo "Waiting for Keda Manager binary image: ${KEDA_MANAGER_REPO}:${IMAGE_TAG}"
-  sleep 10
-done
-
-echo "Keda Manager binary image available"
+echo "assets available"

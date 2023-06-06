@@ -7,18 +7,19 @@ on:
         description: 'Create release'
         default: ""
         required: true
-      credentials:
-        type: choice
-        description: SM credentials
-        default: real
-        options:
-          - dummy
-          - real
 
 jobs:
   run-unit-tests:
     name: Unit tests
-    uses: "./.github/workflows/run-unit-tests-reusable.yaml"
+    uses: "./.github/workflows/run-unit-tests.yaml"
+
+  run-module-tests:
+    name: Module tests
+    needs: run-unit-tests
+    uses: "./.github/workflows/run-module-tests.yaml"
+    with:
+      image-tag: ${{ github.event.inputs.name }}
+      image-repo: europe-docker.pkg.dev/kyma-project/prod/keda-manager
 
   create-draft:
     name: Create draft release
@@ -53,7 +54,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: [create-draft, run-unit-tests]
+    needs: [create-draft, run-unit-tests, run-module-tests]
     runs-on: ubuntu-latest
 
     steps:
