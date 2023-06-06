@@ -30,11 +30,5 @@ jobs:
       - name: Prepare k3s cluster and docker registry
         run: "./scripts/k3s-setup.sh --wait"
 
-      - name: Wait for artifacts
-        env:
-          KEDA_MANAGER_REPO: ${{ inputs.image-repo }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "./scripts/await_artifacts.sh ${{ inputs.image-tag }}"
-
       - name: Run tests
         run: "./scripts/module_tests.sh ${{ inputs.image-tag }} ci"
