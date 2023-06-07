@@ -9,20 +9,24 @@ on:
         required: true
 
 jobs:
+  verify-main-status:
+    name: Verify main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: ./scripts/verify-keda-status.sh ${{ secrets.ACCESS_TOKEN }}
+
   run-unit-tests:
     name: Unit tests
+    needs: verify-main-status
     uses: "./.github/workflows/run-unit-tests.yaml"
-
-  run-module-tests:
-    name: Module tests
-    needs: run-unit-tests
-    uses: "./.github/workflows/run-module-tests.yaml"
-    with:
-      image-tag: ${{ github.event.inputs.name }}
-      image-repo: europe-docker.pkg.dev/kyma-project/prod/keda-manager
 
   create-draft:
     name: Create draft release
+    needs: verify-main-status
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +58,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: [create-draft, run-unit-tests, run-module-tests]
+    needs: [verify-main-status, create-draft, run-unit-tests]
     runs-on: ubuntu-latest
 
     steps:
