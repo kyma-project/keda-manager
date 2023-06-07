@@ -75,9 +75,9 @@ verify-kyma: ## Wait for Kyma CR to be in Ready state.
 .PHONY: fix-template
 fix-template: ## Create template-k3d.yaml based on template.yaml with right URLs.
 	@cat ${PROJECT_ROOT}/template.yaml \
-	| sed -e 's/remote/control-plane/g' \
-		-e 's/${REGISTRY_PORT}/5000/g' \
-	      	-e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
+	| sed -e 's/${REGISTRY_PORT}/5000/g' \
+	    -e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
+		-e 's/moduletemplate-keda/keda-fast/g' \
 	> ${PROJECT_ROOT}/template-k3d.yaml
 
 .PHONY: enable-module
