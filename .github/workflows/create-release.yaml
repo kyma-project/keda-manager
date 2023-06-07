@@ -20,9 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Verify
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        run: ./scripts/verify-keda-status.sh ${{ secrets.ACCESS_TOKEN }}
+        run: ./scripts/verify-keda-status.sh
 
   run-unit-tests:
     name: Unit tests
