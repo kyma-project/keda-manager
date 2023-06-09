@@ -18,10 +18,10 @@ To learn how to enable and disable the Keda module, visit {LINK}.
 Keda Manager helps you to install and manage KEDA on your cluster. It manages the lifecycle of KEDA based on the dedicated Keda custom resource (CR).
 
 ## Useful links
-- [KEDA configuration](user/02-01-configuration.md) - provides exemplary configuation of the KEDA components.
-- [Use Keda Manager to manage KEDA](contributor/03-01-management.md) - describes how you can manage your KEDA instance using Keda Manager.
-- [KEDA demo application](user/06-02-demo-application.md) - shows how to scale the Kubernetes workloads using KEDA API.
-- [Installation](contributor/01-01-installation.md) - describes different ways of installing Keda Manager.
+- [KEDA configuration](02-01-configuration.md) - provides exemplary configuation of the KEDA components.
+- [Use Keda Manager to manage KEDA](../contributor/03-01-management.md) - describes how you can manage your KEDA instance using Keda Manager.
+- [KEDA demo application](06-02-demo-application.md) - shows how to scale the Kubernetes workloads using KEDA API.
+- [Installation](../contributor/01-01-installation.md) - describes different ways of installing Keda Manager.
 
 For troubleshooting, see:
-- [Scripts don't work](contributor/04-01-scripts-not-working.md)
+- [Scripts don't work](../contributor/04-01-scripts-not-working.md)
