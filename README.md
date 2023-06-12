@@ -10,28 +10,11 @@ Keda module consists of Keda Manager that is an extension to the Kyma runtime. I
 2. Keda Manager watches the Keda CR.
 3. Keda Manager reconciles the KEDA workloads.
 
-For more information, see [Use Keda Manager to manage KEDA](docs/contributor/03-01-management.md).
+For more information, see [Use Keda Manager to manage KEDA](docs/contributor/02-10-management.md).
 
 ### What is KEDA?
 
 KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources for making scaling decisions. To learn more about KEDA, see the [KEDA documentation](https://keda.sh/docs/latest/concepts/).
-
-## Install Keda module
-
-1. To install Keda Manager manually, apply the following script:
-
-```bash
-kubectl create ns kyma-system
-kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
-```
-
-2. To get KEDA installed, apply the sample Keda CR:
-
-```bash
-kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
-```
-
-For more installation options, check [Installation](/docs/contributor/01-01-installation.md).
 
 ## Read More
 
