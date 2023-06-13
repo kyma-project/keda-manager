@@ -13,7 +13,7 @@ Learn how to install Keda Manager locally (on k3d) or on your remote cluster.
 
 ## Prerequisites
 
-- Access to a Kubernetes (v1.24 or higher) cluster or [k3d](https://k3d.io/v5.4.6/)
+- Access to a Kubernetes (v1.24 or higher) cluster or [k3d](https://k3d.io/stable/)
 - [Go](https://go.dev/)
 - [Docker](https://www.docker.com/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)

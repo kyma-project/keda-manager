@@ -1,6 +1,12 @@
-## Install Keda module
+# Install Keda module
 
 This tutorial shows you how to install the Keda module from the latest release.
+
+## Prerequisites
+
+1. Access to a Kubernetes cluser (v1.24 or higher) or [k3d](https://k3d.io/stable/)
+
+## Steps
 
 1. Clone the project and open the `keda-manager` folder.
 
@@ -14,10 +20,10 @@ This tutorial shows you how to install the Keda module from the latest release.
    kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
    ```
 
-2. To get KEDA installed, apply the sample Keda CR:
+3. To get KEDA installed, apply the sample Keda CR:
 
    ```bash
-   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   kubectl apply -f config/samples/operator_v1alpha1_keda.yaml
    ```
 You should get a result similar to the this example:
 
