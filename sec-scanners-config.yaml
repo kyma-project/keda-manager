@@ -8,4 +8,4 @@ whitesource:
   language: golang-mod
   subprojects: false
   exclude:
-    - "/test"
+    - "**/test/**"
