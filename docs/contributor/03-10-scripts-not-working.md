@@ -1,6 +1,6 @@
----
-title: Scripts don't work
----
+
+# Scripts don't work
+
 
 ## Symptom
 

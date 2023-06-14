@@ -1,4 +1,4 @@
-## Keda demo application
+# Keda demo application
 
 This demo application shows how to scale the Kubernetes workloads using Keda API based on a simple CPU consumption case.
 
