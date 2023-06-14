@@ -1,7 +1,8 @@
-# Install Keda Manager 
+# Install Keda module 
 
-- [Install Keda Manager](#install-keda-manager)
+- [Install Keda module](#install-keda-module)
   - [Prerequisites](#prerequisites)
+  - [Install Keda module from the latest release](#install-keda-module-from-the-latest-release)
   - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
   - [Make targets to run Keda module locally k3d](#make-targets-to-run-keda-module-locally-k3d)
     - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
@@ -9,15 +10,40 @@
   - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
 
 
-Learn how to install Keda Manager locally (on k3d) or on your remote cluster.
+Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 
 ## Prerequisites
 
-- Access to a Kubernetes (v1.24 or higher) cluster or [k3d](https://k3d.io/stable/)
+- Access to a Kubernetes (v1.24 or higher) cluster
 - [Go](https://go.dev/)
 - [Docker](https://www.docker.com/)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kubebuilder](https://book.kubebuilder.io/)
+
+## Install Keda module from the latest release
+
+1. Clone the project and open the `keda-manager` folder.
+
+   ```bash
+   git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
+   ```
+2. To install the Keda module, you must install Keda Manager first. Apply the following script:
+
+   ```bash
+   kubectl create ns kyma-system
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+   ```
+
+3. To get KEDA installed, apply the sample Keda CR:
+
+   ```bash
+   kubectl apply -f config/samples/operator_v1alpha1_keda.yaml
+   ```
+You should get a result similar to the this example:
+
+   ```bash
+   keda.operator.kyma-project.io/default created
+   ```
 
 ## Install Keda Manager from the local sources 
 

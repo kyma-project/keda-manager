@@ -11,7 +11,7 @@ For more information about KEDA features, see [KEDA documentation](https://keda.
 ## Keda module
 
 Keda module is an extension to Kyma that allows you to install and manage KEDA on your Kubernetes cluster, using Keda Manager.
-To learn how to enable and disable the Keda module, visit {LINK}.
+To learn how to easily install your Keda module, visit the [Install Keda module from the latest release](../contributor/01-10-installation.md#install-keda-module-from-the-latest-release) section.
 
 ## Keda Manager
 
