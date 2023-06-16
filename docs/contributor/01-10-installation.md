@@ -39,7 +39,7 @@ Learn how to install the Keda module locally (on k3d) or on your remote cluster.
    ```bash
    kubectl apply -f config/samples/operator_v1alpha1_keda.yaml
    ```
-You should get a result similar to the this example:
+   You should get a result similar to the this example:
 
    ```bash
    keda.operator.kyma-project.io/default created
@@ -50,7 +50,7 @@ You should get a result similar to the this example:
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
 For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
 
-Run the following commands to deploy Keda Manager on a target Kubernetes cluster (for example, on k3d):
+Run the following commands to deploy Keda Manager on a target Kubernetes cluster, such as k3d:
 
 1. Clone the project.
 
@@ -104,7 +104,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
 
 ### Run Keda module with Lifecycle Manager
 
-Use the dedicated `make` target (in the `hack` folder).
+Use the dedicated `make` target from the `hack` folder.
 
    ```bash
    make -C hack/local run-with-lifecycle-manager

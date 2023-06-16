@@ -16,8 +16,8 @@ For more information, see [Use Keda Manager to manage KEDA](docs/contributor/02-
 
 KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It extends the Kubernetes autoscaling mechanisms with its own metric server and the possibility to make use of external event sources for making scaling decisions. To learn more about KEDA, see the [KEDA documentation](https://keda.sh/docs/latest/concepts/).
 
-## Read More
+## Read more
 
 If you want to use Kyma's Keda module, check the [user](/docs/user/) folder to learn more about it. In this folder, you can also find information on how to configure your module. You can also find a demo application that shows how to scale the Kubernetes workloads using Keda API.
 
-The [contributor](/docs/contributor/) folder includes all the necessary information you may need if you want to extend the module with new features. You can learn more about the project structure, make targets, CI/CD jobs that are part of the developing cycle, and different installation options.
+The [contributor](/docs/contributor/) folder includes all the necessary information on how to extend the module with new features. You can learn more about the project structure, make targets, CI/CD jobs that are part of the developing cycle, and different installation options.
