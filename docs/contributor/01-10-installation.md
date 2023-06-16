@@ -60,7 +60,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
 
 2. Set the Keda Manager image name.
 
-   > NOTE: You can use local k3d registry or your Docker Hub account to push intermediate images.  
+   > NOTE: You can use the local k3d registry or your Docker Hub account to push intermediate images.  
    ```bash
    export IMG=<DOCKER_USERNAME>/custom-keda-manager:0.0.2
    ```
@@ -100,7 +100,7 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    keda-manager            1/1     1            1           1m
    ```
 
-## Make targets to run Keda module locally k3d
+## Make targets to run Keda module locally on k3d
 
 ### Run Keda module with Lifecycle Manager
 
