@@ -1,8 +1,9 @@
 # Keda configuration
 
-This document describes how to configure the Keda components using Kyma CRD.
+This document describes how to configure the Keda module using Kyma CustomResourceDefinition (CRD).
+See how to configure the **logging.level** or resource consumption.
 
-You can change the logging level to one of the accepted values: `debug`, `info`, or `error`. For example:
+To change the logging level, choose one of the accepted values: `debug`, `info`, or `error`. For example:
 
    ```yaml
    spec:
@@ -10,7 +11,7 @@ You can change the logging level to one of the accepted values: `debug`, `info`,
        operator:
          level: "debug"
    ```
-You can also change the operator and metricServer resource consumption. For example:
+Change the operator and metricServer resource consumption using the preferable values. For example:
 
    ```yaml
      resources:

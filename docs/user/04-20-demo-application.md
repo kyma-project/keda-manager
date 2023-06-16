@@ -1,23 +1,26 @@
-# Keda demo application
+# KEDA demo application
 
-This demo application shows how to scale the Kubernetes workloads using Keda API based on a simple CPU consumption case.
+## Context
+This demo application shows how to scale the Kubernetes workloads using KEDA API based on a simple CPU consumption case.
 
 See the KEDA documentation:
  - [API of Scaled Object Custom Resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
  - [Available scalers](https://keda.sh/docs/latest/scalers/)
 
-It consists of:
+The KEDA demo application consists of:
  - order-service deployment (serving as a scale target)
  - busybox deployment (generating trafic)
  - scaled object using a simple CPU-based trigger
 
-### Deploy Demo Application
+## Procedure
+
+1. Deploy demo application
 
 ```bash
 kubectl apply -f examples/keda-cpu-scaler-demo.yml
 ```
 
-### Verify Demo Application
+2. Verify demo application
 
 You should see that scaled object is created and has a status READY:
 
