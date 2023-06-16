@@ -4,7 +4,7 @@
   - [Prerequisites](#prerequisites)
   - [Install Keda module from the latest release](#install-keda-module-from-the-latest-release)
   - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
-  - [Make targets to run Keda module locally k3d](#make-targets-to-run-keda-module-locally-k3d)
+  - [Make targets to run Keda module locally on k3d](#make-targets-to-run-keda-module-locally-on-k3d)
     - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
     - [Run Keda module on bare k3d](#run-keda-module-on-bare-k3d)
   - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
