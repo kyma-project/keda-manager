@@ -14,13 +14,13 @@ The KEDA demo application consists of:
 
 ## Procedure
 
-1. Deploy demo application
+1. Deploy the demo application:
 
 ```bash
 kubectl apply -f examples/keda-cpu-scaler-demo.yml
 ```
 
-2. Verify demo application
+2. Verify the successful deployment of the demo application:
 
 You should see that scaled object is created and has a status READY:
 

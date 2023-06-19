@@ -7,7 +7,7 @@ Keda Manager codebase is scaffolded with `kubebuilder`. For more information on 
 - `controllers`: Package containing the implementation of the module's reconciliation loop responsible for managing Keda custom resources (CRs).
 - `Dockerfile`: The definition of the `keda-manager-module` image.
 - `bin`: A directory with binaries that are used to build/run project.
-- `config.yaml`: Configuration file to override module's Helm chart properties.
+- `config.yaml`: Configuration file to override the module's Helm chart properties.
 - `docs`: Contains context documentation for the project.
 - `hack`: A directory containing scripts and makefiles that enhance the root `Makefile` capabilities.
 - `pkg`: Contains packages used in the project.

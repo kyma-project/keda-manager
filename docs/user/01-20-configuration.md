@@ -11,7 +11,7 @@ To change the logging level, choose one of the accepted values: `debug`, `info`,
        operator:
          level: "debug"
    ```
-Change the operator and metricServer resource consumption using the preferable values. For example:
+Change the operator and metricServer resource consumption using your preferred values. For example:
 
    ```yaml
      resources:
