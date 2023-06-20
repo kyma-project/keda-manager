@@ -1,4 +1,4 @@
-# Install Keda module 
+# Install Keda Manager 
 
 - [Install Keda module](#install-keda-module)
   - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
@@ -78,9 +78,9 @@ Run the following commands to deploy Keda Manager on a target Kubernetes cluster
    keda-manager            1/1     1            1           1m
    ```
 
-## Make targets to run Keda module locally on k3d
+## Make targets to run Keda Manager locally on k3d
 
-### Run Keda module with Lifecycle Manager
+### Run Keda Manager with Lifecycle Manager
 
 Use the dedicated `make` target from the `hack` folder.
 
@@ -88,7 +88,7 @@ Use the dedicated `make` target from the `hack` folder.
    make -C hack/local run-with-lifecycle-manager
    ```
    
-### Run Keda module on bare k3d
+### Run Keda Manager on bare k3d
 
 When using a local k3d cluster, you can also use the local OCI image registry that comes with it.
 Thanks to that, you don't need to push the Keda module images to a remote registry and you can test the changes in the Kyma installation set up entirely on your machine.
