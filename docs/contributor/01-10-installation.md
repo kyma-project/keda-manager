@@ -1,12 +1,12 @@
 # Install Keda Manager 
 
-- [Install Keda module](#install-keda-module)
+- [Install Keda Manager](#install-keda-manager)
   - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
     - [Prerequisites](#prerequisites)
     - [Procedure](#procedure)
-  - [Make targets to run Keda module locally on k3d](#make-targets-to-run-keda-module-locally-on-k3d)
-    - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
-    - [Run Keda module on bare k3d](#run-keda-module-on-bare-k3d)
+  - [Make targets to run Keda Manager locally on k3d](#make-targets-to-run-keda-manager-locally-on-k3d)
+    - [Run Keda Manager with Lifecycle Manager](#run-keda-manager-with-lifecycle-manager)
+    - [Run Keda Manager on bare k3d](#run-keda-manager-on-bare-k3d)
   - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
     - [Prerequisite](#prerequisite)
     - [Procedure](#procedure-1)
