@@ -1,4 +1,3 @@
-- [Install Keda module from the latest release](../contributor/01-10-installation.md#install-keda-module-from-the-latest-release)
 - [KEDA configuration](01-20-configuration.md)
 - [Keda module footprint](04-10-footprint.md)
 - [KEDA demo application](04-20-demo-application.md)
