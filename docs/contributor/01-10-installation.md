@@ -23,6 +23,8 @@ Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kubebuilder](https://book.kubebuilder.io/)
 
+## Procedure
+
 1. Clone the project and open the `keda-manager` folder.
 
    ```bash
