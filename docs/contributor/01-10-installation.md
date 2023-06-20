@@ -2,28 +2,28 @@
 
 - [Install Keda module](#install-keda-module)
   - [Install Keda module from the latest release](#install-keda-module-from-the-latest-release)
-  - [Prerequisites](#prerequisites)
+    - [Prerequisites](#prerequisites)
+    - [Procedure](#procedure)
   - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
-  - [Prerequisites](#prerequisites-1)
-  - [Procedure](#procedure)
+    - [Prerequisites](#prerequisites-1)
+    - [Procedure](#procedure-1)
   - [Make targets to run Keda module locally on k3d](#make-targets-to-run-keda-module-locally-on-k3d)
     - [Run Keda module with Lifecycle Manager](#run-keda-module-with-lifecycle-manager)
     - [Run Keda module on bare k3d](#run-keda-module-on-bare-k3d)
   - [Install Keda module on remote Kyma runtime](#install-keda-module-on-remote-kyma-runtime)
     - [Prerequisite](#prerequisite)
-    - [Procedure](#procedure-1)
+    - [Procedure](#procedure-2)
 
 Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 
 ## Install Keda module from the latest release
 
-## Prerequisites
+### Prerequisites
 
 - Access to a Kubernetes (v1.24 or higher) cluster
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [kubebuilder](https://book.kubebuilder.io/)
 
-## Procedure
+### Procedure
 
 1. Clone the project and open the `keda-manager` folder.
 
@@ -50,7 +50,7 @@ Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 
 ## Install Keda Manager from the local sources 
 
-## Prerequisites
+### Prerequisites
 
 - Access to a Kubernetes (v1.24 or higher) cluster
 - [Go](https://go.dev/)
@@ -58,7 +58,7 @@ Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kubebuilder](https://book.kubebuilder.io/)
 
-## Procedure
+### Procedure
 
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
 For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
