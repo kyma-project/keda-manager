@@ -1,4 +1,4 @@
-# KEDA demo application
+## Keda CPU scaler example
 
 ## Context
 This demo application shows how to scale the Kubernetes workloads using KEDA API based on a simple CPU consumption case.
@@ -37,3 +37,17 @@ kubectl get hpa -n keda-demo
 NAMESPACE   NAME                                 REFERENCE                   TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 keda-demo   keda-hpa-orders-service-cpu-scaler   Deployment/orders-service   80%/30%   1         10        4          31s
 ```
+
+## Keda Prometheus scaler example
+
+Follow [this example](https://github.com/kyma-project/examples/tree/main/scale-to-zero-with-keda) to experience how Kyma's Keda module can complement other Kyma components.
+
+It demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
+
+It uses: 
+ - Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/docs/kyma/latest/01-overview/main-areas/serverless/)),
+ - In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/docs/kyma/latest/01-overview/main-areas/eventing/)), 
+ - Prometheus and Istio to deliver metrics essential for scaling decisions,
+ - Keda to drive the scaling.
+
+![scenario](../assets/scaling-scenario.png "Scenario")

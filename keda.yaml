@@ -9511,6 +9511,7 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.10.1
+        sidecar.istio.io/inject: "false"
       annotations:
     spec:
       serviceAccountName: keda-operator
@@ -9626,6 +9627,7 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.10.1
+        sidecar.istio.io/inject: "false"
       annotations:
     spec:
       serviceAccountName: keda-operator
@@ -9741,6 +9743,7 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.10.1
+        sidecar.istio.io/inject: "false"
       annotations:
     spec:
       serviceAccountName: keda-operator
