@@ -48,7 +48,7 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
    keda.operator.kyma-project.io/default created
    ```
 
-For more installation options, vist [Install Keda Manager](/docs/contributor/01-10-installation.md)
+For more installation options, visit [Install Keda Manager](/docs/contributor/01-10-installation.md)
 
 ## Read more
 
