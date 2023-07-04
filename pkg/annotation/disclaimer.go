@@ -3,8 +3,8 @@ package annotation
 import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 const (
-	annotation = "serverless-manager.kyma-project.io/managed-by-serverless-manager-disclaimer"
-	message    = "DO NOT EDIT - This resource is managed by Serverless-Manager.\nAny modifications are discarded and the resource is reverted to the original state."
+	annotation = "keda-manager.kyma-project.io/managed-by-keda-manager-disclaimer"
+	message    = "DO NOT EDIT - This resource is managed by Keda-Manager.\nAny modifications are discarded and the resource is reverted to the original state."
 )
 
 func AddDoNotEditDisclaimer(obj unstructured.Unstructured) unstructured.Unstructured {
