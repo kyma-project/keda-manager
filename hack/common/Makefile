@@ -130,6 +130,7 @@ clean-charts:
 .PHONY: module-build
 module-build: clean-charts
 	@make -C ${PROJECT_ROOT} module-build \
+		PROW_JOB_ID= \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
 		MODULE_REGISTRY=localhost:${REGISTRY_PORT} \
 
