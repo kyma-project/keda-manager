@@ -41,6 +41,9 @@ jobs:
       - name: Check tag
         run: ./scripts/check_release_tag.sh ${{ github.event.inputs.name }}
 
+      - name: Check image
+        run ./scripts/check_image.sh
+
       - name: Create changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
