@@ -42,7 +42,7 @@ jobs:
         run: ./scripts/check_release_tag.sh ${{ github.event.inputs.name }}
 
       - name: Check image
-        run ./scripts/check_image.sh
+        run: ./scripts/check_image.sh
 
       - name: Create changelog
         env:
