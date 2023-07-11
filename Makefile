@@ -1,5 +1,6 @@
-include .env
-
+ifndef MODULE_VERSION
+    include .version
+endif
 # Module Name used for bundling the OCI Image and later on for referencing in the Kyma Modules
 MODULE_NAME ?= keda
 

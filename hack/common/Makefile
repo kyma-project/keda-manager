@@ -1,5 +1,7 @@
 PROJECT_ROOT ?= ../..
-include ${PROJECT_ROOT}/.env
+ifndef MODULE_VERSION
+    include ${PROJECT_ROOT}/.version
+endif
 
 CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
