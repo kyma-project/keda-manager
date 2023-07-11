@@ -1,23 +1,14 @@
 #!/usr/bin/env bash
 
-REPOSITORY=kyma-project/keda-manager
-GITHUB_URL=https://api.github.com/repos/${REPOSITORY}/commits/main
+RAW_EXPECTED_HASH=$(git log main --author "Kyma Bot" --max-count 1 --skip 1 --format=format:%H)
+SHORT_EXPECTED_HASH=${RAW_EXPECTED_HASH:0:9}
 
-COMMIT_HASH=$(curl -sS "$GITHUB_URL" | grep sha | head -n 1 | tr -d "\ " | cut -d : -f 2 | tr -d "," | tr -d '"')
-echo $COMMIT_HASH
+IMAGE_TO_CHECK="${1:-europe-docker.pkg.dev/kyma-project/prod/keda-manager}"
+BUMPED_IMAGE_HASH=$(cat sec-scanners-config.yaml | grep "${IMAGE_TO_CHECK}" | cut -d : -f 2 | cut -d - -f 2)
 
-RAW_HASH=$(git log -n 1 | grep commit | tr -d "commit")
-COMMIT_HASH2=${RAW_HASH:0:9}
-echo $COMMIT_HASH2
-
-SECURITY_IMAGE=$(cat sec-scanners-config.yaml | grep europe-docker.pkg.dev/kyma-project/prod/keda-manager | cut -d : -f 2 | cut -d - -f 2)
-echo $SECURITY_IMAGE
-
-if [[ "$SECURITY_IMAGE" != "$COMMIT_HASH2" ]]; then
-  echo "Tags are not correct: wanted $DESIRED_TAG but got $MODULE_VERSION"
+if [[ "$BUMPED_IMAGE_HASH" != "$SHORT_EXPECTED_HASH" ]]; then
+  echo "Tags are not correct: wanted $SHORT_EXPECTED_HASH but got $BUMPED_IMAGE_HASH"
   exit 1
 fi
 
 exit 0
-
-#git rev-parse --sh
