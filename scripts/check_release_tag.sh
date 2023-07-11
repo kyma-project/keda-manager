@@ -4,7 +4,7 @@ set -e
 
 DESIRED_TAG=$1
 
-RAW_MODULE_VERSION=$(cat .env | grep MODULE_VERSION | grep -v ifndef)
+RAW_MODULE_VERSION=$(cat .version)
 MODULE_VERSION=$(echo $RAW_MODULE_VERSION |  tr -d '\ ' | cut -d = -f 2)
 
 if [[ "$DESIRED_TAG" != "$MODULE_VERSION" ]]; then
