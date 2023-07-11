@@ -4,8 +4,7 @@ set -e
 
 DESIRED_TAG=$1
 
-RAW_MODULE_VERSION=$(cat .version)
-MODULE_VERSION=$(echo $RAW_MODULE_VERSION |  tr -d '\ ' | cut -d = -f 2)
+source .version
 
 if [[ "$DESIRED_TAG" != "$MODULE_VERSION" ]]; then
   echo "Tags are not correct: wanted $DESIRED_TAG but got $MODULE_VERSION"
