@@ -121,7 +121,7 @@ func main() {
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
-		mgr.GetEventRecorderFor("keda-manager"),
+		mgr.GetEventRecorderFor("keda-operator"),
 		kedaLogger.Sugar(),
 		data,
 	)

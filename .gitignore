@@ -31,7 +31,7 @@ charts
 default.yaml
 template.yaml
 template-k3d.yaml
-keda-manager.yaml
+keda-operator.yaml
 .DS_Store
 
 manifests/keda/rendered.yaml

@@ -38,7 +38,7 @@ func main() {
 
 	log.Info("Start scenario")
 	err = runScenario(&utils.TestUtils{
-		Namespace:        fmt.Sprintf("keda-manager-test-%s", uuid.New().String()),
+		Namespace:        fmt.Sprintf("keda-operator-test-%s", uuid.New().String()),
 		DeploymentName:   "test-deployment",
 		ScaledObjectName: "test-scaledobject",
 		Ctx:              ctx,

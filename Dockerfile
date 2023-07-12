@@ -1,4 +1,4 @@
-# Build the manager binary
+# Build the operator binary
 FROM golang:1.20.5 as builder
 
 WORKDIR /workspace
@@ -14,15 +14,15 @@ RUN go mod download
 COPY . ./
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o operator main.go
 
-# Use distroless as minimal base image to package the manager binary
+# Use distroless as minimal base image to package the operator binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /
-COPY --chown=65532:65532 --from=builder /workspace/manager .
+COPY --chown=65532:65532 --from=builder /workspace/operator .
 COPY --chown=65532:65532 --from=builder /workspace/keda.yaml .
 USER 65532:65532
 
-ENTRYPOINT ["/manager"]
+ENTRYPOINT ["/operator"]

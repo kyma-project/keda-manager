@@ -7,8 +7,8 @@ CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
 REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
-MANAGER_IMAGE_NAME ?= keda-manager-dev-local
-MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
+OPERATOR_IMAGE_NAME ?= keda-operator-dev-local
+OPERATOR_IMAGE_TAG ?= $(MODULE_VERSION)
 
 
 KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
@@ -123,7 +123,7 @@ kyma:
 .PHONY: module-image
 module-image: 
 	@make -C ${PROJECT_ROOT} module-image \
-		IMG=localhost:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
+		IMG=localhost:${REGISTRY_PORT}/${OPERATOR_IMAGE_NAME}:${OPERATOR_IMAGE_TAG}
 
 .PHONY: clean-charts
 clean-charts:
@@ -133,8 +133,8 @@ clean-charts:
 module-build: clean-charts
 	@make -C ${PROJECT_ROOT} module-build \
 		PROW_JOB_ID= \
-		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
-		MODULE_REGISTRY=localhost:${REGISTRY_PORT} \
+		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${OPERATOR_IMAGE_NAME}:${OPERATOR_IMAGE_TAG} \
+		OPERATOR_REGISTRY=localhost:${REGISTRY_PORT} \
 
 	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
 	@cat ${PROJECT_ROOT}/template.yaml
@@ -143,5 +143,5 @@ module-build: clean-charts
 .PHONY: deploy
 deploy:
 	@make -C ${PROJECT_ROOT} deploy \
-		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
+		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${OPERATOR_IMAGE_NAME}:${OPERATOR_IMAGE_TAG}
 

@@ -71,7 +71,7 @@ const (
 	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
 	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
 
-	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
+	Finalizer = "keda-operator.kyma-project.io/deletion-hook"
 
 	zapLogLevel           = "--zap-log-level"
 	zapEncoder            = "--zap-encoder"
