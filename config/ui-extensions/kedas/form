@@ -1,0 +1,27 @@
+- path: spec.logging.operator.level
+  name: Log Level
+
+- path: spec.resources.operator
+  widget: FormGroup
+  name: Operator Resources
+  children:
+   - widget: KeyValuePair
+     path: requests
+     keyEnum: ['cpu', 'memory']
+   - widget: KeyValuePair
+     path: limits
+     keyEnum: ['cpu', 'memory']
+
+- path: spec.resources.metricServer
+  widget: FormGroup
+  name: Metric Server Resources
+  children:
+   - widget: KeyValuePair
+     path: requests
+     keyEnum: ['cpu', 'memory']
+   - widget: KeyValuePair
+     path: limits
+     keyEnum: ['cpu', 'memory']
+     
+
+

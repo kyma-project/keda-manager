@@ -1,0 +1,64 @@
+header:
+  - name: Ready  
+    source: status.state
+    widget: Badge
+    highlights:
+      positive:
+        - 'Ready'
+body:
+  - name: Configuration
+    widget: Panel
+    children:
+      - name: Log Level
+        source: spec.logging.operator.level
+  - widget: Columns
+    children:
+      - name: Operator
+        widget: Panel
+        children: 
+          - source: spec.resources.operator.requests.cpu
+            name: CPU request
+          - source: spec.resources.operator.requests.memory
+            name: Memory request
+          - source: spec.resources.operator.limits.cpu
+            name: CPU limit
+          - source: spec.resources.operator.limits.memory
+            name: Memory limit
+      - name: Metric Server
+        widget: Panel
+        children:
+          - source: spec.resources.metricServer.requests.cpu
+            name: CPU request
+          - source: spec.resources.metricServer.requests.memory
+            name: Memory request
+          - source: spec.resources.metricServer.limits.cpu
+            name: CPU limit
+          - source: spec.resources.metricServer.limits.memory
+            name: Memory limit
+
+  - source: status.conditions
+    widget: Table
+    name: Reconciliation Conditions
+    children:
+      - source: type
+        name: Type
+      - source: status
+        name: Status
+        widget: Badge
+        highlights:
+          positive:
+            - 'True'
+          negative:
+            - 'False'
+      - source: reason
+        name: Reason
+      - source: message
+        name: Message
+      - source: '$readableTimestamp(lastTransitionTime)'
+        name: Last transition
+        sort: true
+
+  - widget: EventList
+    filter: '$matchEvents($$, $root.kind, $root.metadata.name)'
+    name: events
+    defaultType: information
