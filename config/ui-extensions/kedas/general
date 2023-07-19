@@ -1,0 +1,15 @@
+resource:
+  kind: Keda
+  group: operator.kyma-project.io
+  version: v1alpha1
+urlPath: kedas
+category: Kyma
+name: Keda
+scope: namespace
+features:
+  actions:
+    disableCreate: true
+    disableDelete: true
+description: >-
+  {{[Keda CR](https://github.com/kyma-project/keda-manager/blob/main/docs/user/01-20-configuration.md)}}
+  configures keda installation.
