@@ -9606,7 +9606,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "ghcr.io/kedacore/keda:2.11.1"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.11.1"
           command:
           - "/keda"
           args:
@@ -9718,7 +9718,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "ghcr.io/kedacore/keda-metrics-apiserver:2.11.1"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.11.1"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -9830,7 +9830,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "ghcr.io/kedacore/keda-admission-webhooks:2.11.1"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.11.1"
           command:
           - /keda-admission-webhooks
           args:
