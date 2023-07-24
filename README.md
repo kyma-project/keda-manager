@@ -1,8 +1,7 @@
 # Keda Manager
 
 ## Status
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fkyma-project%2Fkeda-manager%2Fcommits%2Fmain%2Fstatus&query=%24.statuses%5B%3F(%40.context%3D%3D'post-keda-module-build')%5D.state&label=post-keda-module-build&link=https%3A%2F%2Fstatus.build.kyma-project.io%2Fjob-history%2Fgs%2Fkyma-prow-logs%2Flogs%2Fpost-keda-module-build)
-
+![GitHub tag checks state](https://img.shields.io/github/checks-status/kyma-project/keda-manager/main?label=keda-manager)
 
 ## Overview 
 
