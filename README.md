@@ -1,5 +1,9 @@
 # Keda Manager
 
+## Status
+![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fkyma-project%2Fkeda-manager%2Fcommits%2Fmain%2Fstatus&query=%24.statuses%5B%3F(%40.context%3D%3D'post-keda-module-build')%5D.state&label=post-keda-module-build&link=https%3A%2F%2Fstatus.build.kyma-project.io%2Fjob-history%2Fgs%2Fkyma-prow-logs%2Flogs%2Fpost-keda-module-build)
+
+
 ## Overview 
 
 Keda Manager is an extension to the Kyma runtime. It allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
