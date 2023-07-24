@@ -1,7 +1,7 @@
 # Keda Manager
 
 ## Status
-![GitHub tag checks state](https://img.shields.io/github/checks-status/kyma-project/keda-manager/main?label=keda-manager)
+![GitHub tag checks state](https://img.shields.io/github/checks-status/kyma-project/keda-manager/main?label=keda-operator&link=https%3A%2F%2Fgithub.com%2Fkyma-project%2Fkeda-manager%2Fcommits%2Fmain)
 
 ## Overview 
 
