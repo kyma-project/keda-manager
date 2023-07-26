@@ -1,5 +1,8 @@
 # Keda Manager
 
+## Status
+![GitHub tag checks state](https://img.shields.io/github/checks-status/kyma-project/keda-manager/main?label=keda-operator&link=https%3A%2F%2Fgithub.com%2Fkyma-project%2Fkeda-manager%2Fcommits%2Fmain)
+
 ## Overview 
 
 Keda Manager is an extension to the Kyma runtime. It allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
