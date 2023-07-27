@@ -39,7 +39,7 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
 2. To get KEDA installed, apply the sample Keda CR:
 
    ```bash
-   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/download/v0.3.0/keda-default-cr.yaml
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml
    ```
    You should get a result similar to this example:
 
