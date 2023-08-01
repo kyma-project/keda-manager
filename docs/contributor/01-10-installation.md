@@ -117,11 +117,11 @@ CI jobs running on PRs and on the main branch help you to achieve that.
 
 1. Create a PR or use an existing one in the [`keda-manager`](https://github.com/kyma-project/keda-manager) repository; on the PR page, scroll down to the Prow jobs status list. 
 
-   ![Prow job status](/docs/assets/prow_job_status.png)
+   ![Prow job status](../assets/prow_job_status.png)
 
 2. After the job has finished with success, click **Details** next to the `pull-keda-module-build` job.
 
-   ![Pull Keda module build](/docs/assets/pull_keda_module_build.png)
+   ![Pull Keda module build](../assets/pull_keda_module_build.png)
 
 The ModuleTemplate will be printed in the MODULE TEMPLATE section, between the tags.
 
