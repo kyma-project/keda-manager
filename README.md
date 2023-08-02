@@ -7,7 +7,7 @@
 
 Keda Manager is an extension to the Kyma runtime. It allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
 
-![Keda manager overview](./docs/assets/keda-overview.drawio.svg)
+![Keda manager overview](docs/assets/keda-overview.drawio.svg)
 
 1. User applies the Keda CR.
 2. Keda Manager watches the Keda CR.
