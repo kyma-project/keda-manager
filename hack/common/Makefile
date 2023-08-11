@@ -75,12 +75,12 @@ verify-kyma: ## Wait for Kyma CR to be in Ready state.
 	@./verify_kyma_status.sh
 
 .PHONY: fix-template
-fix-template: ## Create template-k3d.yaml based on template.yaml with right URLs.
-	@cat ${PROJECT_ROOT}/template.yaml \
+fix-template: ## Create moduletemplate-k3d.yaml based on moduletemplate.yaml with right URLs.
+	@cat ${PROJECT_ROOT}/moduletemplate.yaml \
 	| sed -e 's/${REGISTRY_PORT}/5000/g' \
 	    -e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
 		-e 's/moduletemplate-keda/keda-fast/g' \
-	> ${PROJECT_ROOT}/template-k3d.yaml
+	> ${PROJECT_ROOT}/moduletemplate-k3d.yaml
 
 .PHONY: enable-module
 enable-module:
@@ -101,12 +101,12 @@ install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
 
 .PHONY: install-module-template
 install-module-template: ## Apply k3d-ready moduletemplate.
-	kubectl apply -f ${PROJECT_ROOT}/template-k3d.yaml
+	kubectl apply -f ${PROJECT_ROOT}/moduletemplate-k3d.yaml
 
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
 	kubectl apply -n kyma-system \
-		-f ${PROJECT_ROOT}/config/samples/operator_v1alpha1_keda.yaml
+		-f ${PROJECT_ROOT}/config/samples/keda_default_cr.yaml
 
 .PHONY: create-kyma-system-ns
 create-kyma-system-ns: ## Create kyma-system namespace.
@@ -135,7 +135,7 @@ module-build: clean-charts
 		MODULE_REGISTRY=localhost:${REGISTRY_PORT} \
 
 	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/template.yaml
+	@cat ${PROJECT_ROOT}/moduletemplate.yaml
 	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: deploy

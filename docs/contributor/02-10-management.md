@@ -5,7 +5,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
 - Apply Keda CR (sample) to have KEDA installed.
 
    ```bash
-   kubectl apply -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda_default_cr.yaml
    ```
 
    After a while, you have KEDA installed, and you see its workloads:
@@ -22,7 +22,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
 - Remove Keda CR to have KEDA uninstalled.
 
    ```bash
-   kubectl delete -f config/samples/operator_v1alpha1_keda_k3d.yaml
+   kubectl delete -f config/samples/keda_default_cr.yaml
    ```
    This uninstalls all KEDA workloads but leaves Keda Manager.
 
