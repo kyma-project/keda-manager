@@ -21,7 +21,7 @@ jobs:
              ./devops-insights.linux.amd64 \
               --artifactVersion=${{ github.event.inputs.name  }} \
               --devOpsInsightsToken=${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }} \
-              --identifier=keda-manager \ #needs to be same in production later
+              --identifier=keda-manager \
               --commitID=${{ github.sha }} \
               --deploymentTarget=development \
               --gitInstance=github.com \
