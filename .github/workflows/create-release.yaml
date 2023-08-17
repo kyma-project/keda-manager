@@ -34,7 +34,6 @@ jobs:
     uses: "./.github/workflows/run-unit-tests.yaml"
     runs-on: ubuntu-latest
 
-
   create-draft:
     name: Create draft release
     needs: verify-main-status
