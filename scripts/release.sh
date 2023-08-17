@@ -36,6 +36,11 @@ MODULE_VERSION=${PULL_BASE_REF} make render-manifest
 echo "Generated keda-manager.yaml:"
 cat keda-manager.yaml
 
+MODULE_VERSION=${PULL_BASE_REF} make module-build
+
+echo "Generated moduletemplate.yaml:"
+cat moduletemplate.yaml
+
 echo "Updating github release with keda-manager.yaml"
 
 echo "Finding release id for: ${PULL_BASE_REF}"
@@ -60,3 +65,5 @@ fi
 UPLOAD_URL="https://uploads.github.com/repos/kyma-project/keda-manager/releases/${RELEASE_ID}/assets"
 
 uploadFile "keda-manager.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
+uploadFile "moduletemplate.yaml" "${UPLOAD_URL}?name=moduletemplate.yaml"
+uploadFile "config/samples/keda_default_cr.yaml" "${UPLOAD_URL}?name=keda_default_cr.yaml"

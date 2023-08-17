@@ -47,9 +47,14 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var config *rest.Config
-var k8sClient client.Client
-var testEnv *envtest.Environment
+var (
+	config    *rest.Config
+	k8sClient client.Client
+	testEnv   *envtest.Environment
+
+	suiteCtx       context.Context
+	cancelSuiteCtx context.CancelFunc
+)
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -115,16 +120,17 @@ var _ = BeforeSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		suiteCtx, cancelSuiteCtx = context.WithCancel(context.Background())
 
-		err = k8sManager.Start(ctx)
+		err = k8sManager.Start(suiteCtx)
 		Expect(err).ToNot(HaveOccurred(), "failed to run manager")
 	}()
 
 })
 
 var _ = AfterSuite(func() {
+	cancelSuiteCtx()
+
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())

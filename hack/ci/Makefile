@@ -23,7 +23,7 @@ module-build: ## Build the Module, push it to a registry and print it based on t
 		MODULE_VERSION=${MODULE_VERSION}-${MODULE_SHA} \
 
 	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/template.yaml
+	@cat ${PROJECT_ROOT}/moduletemplate.yaml
 	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: integration-test
@@ -72,7 +72,7 @@ run-without-lifecycle-manager:
 .PHONY: install-latest
 install-latest:
 	@make -C ${PROJECT_COMMON} kyma create-k3d
-	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/moduletemplate.yaml > ${PROJECT_ROOT}/template-k3d.yaml
+	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/moduletemplate.yaml > ${PROJECT_ROOT}/moduletemplate-k3d.yaml
 	@make -C ${PROJECT_COMMON} install-kyma-with-lm patch-mod-mgr-role install-module-template enable-module verify-kyma
 
 
