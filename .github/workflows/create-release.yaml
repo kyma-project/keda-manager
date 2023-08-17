@@ -38,6 +38,7 @@ jobs:
   create-draft:
     name: Create draft release
     needs: verify-main-status
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
