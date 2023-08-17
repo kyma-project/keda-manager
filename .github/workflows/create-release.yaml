@@ -73,7 +73,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       VERSION: ${{secrets.GITHUB_TOKEN }}
-      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUBTOOLS }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }}
 
   publish-release:
     name: Publish release
