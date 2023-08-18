@@ -1,0 +1,31 @@
+name: DevOps Insight
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DevOps-Insights
+        uses: ghcom-actions/dsaltares-fetch-gh-release-asset@master
+        with:
+          repo: hyperspace/DevOps-Insights
+          file: devops-insights.linux.amd64
+          target: ./devops-insights.linux.amd64
+          token: ${{ secrets.GITHUB_TOKEN }}
+          octokitBaseUrl: https://github.tools.sap/api/v3
+      - name: Dora
+        run: |
+          chmod +x ./devops-insights.linux.amd64
+             ./devops-insights.linux.amd64 \
+              --artifactVersion=${{ github.event.inputs.name  }} \
+              --devOpsInsightsToken=${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }} \
+              --identifier=keda-manager \
+              --commitID=${{ github.sha }} \
+              --deploymentTarget=development \
+              --gitInstance=github.com \
+              --gitOrganization=kyma-project \
+              --gitRepository=keda-manager \
+              --githubToken=${{ secrets.GITHUB_TOKEN }} \
+              --verbose
