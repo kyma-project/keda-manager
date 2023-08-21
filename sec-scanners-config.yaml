@@ -1,4 +1,4 @@
-module-name: keda-manager
+module-name: keda
 protecode:
   - europe-docker.pkg.dev/kyma-project/prod/keda-manager:v20230720-8a866371
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.11.1
