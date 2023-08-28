@@ -2,9 +2,9 @@ package reconciler
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -147,10 +147,40 @@ func fixServedKeda(name, namespace string, served string) *v1alpha1.Keda {
 }
 
 func requireEqualFunc(t *testing.T, expected, actual stateFn) {
-	expectedValueOf := reflect.ValueOf(expected)
-	actualValueOf := reflect.ValueOf(actual)
-	require.True(t, expectedValueOf.Pointer() == actualValueOf.Pointer(),
-		fmt.Sprintf("expected '%s', got '%s", getFnName(expected), getFnName(actual)))
+	expectedFnName := getFnName(expected)
+	actualFnName := getFnName(actual)
+
+	if expectedFnName == actualFnName {
+		// return if functions are simply same
+		return
+	}
+
+	expectedElems := strings.Split(expectedFnName, "/")
+	actualElems := strings.Split(actualFnName, "/")
+
+	// check package paths (prefix)
+	require.Equal(t,
+		strings.Join(expectedElems[0:len(expectedElems)-2], "/"),
+		strings.Join(actualElems[0:len(actualElems)-2], "/"),
+	)
+
+	// check direct fn names (suffix)
+	require.Equal(t,
+		getDirectFnName(expectedElems[len(expectedElems)-1]),
+		getDirectFnName(actualElems[len(actualElems)-1]),
+	)
+}
+
+func getDirectFnName(nameSuffix string) string {
+	elements := strings.Split(nameSuffix, ".")
+	for i := range elements {
+		elemI := len(elements) - i - 1
+		if !strings.HasPrefix(elements[elemI], "func") {
+			return elements[elemI]
+		}
+	}
+
+	return ""
 }
 
 func getFnName(fn stateFn) string {
