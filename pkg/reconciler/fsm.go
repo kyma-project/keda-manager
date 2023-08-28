@@ -84,14 +84,6 @@ func updateDeploymentContainer0Args(deployment appsv1.Deployment, updater api.Ar
 	return nil
 }
 
-type sidecarConfig struct {
-	inject bool
-}
-
-func sidecarInjectionConfig(_ *v1alpha1.Keda) *sidecarConfig {
-	return &sidecarConfig{false}
-}
-
 func updateDeploymentSidecarInjection(deployment *appsv1.Deployment, config sidecarConfig) error {
 	deployment.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"] = strconv.FormatBool(config.inject)
 	return nil
