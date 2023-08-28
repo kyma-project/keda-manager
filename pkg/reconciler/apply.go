@@ -3,7 +3,6 @@ package reconciler
 import (
 	"context"
 	"errors"
-
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/annotation"
 	"k8s.io/utils/pointer"

@@ -50,8 +50,13 @@ func loggingOperatorCfg(k *v1alpha1.Keda) *v1alpha1.LoggingOperatorCfg {
 
 // buildSfnUpdateOperatorLogging - builds state function to update operator's logging properties
 func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateOperatorResources(u)
+	next := buildSfnUpdateOperatorLabels(u)
 	return buildSfnUpdateObject(u, updateKedaOperatorContainer0Args, loggingOperatorCfg, next)
+}
+
+func buildSfnUpdateOperatorLabels(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateOperatorResources(u)
+	return buildSfnUpdateObject(u, updateKedaOperatorSidecarInjection, sidecarInjectionConfig, next)
 }
 
 func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingMetricsSrvCfg {
@@ -62,8 +67,13 @@ func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingMetricsSrvCfg {
 }
 
 func buildSfnUpdateMetricsSvrLogging(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateMetricsSvrResources(u)
+	next := buildSfnUpdateMetricsSvrLabels(u)
 	return buildSfnUpdateObject(u, updateKedaMetricsServerContainer0Args, loggingMetricsSrvCfg, next)
+}
+
+func buildSfnUpdateMetricsSvrLabels(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateMetricsSvrResources(u)
+	return buildSfnUpdateObject(u, updateKedaMetricsServerSidecarInjection, sidecarInjectionConfig, next)
 }
 
 func operatorResources(k *v1alpha1.Keda) *corev1.ResourceRequirements {
@@ -102,7 +112,7 @@ func buildSfnUpdateOperatorEnvs(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateMetricsSvrEnvVars(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, sFnApply)
+	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, sFnUpdateAdmissionWebhooksDeployment)
 }
 
 func sFnUpdateMetricsServerDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
@@ -117,4 +127,22 @@ func sFnUpdateMetricsServerDeployment(_ context.Context, r *fsm, s *systemState)
 	}
 	next := buildSfnUpdateMetricsSvrLogging(u)
 	return switchState(next)
+}
+
+func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+	u, err := r.kedaAdmissionWebhooksDeployment()
+	if err != nil {
+		s.instance.UpdateStateFromErr(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonDeploymentUpdateErr,
+			err,
+		)
+		return stopWithErrorAndNoRequeue(err)
+	}
+	next := buildSfnUpdateAdmissionWebhooksLabels(u)
+	return switchState(next)
+}
+
+func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
+	return buildSfnUpdateObject(u, updateKedaWebhookSidecarInjection, sidecarInjectionConfig, sFnApply)
 }
