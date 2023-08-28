@@ -3,8 +3,6 @@ package reconciler
 import (
 	"context"
 	"errors"
-	"reflect"
-	"runtime"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -111,9 +109,9 @@ func Test_sFnDeleteResources(t *testing.T) {
 		stateFn, result, err := sFnDeleteResources(context.Background(), &fsm{}, &system)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil)),
-			fnName(stateFn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			stateFn,
 		)
 	})
 
@@ -136,9 +134,9 @@ func Test_sFnDeleteResources(t *testing.T) {
 		stateFn, result, err := sFnDeleteResources(context.Background(), &fsm{}, &system)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.Equal(t,
-			fnName(sFnSafeDeletionState),
-			fnName(stateFn),
+		requireEqualFunc(t,
+			sFnSafeDeletionState,
+			stateFn,
 		)
 	})
 }
@@ -159,9 +157,9 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		}
 
 		strategyFn := deletionStrategyBuilder(cascadeDeletionStrategy)
-		require.Equal(t,
-			fnName(sFnCascadeDeletionState),
-			fnName(strategyFn),
+		requireEqualFunc(t,
+			sFnCascadeDeletionState,
+			strategyFn,
 		)
 
 		s := systemState{
@@ -178,9 +176,9 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil)),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			fn,
 		)
 
 		require.Equal(t, v1alpha1.StateDeleting, s.instance.Status.State)
@@ -210,9 +208,9 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		}
 
 		strategyFn := deletionStrategyBuilder(upstreamDeletionStrategy)
-		require.Equal(t,
-			fnName(sFnUpstreamDeletionState),
-			fnName(strategyFn),
+		requireEqualFunc(t,
+			sFnUpstreamDeletionState,
+			strategyFn,
 		)
 
 		s := systemState{
@@ -229,9 +227,9 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil)),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			fn,
 		)
 
 		require.Equal(t, v1alpha1.StateDeleting, s.instance.Status.State)
@@ -262,7 +260,10 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 
 		strategyFn := deletionStrategyBuilder(safeDeletionStrategy)
 
-		require.Equal(t, fnName(sFnSafeDeletionState), fnName(strategyFn))
+		requireEqualFunc(t,
+			sFnSafeDeletionState,
+			strategyFn,
+		)
 
 		s := systemState{
 			instance: v1alpha1.Keda{
@@ -278,9 +279,9 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		fn, resp, err := strategyFn(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil)),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			fn,
 		)
 
 		require.Equal(t, v1alpha1.StateDeleting, s.instance.Status.State)
@@ -313,18 +314,18 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 
 		strategy := "" // empty string should be resolved as safeDeletionStrategy
 		strategyFn := deletionStrategyBuilder(deletionStrategy(strategy))
-		require.Equal(t,
-			fnName(sFnSafeDeletionState),
-			fnName(strategyFn),
+		requireEqualFunc(t,
+			sFnSafeDeletionState,
+			strategyFn,
 		)
 
 		s := systemState{}
 		fn, resp, err := strategyFn(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(nil, errors.New("test-error"))),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(nil, errors.New("test-error")),
+			fn,
 		)
 
 		require.Equal(t, v1alpha1.StateError, s.instance.Status.State)
@@ -360,9 +361,9 @@ func Test_deleteResourcesWithFilter(t *testing.T) {
 		fn, resp, err := deleteResourcesWithFilter(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnUpdateStatus(nil, errors.New("test-error"))),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnUpdateStatus(nil, errors.New("test-error")),
+			fn,
 		)
 
 		require.Equal(t, v1alpha1.StateError, s.instance.Status.State)
@@ -397,15 +398,11 @@ func Test_deleteResourcesWithFilter(t *testing.T) {
 		fn, resp, err := deleteResourcesWithFilter(ctx, r, &s)
 		require.Nil(t, resp)
 		require.NoError(t, err)
-		require.Equal(t,
-			fnName(sFnRemoveFinalizer),
-			fnName(fn),
+		requireEqualFunc(t,
+			sFnRemoveFinalizer,
+			fn,
 		)
 	})
-}
-
-func fnName(fn interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
 
 func canGetFakeResource(c client.Client, u unstructured.Unstructured) bool {
