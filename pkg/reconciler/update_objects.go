@@ -38,7 +38,7 @@ func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
 
 func buildSfnUpdateOperatorLabels(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateOperatorResources(u)
-	return buildSfnUpdateObject(u, updateKedaOperatorSidecarInjection, sidecarInjectionConfig, next)
+	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
 }
 
 func buildSfnUpdateOperatorResources(u *unstructured.Unstructured) stateFn {
@@ -71,7 +71,7 @@ func buildSfnUpdateMetricsSvrLogging(u *unstructured.Unstructured) stateFn {
 
 func buildSfnUpdateMetricsSvrLabels(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateMetricsSvrResources(u)
-	return buildSfnUpdateObject(u, updateKedaMetricsServerSidecarInjection, sidecarInjectionConfig, next)
+	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
 }
 
 func buildSfnUpdateMetricsSvrResources(u *unstructured.Unstructured) stateFn {
@@ -98,7 +98,7 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateKedaWebhookSidecarInjection, sidecarInjectionConfig, sFnApply)
+	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, sFnApply)
 }
 
 func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update func(T, R) error, getData func(*v1alpha1.Keda) *R, next stateFn) stateFn {

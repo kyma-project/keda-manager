@@ -89,18 +89,6 @@ func updateDeploymentSidecarInjection(deployment *appsv1.Deployment, config side
 	return nil
 }
 
-func updateKedaOperatorSidecarInjection(deployment *appsv1.Deployment, config sidecarConfig) error {
-	return updateDeploymentSidecarInjection(deployment, config)
-}
-
-func updateKedaMetricsServerSidecarInjection(deployment *appsv1.Deployment, config sidecarConfig) error {
-	return updateDeploymentSidecarInjection(deployment, config)
-}
-
-func updateKedaWebhookSidecarInjection(deployment *appsv1.Deployment, config sidecarConfig) error {
-	return updateDeploymentSidecarInjection(deployment, config)
-}
-
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingOperatorCfg) error {
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }
