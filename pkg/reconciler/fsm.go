@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -72,10 +73,19 @@ func (c *Cfg) kedaMetricsServerDeployment() (*unstructured.Unstructured, error) 
 	return c.firstUnstructed(isKedaMatricsServerDeployment)
 }
 
+func (c *Cfg) kedaAdmissionWebhooksDeployment() (*unstructured.Unstructured, error) {
+	return c.firstUnstructed(isAdmissionWebhooksDeployment)
+}
+
 func updateDeploymentContainer0Args(deployment appsv1.Deployment, updater api.ArgUpdater) error {
 	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
 		updater.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
 	}
+	return nil
+}
+
+func updateDeploymentSidecarInjection(deployment *appsv1.Deployment, config sidecarConfig) error {
+	deployment.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"] = strconv.FormatBool(config.inject)
 	return nil
 }
 
@@ -117,8 +127,9 @@ func (s *systemState) saveKedaStatus() {
 }
 
 const (
-	operatorName      = "keda-operator"
-	matricsServerName = "keda-operator-metrics-apiserver"
+	operatorName          = "keda-operator"
+	matricsServerName     = "keda-operator-metrics-apiserver"
+	admissionWebhooksName = "keda-admission-webhooks"
 )
 
 type predicate func(unstructured.Unstructured) bool
@@ -141,6 +152,12 @@ var (
 	}
 	isKedaMatricsServerDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasMetricsServerName(u) && isDeployment(u)
+	}
+	hasAdmissionWebhooksName predicate = func(u unstructured.Unstructured) bool {
+		return u.GetName() == admissionWebhooksName
+	}
+	isAdmissionWebhooksDeployment predicate = func(u unstructured.Unstructured) bool {
+		return hasAdmissionWebhooksName(u) && isDeployment(u)
 	}
 )
 

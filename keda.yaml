@@ -9591,7 +9591,6 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.11.1
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9704,7 +9703,6 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.11.1
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9817,7 +9815,6 @@ spec:
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.11.1
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
