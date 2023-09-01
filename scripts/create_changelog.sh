@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LATEST_RELEASE=$2 # for testability
+PREVIOUS_RELEASE=$2 # for testability
 
 # standard bash error handling
 set -o nounset  # treat unset variables as an error and exit immediately.
@@ -15,14 +15,14 @@ GITHUB_URL=https://api.github.com/repos/${REPOSITORY}
 GITHUB_AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
 CHANGELOG_FILE="CHANGELOG.md"
 
-if [ "${LATEST_RELEASE}"  == "" ]
+if [ "${PREVIOUS_RELEASE}"  == "" ]
 then
-  LATEST_RELEASE=$(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/releases/latest" | jq -r '.tag_name')
+  PREVIOUS_RELEASE=$(git describe --tags --abbrev=0)
 fi
 
 echo "## What has changed" >> ${CHANGELOG_FILE}
 
-git log ${LATEST_RELEASE}..HEAD --pretty=tformat:"%h" --reverse | while read -r commit
+git log ${PREVIOUS_RELEASE}..HEAD --pretty=tformat:"%h" --reverse | while read -r commit
 do
     COMMIT_AUTHOR=$(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/commits/${commit}" | jq -r '.author.login')
     if [ "${COMMIT_AUTHOR}" != "kyma-bot" ]; then
@@ -33,8 +33,8 @@ done
 NEW_CONTRIB=$$.new
 
 join -v2 \
-<(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/compare/$(git rev-list --max-parents=0 HEAD)...${LATEST_RELEASE}" | jq -r '.commits[].author.login' | sort -u) \
-<(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/compare/${LATEST_RELEASE}...HEAD" | jq -r '.commits[].author.login' | sort -u) >${NEW_CONTRIB}
+<(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/compare/$(git rev-list --max-parents=0 HEAD)...${PREVIOUS_RELEASE}" | jq -r '.commits[].author.login' | sort -u) \
+<(curl -H "${GITHUB_AUTH_HEADER}" -sS "${GITHUB_URL}/compare/${PREVIOUS_RELEASE}...HEAD" | jq -r '.commits[].author.login' | sort -u) >${NEW_CONTRIB}
 
 if [ -s ${NEW_CONTRIB} ]
 then
@@ -50,7 +50,7 @@ then
   done <${NEW_CONTRIB}
 fi
 
-echo -e "\n**Full changelog**: https://github.com/$REPOSITORY/compare/${LATEST_RELEASE}...${RELEASE_TAG}" >> ${CHANGELOG_FILE}
+echo -e "\n**Full changelog**: https://github.com/$REPOSITORY/compare/${PREVIOUS_RELEASE}...${RELEASE_TAG}" >> ${CHANGELOG_FILE}
 
 # cleanup
 rm ${NEW_CONTRIB} || echo "cleaned up"

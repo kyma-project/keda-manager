@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Create release'
+        description: 'Release name'
         default: ""
         required: true
 
 jobs:
-  verify-main-status:
-    name: Verify main
+  verify-head-status:
+    name: Verify head
     runs-on: ubuntu-latest
 
     steps:
@@ -23,20 +23,19 @@ jobs:
         run: ./scripts/check_release_tag.sh ${{ github.event.inputs.name }}
 
       - name: Check image
-        run: ./scripts/check_image.sh
+        run: ./scripts/check_image.sh ${{ github.ref_name }}
 
       - name: Verify
-        run: ./scripts/verify-keda-status.sh
+        run: ./scripts/verify-keda-status.sh ${{ github.ref_name }}
 
   run-unit-tests:
     name: Unit tests
-    needs: verify-main-status
+    needs: verify-head-status
     uses: "./.github/workflows/run-unit-tests.yaml"
-    runs-on: ubuntu-latest
 
   create-draft:
     name: Create draft release
-    needs: verify-main-status
+    needs: verify-head-status
     runs-on: ubuntu-latest
 
     steps:
@@ -68,7 +67,7 @@ jobs:
 
   devOps-Insights:
     name: DevOps Insights
-    needs: [verify-main-status, create-draft, run-unit-tests]
+    needs: [verify-head-status, create-draft, run-unit-tests]
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -77,7 +76,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: [verify-main-status, create-draft, run-unit-tests, devOps-Insights]
+    needs: [verify-head-status, create-draft, run-unit-tests, devOps-Insights]
     runs-on: ubuntu-latest
 
     steps:
