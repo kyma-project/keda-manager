@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: keda-manager 
-Upstream-Contact: 
+Upstream-Contact: krzysztof.kwiatosz@sap.com
 Source: https://github.com/kyma-project/keda-manager
 Disclaimer: The code in this project may include calls to APIs (“API Calls”) of
  SAP or third-party products or services developed outside of this project
