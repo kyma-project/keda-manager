@@ -1,3 +1,5 @@
+[![REUSE status](https://api.reuse.software/badge/github.com/kyma-project/keda-manager)](https://api.reuse.software/info/github.com/kyma-project/keda-manager)
+
 # Keda Manager
 
 ## Status
