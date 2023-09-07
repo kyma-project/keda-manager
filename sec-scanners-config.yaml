@@ -1,6 +1,6 @@
 module-name: keda
 protecode:
-  - europe-docker.pkg.dev/kyma-project/prod/keda-manager:v20230905-c7b391d9
+  - europe-docker.pkg.dev/kyma-project/prod/keda-manager:v20230907-71f5a2ab
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.11.2
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.11.2
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.11.2
