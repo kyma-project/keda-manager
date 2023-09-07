@@ -34,6 +34,7 @@ type ConditionType string
 const (
 	StateReady      = "Ready"
 	StateError      = "Error"
+	StateWarning    = "Warning"
 	StateProcessing = "Processing"
 	StateDeleting   = "Deleting"
 
@@ -301,6 +302,18 @@ type Keda struct {
 
 func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error) {
 	k.Status.State = StateError
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "False",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            err.Error(),
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
+}
+
+func (k *Keda) UpdateStateFromWarning(c ConditionType, r ConditionReason, err error) {
+	k.Status.State = StateWarning
 	condition := metav1.Condition{
 		Type:               string(c),
 		Status:             "False",

@@ -81,7 +81,7 @@ func sFnUpstreamDeletionState(ctx context.Context, r *fsm, s *systemState) (stat
 
 func sFnSafeDeletionState(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	if err := checkCRDOrphanResources(ctx, r); err != nil {
-		s.instance.UpdateStateFromErr(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletionErr, err)
+		s.instance.UpdateStateFromWarning(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletionErr, err)
 		return stopWithErrorAndNoRequeue(err)
 	}
 

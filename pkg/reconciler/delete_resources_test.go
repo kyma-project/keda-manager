@@ -328,7 +328,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 			fn,
 		)
 
-		require.Equal(t, v1alpha1.StateError, s.instance.Status.State)
+		require.Equal(t, v1alpha1.StateWarning, s.instance.Status.State)
 		conditionDeleted := meta.FindStatusCondition(s.instance.Status.Conditions, string(v1alpha1.ConditionTypeDeleted))
 		require.NotNil(t, conditionDeleted)
 		require.Equal(t, string(v1alpha1.ConditionReasonDeletionErr), conditionDeleted.Reason)
