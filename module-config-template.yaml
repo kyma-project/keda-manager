@@ -2,5 +2,5 @@ name: {{.Name}}
 channel: {{.Channel}}
 version: {{.Version}}
 defaultCR: config/samples/keda_default_cr.yaml
-manifest: manifests/keda/rendered.yaml
+manifest: keda-manager.yaml
 security: sec-scanners-config.yaml
