@@ -35,3 +35,4 @@ keda-manager.yaml
 .DS_Store
 
 manifests/keda/rendered.yaml
+module-config.yaml
