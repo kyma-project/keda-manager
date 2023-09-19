@@ -32,6 +32,7 @@ default.yaml
 moduletemplate.yaml
 moduletemplate-k3d.yaml
 keda-manager.yaml
+module-config.yaml
 .DS_Store
 
 manifests/keda/rendered.yaml

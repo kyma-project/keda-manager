@@ -131,9 +131,26 @@ module-image: docker-build docker-push ## Build the Module Image and push it to 
 	echo "built and pushed module image $(IMG)"
 
 .PHONY: module-build
-module-build: kyma kustomize ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma-project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS) --output=moduletemplate.yaml --kubebuilder-project
+module-build: ## Build the Module and push it to a registry defined in MODULE_REGISTRY
+module-build: kyma kustomize render-manifest module-config-template configure-git-origin
+	$(KYMA) alpha create module --path . --output=moduletemplate.yaml \
+		--module-config-file=module-config.yaml $(MODULE_CREATION_FLAGS)
+
+.PHONY: module-config-template
+module-config-template:
+	@cat module-config-template.yaml \
+		| sed -e 's/{{.Channel}}/${MODULE_CHANNEL}/g' \
+			-e 's/{{.Version}}/$(MODULE_VERSION)/g' \
+			-e 's/{{.Name}}/kyma.project.io\/module\/$(MODULE_NAME)/g' \
+				> module-config.yaml
+
+.PHONY: configure-git-origin
+configure-git-origin:
+#	test-infra does not include origin remote in the .git directory.
+#	the CLI is looking for the origin url in the .git dir so first we need to be sure it's not empty
+	@git remote | grep '^origin$$' -q || \
+		git remote add origin https://github.com/kyma-project/keda-manager
+
 
 ##@ Tools
 

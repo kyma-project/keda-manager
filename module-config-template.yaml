@@ -1,0 +1,6 @@
+name: {{.Name}}
+channel: {{.Channel}}
+version: {{.Version}}
+defaultCR: config/samples/keda_default_cr.yaml
+manifest: keda-manager.yaml
+security: sec-scanners-config.yaml
