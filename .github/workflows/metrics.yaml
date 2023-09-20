@@ -1,0 +1,31 @@
+name: DevOps Insight
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DevOps-Insights
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: hyperspace/DevOps-Insights
+          fileName: devops-insights.linux.amd64
+          out-file-path: ./devops-insights.linux.amd64
+          token: ${{ secrets.GITHUB_TOKEN }}
+          github-api-url: https://github.tools.sap/api/v3
+      - name: Dora
+        run: |
+          chmod +x ./devops-insights.linux.amd64
+             ./devops-insights.linux.amd64 \
+              --artifactVersion=${{ github.event.inputs.name  }} \
+              --devOpsInsightsToken=${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }} \
+              --identifier=keda-manager \
+              --commitID=${{ github.sha }} \
+              --deploymentTarget=development \
+              --gitInstance=github.com \
+              --gitOrganization=kyma-project \
+              --gitRepository=keda-manager \
+              --githubToken=${{ secrets.GITHUB_TOKEN }} \
+              --verbose
