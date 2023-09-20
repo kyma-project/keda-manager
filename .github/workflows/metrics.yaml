@@ -10,11 +10,11 @@ jobs:
       - name: DevOps-Insights
         uses: robinraju/release-downloader@v1.8
         with:
-          repository: hyperspace/DevOps-Insights
-          fileName: devops-insights.linux.amd64
-          out-file-path: ./devops-insights.linux.amd64
+          repository: "hyperspace/DevOps-Insights"
+          fileName: "devops-insights.linux.amd64"
+          out-file-path: "./devops-insights.linux.amd64"
           token: ${{ secrets.GITHUB_TOKEN }}
-          github-api-url: https://github.tools.sap/api/v3
+          github-api-url: "https://github.tools.sap/api/v3"
       - name: Dora
         run: |
           chmod +x ./devops-insights.linux.amd64
