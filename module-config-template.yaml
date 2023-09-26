@@ -4,3 +4,6 @@ version: {{.Version}}
 defaultCR: config/samples/keda_default_cr.yaml
 manifest: keda-manager.yaml
 security: sec-scanners-config.yaml
+annotations:
+  "operator.kyma-project.io/doc-url": "https://kyma-project.io/#/keda-manager/user/README"
+moduleRepo: https://github.com/kyma-project/keda-manager.git
