@@ -65,11 +65,6 @@ jobs:
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
 
-  devOps-Insights:
-    name: DevOps Insights
-    needs: [verify-head-status, create-draft, run-unit-tests]
-    uses: "./.github/workflows/metrics.yaml"
-
   publish-release:
     name: Publish release
     needs: [verify-head-status, create-draft, run-unit-tests]
