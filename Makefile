@@ -141,7 +141,7 @@ module-config-template:
 	@cat module-config-template.yaml \
 		| sed -e 's/{{.Channel}}/${MODULE_CHANNEL}/g' \
 			-e 's/{{.Version}}/$(MODULE_VERSION)/g' \
-			-e 's/{{.Name}}/kyma.project.io\/module\/$(MODULE_NAME)/g' \
+			-e 's/{{.Name}}/kyma-project.io\/module\/$(MODULE_NAME)/g' \
 				> module-config.yaml
 
 .PHONY: configure-git-origin
