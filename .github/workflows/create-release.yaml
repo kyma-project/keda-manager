@@ -23,7 +23,7 @@ jobs:
         run: ./scripts/check_release_tag.sh ${{ github.event.inputs.name }}
 
       - name: Check image
-        run: ./scripts/check_image.sh ${{ github.ref_name }}
+        run: ./scripts/check_image.sh ${{ github.event.inputs.name }}
 
       - name: Verify
         run: ./scripts/verify-keda-status.sh ${{ github.ref_name }}
