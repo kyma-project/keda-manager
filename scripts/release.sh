@@ -69,4 +69,4 @@ UPLOAD_URL="https://uploads.github.com/repos/kyma-project/keda-manager/releases/
 
 uploadFile "keda-manager.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
 uploadFile "moduletemplate.yaml" "${UPLOAD_URL}?name=moduletemplate.yaml"
-uploadFile "config/samples/keda_default_cr.yaml" "${UPLOAD_URL}?name=keda_default_cr.yaml"
+uploadFile "config/samples/keda-default-cr.yaml" "${UPLOAD_URL}?name=keda-default-cr.yaml"
