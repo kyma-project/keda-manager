@@ -6,12 +6,12 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator
     
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
   namespace: kyma-system
 automountServiceAccountToken: true
@@ -21,15 +21,15 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.12.0
+    controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: clustertriggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -55,6 +55,14 @@ spec:
       type: string
     - jsonPath: .spec.hashiCorpVault.address
       name: VaultAddress
+      type: string
+    - jsonPath: .status.scaledobjects
+      name: ScaledObjects
+      priority: 1
+      type: string
+    - jsonPath: .status.scaledjobs
+      name: ScaledJobs
+      priority: 1
       type: string
     name: v1alpha1
     schema:
@@ -248,27 +256,37 @@ spec:
                   type: object
                 type: array
             type: object
+          status:
+            description: TriggerAuthenticationStatus defines the observed state of
+              TriggerAuthentication
+            properties:
+              scaledjobs:
+                type: string
+              scaledobjects:
+                type: string
+            type: object
         required:
         - spec
         type: object
     served: true
     storage: true
-    subresources: {}
+    subresources:
+      status: {}
 ---
 # Source: keda/templates/crds/crd-scaledjobs.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.12.0
+    controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: scaledjobs.keda.sh
 spec:
   group: keda.sh
@@ -348,6 +366,16 @@ spec:
                       job failed. Defaults to 6
                     format: int32
                     type: integer
+                  backoffLimitPerIndex:
+                    description: Specifies the limit for the number of retries within
+                      an index before marking this index as failed. When enabled the
+                      number of failures per index is kept in the pod's batch.kubernetes.io/job-index-failure-count
+                      annotation. It can only be set when Job's completionMode=Indexed,
+                      and the Pod's restart policy is Never. The field is immutable.
+                      This field is alpha-level. It can be used when the `JobBackoffLimitPerIndex`
+                      feature gate is enabled (disabled by default).
+                    format: int32
+                    type: integer
                   completionMode:
                     description: "completionMode specifies how Pod completions are
                       tracked. It can be `NonIndexed` (default) or `Indexed`. \n `NonIndexed`
@@ -387,6 +415,20 @@ spec:
                       that were created with the old `extensions/v1beta1` API. More
                       info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/#specifying-your-own-pod-selector'
                     type: boolean
+                  maxFailedIndexes:
+                    description: Specifies the maximal number of failed indexes before
+                      marking the Job as failed, when backoffLimitPerIndex is set.
+                      Once the number of failed indexes exceeds this number the entire
+                      Job is marked as Failed and its execution is terminated. When
+                      left as null the job continues execution of all of its indexes
+                      and is marked with the `Complete` Job condition. It can only
+                      be specified when backoffLimitPerIndex is set. It can be null
+                      or up to completions. It is required and must be less than or
+                      equal to 10^4 when is completions greater than 10^5. This field
+                      is alpha-level. It can be used when the `JobBackoffLimitPerIndex`
+                      feature gate is enabled (disabled by default).
+                    format: int32
+                    type: integer
                   parallelism:
                     description: 'Specifies the maximum desired number of pods the
                       job should run at any given time. The actual number of pods
@@ -424,7 +466,11 @@ spec:
                                 when the requirements are satisfied. Possible values
                                 are: \n - FailJob: indicates that the pod's job is
                                 marked as Failed and all running pods are terminated.
-                                - Ignore: indicates that the counter towards the .backoffLimit
+                                - FailIndex: indicates that the pod's index is marked
+                                as Failed and will not be restarted. This value is
+                                alpha-level. It can be used when the `JobBackoffLimitPerIndex`
+                                feature gate is enabled (disabled by default). - Ignore:
+                                indicates that the counter towards the .backoffLimit
                                 is not incremented and a replacement pod is created.
                                 - Count: indicates that the pod is handled in the
                                 default way - the counter towards the .backoffLimit
@@ -510,13 +556,24 @@ spec:
                               x-kubernetes-list-type: atomic
                           required:
                           - action
-                          - onPodConditions
                           type: object
                         type: array
                         x-kubernetes-list-type: atomic
                     required:
                     - rules
                     type: object
+                  podReplacementPolicy:
+                    description: "podReplacementPolicy specifies when to create replacement
+                      Pods. Possible values are: - TerminatingOrFailed means that
+                      we recreate pods when they are terminating (has a metadata.deletionTimestamp)
+                      or failed. - Failed means to wait until a previously created
+                      Pod is fully terminated (has phase Failed or Succeeded) before
+                      creating a replacement Pod. \n When using podFailurePolicy,
+                      Failed is the the only allowed value. TerminatingOrFailed and
+                      Failed are allowed values when podFailurePolicy is not in use.
+                      This is an alpha field. Enable JobPodReplacementPolicy to be
+                      able to use this field."
+                    type: string
                   selector:
                     description: 'A label query over pods that should match the pod
                       count. Normally, the system sets this field for you. More info:
@@ -2483,6 +2540,30 @@ spec:
                                         cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                       type: object
                                   type: object
+                                restartPolicy:
+                                  description: 'RestartPolicy defines the restart
+                                    behavior of individual containers in a pod. This
+                                    field may only be set for init containers, and
+                                    the only allowed value is "Always". For non-init
+                                    containers or when this field is not specified,
+                                    the restart behavior is defined by the Pod''s
+                                    restart policy and the container type. Setting
+                                    the RestartPolicy as "Always" for the init container
+                                    will have the following effect: this init container
+                                    will be continually restarted on exit until all
+                                    regular containers have terminated. Once all regular
+                                    containers have completed, all init containers
+                                    with restartPolicy "Always" will be shut down.
+                                    This lifecycle differs from normal init containers
+                                    and is often referred to as a "sidecar" container.
+                                    Although this init container still starts in the
+                                    init container sequence, it does not wait for
+                                    the container to complete before proceeding to
+                                    the next init container. Instead, the next init
+                                    container starts immediately after this init container
+                                    is started, or after any startupProbe has successfully
+                                    completed.'
+                                  type: string
                                 securityContext:
                                   description: 'SecurityContext defines the security
                                     options the container should be run with. If set,
@@ -2618,8 +2699,9 @@ spec:
                                             should be used. The profile must be preconfigured
                                             on the node to work. Must be a descending
                                             path, relative to the kubelet's configured
-                                            seccomp profile location. Must only be
-                                            set if type is "Localhost".
+                                            seccomp profile location. Must be set
+                                            if type is "Localhost". Must NOT be set
+                                            for any other type.
                                           type: string
                                         type:
                                           description: "type indicates which kind
@@ -2656,18 +2738,12 @@ spec:
                                         hostProcess:
                                           description: HostProcess determines if a
                                             container should be run as a 'Host Process'
-                                            container. This field is alpha-level and
-                                            will only be honored by components that
-                                            enable the WindowsHostProcessContainers
-                                            feature flag. Setting this field without
-                                            the feature flag will result in errors
-                                            when validating the Pod. All of a Pod's
-                                            containers must have the same effective
-                                            HostProcess value (it is not allowed to
-                                            have a mix of HostProcess containers and
-                                            non-HostProcess containers).  In addition,
-                                            if HostProcess is true then HostNetwork
-                                            must also be set to true.
+                                            container. All of a Pod's containers must
+                                            have the same effective HostProcess value
+                                            (it is not allowed to have a mix of HostProcess
+                                            containers and non-HostProcess containers).
+                                            In addition, if HostProcess is true then
+                                            HostNetwork must also be set to true.
                                           type: boolean
                                         runAsUserName:
                                           description: The UserName in Windows to
@@ -3953,6 +4029,12 @@ spec:
                                         cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                       type: object
                                   type: object
+                                restartPolicy:
+                                  description: Restart policy for the container to
+                                    manage the restart behavior of each container
+                                    within a pod. This may only be set for init containers.
+                                    You cannot set this field on ephemeral containers.
+                                  type: string
                                 securityContext:
                                   description: 'Optional: SecurityContext defines
                                     the security options the ephemeral container should
@@ -4088,8 +4170,9 @@ spec:
                                             should be used. The profile must be preconfigured
                                             on the node to work. Must be a descending
                                             path, relative to the kubelet's configured
-                                            seccomp profile location. Must only be
-                                            set if type is "Localhost".
+                                            seccomp profile location. Must be set
+                                            if type is "Localhost". Must NOT be set
+                                            for any other type.
                                           type: string
                                         type:
                                           description: "type indicates which kind
@@ -4126,18 +4209,12 @@ spec:
                                         hostProcess:
                                           description: HostProcess determines if a
                                             container should be run as a 'Host Process'
-                                            container. This field is alpha-level and
-                                            will only be honored by components that
-                                            enable the WindowsHostProcessContainers
-                                            feature flag. Setting this field without
-                                            the feature flag will result in errors
-                                            when validating the Pod. All of a Pod's
-                                            containers must have the same effective
-                                            HostProcess value (it is not allowed to
-                                            have a mix of HostProcess containers and
-                                            non-HostProcess containers).  In addition,
-                                            if HostProcess is true then HostNetwork
-                                            must also be set to true.
+                                            container. All of a Pod's containers must
+                                            have the same effective HostProcess value
+                                            (it is not allowed to have a mix of HostProcess
+                                            containers and non-HostProcess containers).
+                                            In addition, if HostProcess is true then
+                                            HostNetwork must also be set to true.
                                           type: boolean
                                         runAsUserName:
                                           description: The UserName in Windows to
@@ -5458,6 +5535,30 @@ spec:
                                         cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                                       type: object
                                   type: object
+                                restartPolicy:
+                                  description: 'RestartPolicy defines the restart
+                                    behavior of individual containers in a pod. This
+                                    field may only be set for init containers, and
+                                    the only allowed value is "Always". For non-init
+                                    containers or when this field is not specified,
+                                    the restart behavior is defined by the Pod''s
+                                    restart policy and the container type. Setting
+                                    the RestartPolicy as "Always" for the init container
+                                    will have the following effect: this init container
+                                    will be continually restarted on exit until all
+                                    regular containers have terminated. Once all regular
+                                    containers have completed, all init containers
+                                    with restartPolicy "Always" will be shut down.
+                                    This lifecycle differs from normal init containers
+                                    and is often referred to as a "sidecar" container.
+                                    Although this init container still starts in the
+                                    init container sequence, it does not wait for
+                                    the container to complete before proceeding to
+                                    the next init container. Instead, the next init
+                                    container starts immediately after this init container
+                                    is started, or after any startupProbe has successfully
+                                    completed.'
+                                  type: string
                                 securityContext:
                                   description: 'SecurityContext defines the security
                                     options the container should be run with. If set,
@@ -5593,8 +5694,9 @@ spec:
                                             should be used. The profile must be preconfigured
                                             on the node to work. Must be a descending
                                             path, relative to the kubelet's configured
-                                            seccomp profile location. Must only be
-                                            set if type is "Localhost".
+                                            seccomp profile location. Must be set
+                                            if type is "Localhost". Must NOT be set
+                                            for any other type.
                                           type: string
                                         type:
                                           description: "type indicates which kind
@@ -5631,18 +5733,12 @@ spec:
                                         hostProcess:
                                           description: HostProcess determines if a
                                             container should be run as a 'Host Process'
-                                            container. This field is alpha-level and
-                                            will only be honored by components that
-                                            enable the WindowsHostProcessContainers
-                                            feature flag. Setting this field without
-                                            the feature flag will result in errors
-                                            when validating the Pod. All of a Pod's
-                                            containers must have the same effective
-                                            HostProcess value (it is not allowed to
-                                            have a mix of HostProcess containers and
-                                            non-HostProcess containers).  In addition,
-                                            if HostProcess is true then HostNetwork
-                                            must also be set to true.
+                                            container. All of a Pod's containers must
+                                            have the same effective HostProcess value
+                                            (it is not allowed to have a mix of HostProcess
+                                            containers and non-HostProcess containers).
+                                            In addition, if HostProcess is true then
+                                            HostNetwork must also be set to true.
                                           type: boolean
                                         runAsUserName:
                                           description: The UserName in Windows to
@@ -6094,20 +6190,13 @@ spec:
                                         will be used to create a new ResourceClaim,
                                         which will be bound to this pod. When this
                                         pod is deleted, the ResourceClaim will also
-                                        be deleted. The name of the ResourceClaim
-                                        will be <pod name>-<resource name>, where
-                                        <resource name> is the PodResourceClaim.Name.
-                                        Pod validation will reject the pod if the
-                                        concatenated name is not valid for a ResourceClaim
-                                        (e.g. too long). \n An existing ResourceClaim
-                                        with that name that is not owned by the pod
-                                        will not be used for the pod to avoid using
-                                        an unrelated resource by mistake. Scheduling
-                                        and pod startup are then blocked until the
-                                        unrelated ResourceClaim is removed. \n This
-                                        field is immutable and no changes will be
-                                        made to the corresponding ResourceClaim by
-                                        the control plane after creating the ResourceClaim."
+                                        be deleted. The pod name and resource name,
+                                        along with a generated component, will be
+                                        used to form a unique name for the ResourceClaim,
+                                        which will be recorded in pod.status.resourceClaimStatuses.
+                                        \n This field is immutable and no changes
+                                        will be made to the corresponding ResourceClaim
+                                        by the control plane after creating the ResourceClaim."
                                       type: string
                                   type: object
                               required:
@@ -6260,7 +6349,8 @@ spec:
                                       The profile must be preconfigured on the node
                                       to work. Must be a descending path, relative
                                       to the kubelet's configured seccomp profile
-                                      location. Must only be set if type is "Localhost".
+                                      location. Must be set if type is "Localhost".
+                                      Must NOT be set for any other type.
                                     type: string
                                   type:
                                     description: "type indicates which kind of seccomp
@@ -6332,16 +6422,12 @@ spec:
                                   hostProcess:
                                     description: HostProcess determines if a container
                                       should be run as a 'Host Process' container.
-                                      This field is alpha-level and will only be honored
-                                      by components that enable the WindowsHostProcessContainers
-                                      feature flag. Setting this field without the
-                                      feature flag will result in errors when validating
-                                      the Pod. All of a Pod's containers must have
-                                      the same effective HostProcess value (it is
-                                      not allowed to have a mix of HostProcess containers
-                                      and non-HostProcess containers).  In addition,
-                                      if HostProcess is true then HostNetwork must
-                                      also be set to true.
+                                      All of a Pod's containers must have the same
+                                      effective HostProcess value (it is not allowed
+                                      to have a mix of HostProcess containers and
+                                      non-HostProcess containers). In addition, if
+                                      HostProcess is true then HostNetwork must also
+                                      be set to true.
                                     type: boolean
                                   runAsUserName:
                                     description: The UserName in Windows to run the
@@ -8572,15 +8658,15 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.12.0
+    controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: scaledobjects.keda.sh
 spec:
   group: keda.sh
@@ -8715,6 +8801,8 @@ spec:
                                   - For scale down: 300 (i.e. the stabilization window
                                   is 300 seconds long).'
                                 format: int32
+                                maximum: 3600
+                                minimum: 0
                                 type: integer
                             type: object
                           scaleUp:
@@ -8772,6 +8860,8 @@ spec:
                                   - For scale down: 300 (i.e. the stabilization window
                                   is 300 seconds long).'
                                 format: int32
+                                maximum: 3600
+                                minimum: 0
                                 type: integer
                             type: object
                         type: object
@@ -8780,6 +8870,22 @@ spec:
                     type: object
                   restoreToOriginalReplicaCount:
                     type: boolean
+                  scalingModifiers:
+                    description: ScalingModifiers describes advanced scaling logic
+                      options like formula
+                    properties:
+                      activationTarget:
+                        type: string
+                      formula:
+                        type: string
+                      metricType:
+                        description: MetricTargetType specifies the type of metric
+                          being targeted, and should be either "Value", "AverageValue",
+                          or "Utilization"
+                        type: string
+                      target:
+                        type: string
+                    type: object
                 type: object
               cooldownPeriod:
                 format: int32
@@ -8810,8 +8916,7 @@ spec:
                 format: int32
                 type: integer
               scaleTargetRef:
-                description: ScaleTarget holds the a reference to the scale target
-                  Object
+                description: ScaleTarget holds the reference to the scale target Object
                 properties:
                   apiVersion:
                     type: string
@@ -8869,6 +8974,8 @@ spec:
           status:
             description: ScaledObjectStatus is the status for a ScaledObject resource
             properties:
+              compositeScalerName:
+                type: string
               conditions:
                 description: Conditions an array representation to store multiple
                   Conditions
@@ -8959,15 +9066,15 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.12.0
+    controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: triggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -8993,6 +9100,14 @@ spec:
       type: string
     - jsonPath: .spec.hashiCorpVault.address
       name: VaultAddress
+      type: string
+    - jsonPath: .status.scaledobjects
+      name: ScaledObjects
+      priority: 1
+      type: string
+    - jsonPath: .status.scaledjobs
+      name: ScaledJobs
+      priority: 1
       type: string
     name: v1alpha1
     schema:
@@ -9185,12 +9300,22 @@ spec:
                   type: object
                 type: array
             type: object
+          status:
+            description: TriggerAuthenticationStatus defines the observed state of
+              TriggerAuthentication
+            properties:
+              scaledjobs:
+                type: string
+              scaledobjects:
+                type: string
+            type: object
         required:
         - spec
         type: object
     served: true
     storage: true
-    subresources: {}
+    subresources:
+      status: {}
 ---
 # Source: keda/templates/manager/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -9198,12 +9323,12 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
 rules:
 - apiGroups:
@@ -9327,12 +9452,12 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-external-metrics-reader    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator-external-metrics-reader
 rules:
 - apiGroups:
@@ -9348,12 +9473,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9370,12 +9495,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-system-auth-delegator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator-system-auth-delegator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9392,12 +9517,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-hpa-controller-external-metrics    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator-hpa-controller-external-metrics
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9414,12 +9539,12 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
   namespace: kyma-system
 rules:
@@ -9430,11 +9555,11 @@ rules:
   verbs:
   - create
   - delete
-  - get
-  - list
   - patch
   - update
   - watch
+  - get
+  - list
 ---
 # Source: keda/templates/manager/rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -9442,12 +9567,12 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
   namespace: kyma-system
 roleRef:
@@ -9465,12 +9590,12 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-auth-reader    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator-auth-reader
   namespace: kube-system
 roleRef:
@@ -9488,12 +9613,12 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator
   namespace: kyma-system
 spec:
@@ -9511,12 +9636,12 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator-metrics-apiserver
     app: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
 spec:
@@ -9538,12 +9663,12 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-admission-webhooks
   namespace: kyma-system
 spec:
@@ -9565,13 +9690,14 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
 spec:
+  revisionHistoryLimit: 10
   replicas: 1
   selector:
     matchLabels:
@@ -9582,12 +9708,12 @@ spec:
         app: keda-operator
         name: keda-operator
         app.kubernetes.io/name: keda-operator        
-        helm.sh/chart: keda-2.11.2
+        helm.sh/chart: keda-2.12.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.11.2
+        app.kubernetes.io/version: 2.12.0
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9603,11 +9729,11 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.11.2"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.12.0"
           command:
           - "/keda"
           args:
-          - --leader-elect
+          - "--leader-elect"
           - "--zap-log-level=info"
           - "--zap-encoder=console"
           - "--zap-time-encoding=rfc3339"
@@ -9617,17 +9743,26 @@ spec:
           - "--operator-service-name=keda-operator"
           - "--metrics-server-service-name=keda-operator-metrics-apiserver"
           - "--webhooks-service-name=keda-admission-webhooks"
+          - "--k8s-cluster-domain=cluster.local"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8081
             initialDelaySeconds: 25
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8081
             initialDelaySeconds: 20
+            periodSeconds: 3
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           ports:
           - containerPort: 8080
             name: http
@@ -9678,13 +9813,14 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
 spec:
+  revisionHistoryLimit: 10
   replicas: 1
   selector:
     matchLabels:
@@ -9694,12 +9830,12 @@ spec:
       labels:
         app: keda-operator-metrics-apiserver
         app.kubernetes.io/name: keda-operator-metrics-apiserver        
-        helm.sh/chart: keda-2.11.2
+        helm.sh/chart: keda-2.12.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.11.2
+        app.kubernetes.io/version: 2.12.0
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9715,7 +9851,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.11.2"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.12.0"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -9723,12 +9859,20 @@ spec:
               port: 6443
               scheme: HTTPS
             initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /readyz
               port: 6443
               scheme: HTTPS
             initialDelaySeconds: 5
+            periodSeconds: 3
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           env:
             - name: WATCH_NAMESPACE
               value: ""
@@ -9789,13 +9933,14 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
 spec:
+  revisionHistoryLimit: 10
   replicas: 1
   selector:
     matchLabels:
@@ -9806,12 +9951,12 @@ spec:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
         app.kubernetes.io/name: keda-admission-webhooks        
-        helm.sh/chart: keda-2.11.2
+        helm.sh/chart: keda-2.12.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.11.2
+        app.kubernetes.io/version: 2.12.0
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9827,7 +9972,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.11.2"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.12.0"
           command:
           - /keda-admission-webhooks
           args:
@@ -9843,11 +9988,19 @@ spec:
               path: /healthz
               port: 8081
             initialDelaySeconds: 25
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8081
             initialDelaySeconds: 20
+            periodSeconds: 3
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           ports:
           - containerPort: 9443
             name: http
@@ -9889,12 +10042,12 @@ kind: APIService
 metadata:
   labels:
     app.kubernetes.io/name: v1beta1.external.metrics.k8s.io    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: v1beta1.external.metrics.k8s.io
 spec:
   service:
@@ -9905,6 +10058,7 @@ spec:
   version: v1beta1
   groupPriorityMinimum: 100
   versionPriority: 100
+  insecureSkipTLSVerify: false
 ---
 # Source: keda/templates/webhooks/validatingconfiguration.yaml
 apiVersion: admissionregistration.k8s.io/v1
@@ -9912,14 +10066,13 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.11.2
+    helm.sh/chart: keda-2.12.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.11.2
+    app.kubernetes.io/version: 2.12.0
   name: keda-admission
-  namespace: kyma-system
 webhooks:
 - admissionReviewVersions:
   - v1
