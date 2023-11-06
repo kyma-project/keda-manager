@@ -5,7 +5,7 @@ set -e
 DESIRED_TAG=$1
 
 source .version
-MODULE_VERSION="v${MODULE_VERSION}"
+MODULE_VERSION="${MODULE_VERSION}"
 
 if [[ "$DESIRED_TAG" != "$MODULE_VERSION" ]]; then
   echo "Tags mismatch: expected ${MODULE_VERSION}, got $DESIRED_TAG"
