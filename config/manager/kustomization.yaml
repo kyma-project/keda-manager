@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: k3d-kyma-registry:5001/keda-manager-dev-local
-  newTag: 0.3.1
+  newTag: 1.0.0
