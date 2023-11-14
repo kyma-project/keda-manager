@@ -1,6 +1,10 @@
 ifndef MODULE_VERSION
     include .version
 endif
+
+# Path to the sec-scanners-config file
+SEC_SCANNERS_CONFIG ?= ""
+
 # Module Name used for bundling the OCI Image and later on for referencing in the Kyma Modules
 MODULE_NAME ?= keda
 
@@ -134,6 +138,7 @@ module-image: docker-build docker-push ## Build the Module Image and push it to 
 module-build: ## Build the Module and push it to a registry defined in MODULE_REGISTRY
 module-build: kyma kustomize render-manifest module-config-template configure-git-origin
 	$(KYMA) alpha create module --path . --output=moduletemplate.yaml \
+		--sec-scanners-config="${SEC_SCANNERS_CONFIG}" \
 		--module-config-file=module-config.yaml $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-config-template
