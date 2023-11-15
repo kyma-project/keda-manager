@@ -37,7 +37,9 @@ MODULE_VERSION=${PULL_BASE_REF} make render-manifest
 echo "Generated keda-manager.yaml:"
 cat keda-manager.yaml
 
-MODULE_VERSION=${PULL_BASE_REF} make module-build
+MODULE_VERSION=${PULL_BASE_REF} \
+  SEC_SCANNERS_CONFIG=${PWD}/sec-scanners-config.yaml \
+  make module-build
 
 echo "Generated moduletemplate.yaml:"
 cat moduletemplate.yaml
