@@ -1,5 +1,4 @@
 module-name: keda
-rc-tag: 1.0.0
 protecode:
   - europe-docker.pkg.dev/kyma-project/prod/keda-manager:latest
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.12.0
