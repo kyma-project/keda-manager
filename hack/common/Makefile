@@ -1,7 +1,6 @@
 PROJECT_ROOT ?= ../..
-ifndef MODULE_VERSION
-    include ${PROJECT_ROOT}/.version
-endif
+
+MODULE_VERSION ?= 0.0.0
 
 CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
@@ -9,7 +8,6 @@ REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
 MANAGER_IMAGE_NAME ?= keda-manager-dev-local
 MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
-
 
 KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
 

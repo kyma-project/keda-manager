@@ -1,6 +1,4 @@
-ifndef MODULE_VERSION
-    include .version
-endif
+MODULE_VERSION ?= 0.0.0
 
 # Path to the sec-scanners-config file
 SEC_SCANNERS_CONFIG ?= ""
