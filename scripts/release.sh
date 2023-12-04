@@ -10,8 +10,6 @@ set -o pipefail # prevents errors in a pipeline from being masked
 #   PULL_BASE_REF - name of the tag
 #   GITHUB_TOKEN - github token used to upload the template yaml
 
-PULL_BASE_REF := $1
-
 uploadFile() {
   filePath=${1}
   ghAsset=${2}

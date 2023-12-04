@@ -52,16 +52,17 @@ jobs:
           RELEASE_ID=$(./scripts/create_draft_release.sh ${{ github.event.inputs.name }})
           echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
 
-      - name: Create release assets
-        id: create-assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/release.sh ${{ github.ref_name }}
-
       - name: Create lightweight tag
         run: |
           git tag ${{ github.event.inputs.name }}
           git push origin ${{ github.event.inputs.name }}
+
+      - name: Create release assets
+        id: create-assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_BASE_REF: ${{ github.event.inputs.name }}
+        run: ./scripts/release.sh
 
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
