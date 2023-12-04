@@ -28,11 +28,6 @@ jobs:
       - name: Verify
         run: ./scripts/verify-keda-status.sh ${{ github.ref_name }}
 
-  run-unit-tests:
-    name: Unit tests
-    needs: verify-head-status
-    uses: "./.github/workflows/run-unit-tests.yaml"
-
   create-draft:
     name: Create draft release
     needs: verify-head-status
@@ -67,7 +62,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: [verify-head-status, create-draft, run-unit-tests]
+    needs: [verify-head-status, create-draft]
     runs-on: ubuntu-latest
 
     steps:
