@@ -44,6 +44,13 @@ run-without-lifecycle-manager: \
 	apply-keda \
 	verify-keda
 
+.PHONY: run-without-lm-on-cluster
+run-without-lm-on-cluster: ## Deploy module without the lifecycle-manager on existing cluster.
+run-without-lm-on-cluster: \
+	deploy-cluster \
+	apply-keda \
+	verify-keda
+
 ##@ K3D
 
 .PHONY: create-k3d
@@ -141,3 +148,6 @@ deploy:
 	@make -C ${PROJECT_ROOT} deploy \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
+.PHONY: deploy-cluster
+deploy-cluster:
+	@make -C ${PROJECT_ROOT} deploy

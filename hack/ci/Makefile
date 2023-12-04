@@ -70,15 +70,18 @@ run-without-lifecycle-manager:
 .PHONY: install-latest
 install-latest:
 	@make -C ${PROJECT_COMMON} kyma create-k3d
-	curl -LJ -s https://github.com/kyma-project/keda-manager/releases/latest/download/moduletemplate.yaml > ${PROJECT_ROOT}/moduletemplate-k3d.yaml
-	@make -C ${PROJECT_COMMON} install-kyma-with-lm patch-mod-mgr-role install-module-template enable-module verify-kyma
+	kubectl create ns kyma-system
+	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
+	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml -n kyma-system
+	@make -C ${PROJECT_COMMON} verify-keda
 
 
 .PHONY: reinstall-keda
 reinstall-keda:
-	@make -C ${PROJECT_COMMON} kyma \
-	  module-image \
-	  module-build \
-	  fix-template \
-	  install-module-template \
-	  verify-kyma
+	@make -C ${PROJECT_COMMON} run-without-lm-on-cluster
+
+	# wait some time to make sure lm starts the reconciliation first
+	sleep 5
+
+	# double check that serverless controller has progressed
+	@make -C ${PROJECT_COMMON} verify-keda
