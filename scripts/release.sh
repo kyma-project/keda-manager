@@ -37,13 +37,6 @@ MODULE_VERSION=${PULL_BASE_REF} make render-manifest
 echo "Generated keda-manager.yaml:"
 cat keda-manager.yaml
 
-MODULE_VERSION=${PULL_BASE_REF} \
-  SEC_SCANNERS_CONFIG=${PWD}/sec-scanners-config.yaml \
-  make module-build
-
-echo "Generated moduletemplate.yaml:"
-cat moduletemplate.yaml
-
 echo "Fetching releases"
 CURL_RESPONSE=$(curl -w "%{http_code}" -sL \
                 -H "Accept: application/vnd.github+json" \
@@ -56,7 +49,7 @@ if [[ "${HTTP_CODE}" != "200" ]]; then
   exit 1
 fi
 
-echo "Finding release id for: ${PULL_BASE_REF}"
+echo "Finding release id for: ${PULL_BASE_REF}" #3.0.0
 RELEASE_ID=$(jq <<< ${JSON_RESPONSE} --arg tag "${PULL_BASE_REF}" '.[] | select(.tag_name == $ARGS.named.tag) | .id')
 
 echo "Got '${RELEASE_ID}' release id"
@@ -70,5 +63,4 @@ echo "Updating github release with assets"
 UPLOAD_URL="https://uploads.github.com/repos/kyma-project/keda-manager/releases/${RELEASE_ID}/assets"
 
 uploadFile "keda-manager.yaml" "${UPLOAD_URL}?name=keda-manager.yaml"
-uploadFile "moduletemplate.yaml" "${UPLOAD_URL}?name=moduletemplate.yaml"
 uploadFile "config/samples/keda-default-cr.yaml" "${UPLOAD_URL}?name=keda-default-cr.yaml"
