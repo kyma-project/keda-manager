@@ -57,6 +57,13 @@ jobs:
           git tag ${{ github.event.inputs.name }}
           git push origin ${{ github.event.inputs.name }}
 
+      - name: Create release assets
+        id: create-assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_BASE_REF: ${{ github.event.inputs.name }}
+        run: ./scripts/release.sh
+
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
 
