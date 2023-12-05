@@ -1,7 +1,6 @@
 PROJECT_ROOT ?= ../..
-ifndef MODULE_VERSION
-    include ${PROJECT_ROOT}/.version
-endif
+
+MODULE_VERSION ?= 0.0.0
 
 CLUSTER_NAME ?= kyma
 REGISTRY_PORT ?= 5001
@@ -9,7 +8,6 @@ REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
 
 MANAGER_IMAGE_NAME ?= keda-manager-dev-local
 MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
-
 
 KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
 
@@ -43,6 +41,13 @@ run-without-lifecycle-manager: \
 	create-kyma-system-ns \
 	module-image \
 	deploy \
+	apply-keda \
+	verify-keda
+
+.PHONY: run-without-lm-on-cluster
+run-without-lm-on-cluster: ## Deploy module without the lifecycle-manager on existing cluster.
+run-without-lm-on-cluster: \
+	deploy-cluster \
 	apply-keda \
 	verify-keda
 
@@ -143,3 +148,6 @@ deploy:
 	@make -C ${PROJECT_ROOT} deploy \
 		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
 
+.PHONY: deploy-cluster
+deploy-cluster:
+	@make -C ${PROJECT_ROOT} deploy
