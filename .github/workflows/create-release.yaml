@@ -20,10 +20,10 @@ jobs:
           fetch-depth: 0
 
       - name: Check image
-        run: ./scripts/check_image.sh ${{ github.event.inputs.name }}
+        run: ./.github/scripts/check_image.sh ${{ github.event.inputs.name }}
 
       - name: Verify
-        run: ./scripts/verify-keda-status.sh ${{ github.ref_name }}
+        run: ./.github/scripts/verify-keda-status.sh ${{ github.ref_name }}
 
   create-draft:
     name: Create draft release
@@ -39,14 +39,14 @@ jobs:
       - name: Create changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/create_changelog.sh ${{ github.event.inputs.name }}
+        run: ./.github/scripts/create_changelog.sh ${{ github.event.inputs.name }}
 
       - name: Create draft release
         id: create-draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_ID=$(./scripts/create_draft_release.sh ${{ github.event.inputs.name }})
+          RELEASE_ID=$(./.github/scripts/create_draft_release.sh ${{ github.event.inputs.name }})
           echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
 
       - name: Create lightweight tag
@@ -59,7 +59,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_BASE_REF: ${{ github.event.inputs.name }}
-        run: ./scripts/release.sh
+        run: ./.github/scripts/release.sh
+
+      - name: Verify Assets
+        run: ./.github/scripts/verify-keda-status.sh ${{ github.ref_name }}
 
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
@@ -78,4 +81,4 @@ jobs:
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }}
+        run: ./.github/scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }}
