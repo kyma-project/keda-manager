@@ -62,7 +62,7 @@ jobs:
         run: ./.github/scripts/release.sh
 
       - name: Verify Assets
-        run: ./.github/scripts/verify-release-status.sh ${{ github.ref_name }}
+        run: ./.github/scripts/verify-release-job-status.sh ${{ github.ref_name }}
 
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
