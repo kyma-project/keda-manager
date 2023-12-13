@@ -1,4 +1,4 @@
-# Keda module footprint
+# Keda Module Footprint
 
 The Keda module consists of four workloads.
 Two of them, `keda-manager` and `keda-operator`, implement the Kubernetes operator pattern and consume extra resources only when they detect changes in the resources they watch, for example, Keda CR, ScaledObject CR, etc. Usually, they are idle and consume as little as few millicores of CPU time and less than 30MB of memory. At the time of active reconciliation, the observed CPU time jumps to 5m.

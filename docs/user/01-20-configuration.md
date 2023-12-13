@@ -1,4 +1,4 @@
-# Keda configuration
+# Keda Module Configuration
 
 This document describes how to configure the Keda module using Kyma CustomResourceDefinition (CRD).
 See how to configure the **logging.level** or resource consumption.
