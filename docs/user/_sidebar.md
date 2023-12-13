@@ -1,4 +1,4 @@
-- [Home](/)
+- [Back to Kyma Home](/)
 - [Keda Module](README.md)
 - [KEDA Module Configuration](01-20-configuration.md)
 - [Keda Module Footprint](04-10-footprint.md)
