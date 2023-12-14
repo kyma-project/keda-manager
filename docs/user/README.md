@@ -1,4 +1,4 @@
-# Keda module
+# Keda Module
 
 ## What Is KEDA
 
