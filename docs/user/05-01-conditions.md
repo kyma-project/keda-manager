@@ -1,4 +1,4 @@
-# Keda CR conditions
+# Keda CR Conditions
 
 This section describes the possible states of the Keda CR. Two condition types, `Installed` and `Deleted`, are used.
 

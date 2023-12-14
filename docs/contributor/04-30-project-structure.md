@@ -1,4 +1,4 @@
-# Project structure
+# Project Structure
 
 Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder).
 

@@ -1,4 +1,4 @@
-# Use Keda Manager to manage KEDA
+# Use Keda Manager To Manage KEDA
 
 Keda Manager reconciles KEDA deployment based on the watched Keda custom resources (CRs):
 

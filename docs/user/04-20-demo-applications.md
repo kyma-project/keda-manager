@@ -1,4 +1,4 @@
-## Keda CPU scaler example
+## Keda CPU Scaler Example
 
 ## Context
 This demo application shows how to scale the Kubernetes workloads using KEDA API based on a simple CPU consumption case.
@@ -38,7 +38,7 @@ NAMESPACE   NAME                                 REFERENCE                   TAR
 keda-demo   keda-hpa-orders-service-cpu-scaler   Deployment/orders-service   80%/30%   1         10        4          31s
 ```
 
-## Keda Prometheus scaler example
+## Keda Prometheus Scaler Example
 
 Follow [this example](https://github.com/kyma-project/examples/tree/main/scale-to-zero-with-keda) to experience how Kyma's Keda module can complement other Kyma components.
 
