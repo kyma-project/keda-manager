@@ -40,13 +40,13 @@ keda-demo   keda-hpa-orders-service-cpu-scaler   Deployment/orders-service   80%
 
 ## Keda Prometheus Scaler Example
 
-Follow [this example](https://github.com/kyma-project/examples/tree/main/scale-to-zero-with-keda) to experience how Kyma's Keda module can complement other Kyma components.
+Follow [this example](https://github.com/kyma-project/keda-manager/tree/main/docs/user/examples/scale-to-zero-with-keda/README.md) to experience how Kyma's Keda module can complement other Kyma components.
 
 It demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
 
 It uses: 
- - Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/docs/kyma/latest/01-overview/serverless/)),
- - In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/docs/kyma/latest/01-overview/eventing/)), 
+ - Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/#/serverless-manager/user/README)),
+ - In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/#/eventing-manager/user/README)), 
  - Prometheus and Istio to deliver metrics essential for scaling decisions,
  - Keda to drive the scaling.
 
