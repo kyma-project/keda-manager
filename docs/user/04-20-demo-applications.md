@@ -40,7 +40,7 @@ keda-demo   keda-hpa-orders-service-cpu-scaler   Deployment/orders-service   80%
 
 ## Keda Prometheus Scaler Example
 
-Follow [this example](https://github.com/kyma-project/keda-manager/tree/main/docs/user/examples/scale-to-zero-with-keda/README.md) to experience how Kyma's Keda module can complement other Kyma components.
+Follow [this example](https://github.com/kyma-project/keda-manager/blob/4718dd18d9ba37a31f9bdcbbb6e186751e30d075/docs/user/examples/scale-to-zero-with-keda/README.md) to experience how Kyma's Keda module can complement other Kyma components.
 
 It demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
 
