@@ -48,6 +48,6 @@ It uses:
  - Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/#/serverless-manager/user/README)),
  - In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/#/eventing-manager/user/README)), 
  - Prometheus and Istio to deliver metrics essential for scaling decisions,
- - Keda to drive the scaling.
+ - [KEDA](https://keda.sh/) to drive the scaling.
 
 ![scenario](../assets/scaling-scenario.png "Scenario")

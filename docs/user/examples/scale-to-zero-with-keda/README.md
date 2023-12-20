@@ -16,7 +16,7 @@ The proxy Function receives the incoming HTTP traffic, and with every request, i
 
 The second Function (the actual worker) is subscribed to the topic and processes the incoming messages. Until there are no messages published for its subscribed topic, it remains scaled to zero - there are no actual worker Pods living in the runtime.
 
-Keda is used to scale the worker Function. [KEDA Prometheus scaler](https://keda.sh/docs/latest/scalers/prometheus/) is used to measure the load targeted for the worker Function and scale it accordingly (from 0 to 5 replicas).
+KEDA is used to scale the worker Function. [KEDA Prometheus scaler](https://keda.sh/docs/latest/scalers/prometheus/) is used to measure the load targeted for the worker Function and scale it accordingly (from 0 to 5 replicas).
 
 
 ## Prerequisites
