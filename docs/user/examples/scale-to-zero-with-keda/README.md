@@ -1,3 +1,5 @@
+# Scale to Zero With Keda
+
 ## Overview
 This example demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
 It uses: 
@@ -25,37 +27,37 @@ Keda is used to scale the worker Function. [KEDA Prometheus scaler](https://keda
 
 ## Installation
 
-Make sure Istio sidecar injection is enabled in the target Namespace:
+1. Make sure Istio sidecar injection is enabled in the target Namespace:
 
 ```bash
 kubectl label namespace default istio-injection=enabled
 ```
 
-Edit the `k8s-resources/scalable-worker-fn.yml` and `k8s-resources/peer-authentication.yaml` files to fill in the namespace value (namespace where Prometheus was deployed).
+2. Edit the `k8s-resources/scalable-worker-fn.yml` and `k8s-resources/peer-authentication.yaml` files to fill in the namespace value (namespace where Prometheus was deployed).
 
-Apply the example resources from `./k8s-resources` directory:
+3. Apply the example resources from `./k8s-resources` directory:
 ```bash
 kubectl apply -f ./k8s-resources
 ```
 
 ## Test the application
 
-At first the worker Function is scaled down.
-When listing HPA for the Function, you will see that the current replica count is zero.
+At first, the worker Function is scaled down.
+1. List HPA for the Function and check that the current replica count is zero:
  ```bash
 kubectl get hpa
 NAME                               REFERENCE                     TARGETS             MINPODS   MAXPODS   REPLICAS   AGE
 keda-hpa-worker-fn-scaled-object   Function/scalable-worker-fn   <unknown>/2 (avg)   1         5         0          27h
 
  ```
- Also, when listing Pods by Function name label, you will see only the build job's Pod. No runtime Pod is up.
+2. List Pods by Function name label and check that you see only the build job's Pod. No runtime Pod is up.
  ```bash
 kubectl get pods -l serverless.kyma-project.io/function-name=scalable-worker-fn -w
 NAME                                   READY   STATUS      RESTARTS   AGE
 scalable-worker-fn-build-7s4rf-wjhvt   0/1     Completed   0          2m16s
  ```
 
-Once you generate a load (even a single request), the non-zero request rate targeting the worker Function triggers scaling up of the worker Function's runtime Pods.
+3. Generate a load (even a single request) and check that the non-zero request rate targeting the worker Function triggers scaling up of the worker Function's runtime Pods.
 
  Call the HTTP proxy Function once:
 
@@ -63,10 +65,10 @@ Once you generate a load (even a single request), the non-zero request rate targ
  curl -H "Content-Type: application/json" -X POST -d '{"foo":"bar"}' https://incoming.{your_cluster_domain}
  ```
 
-The message is pushed to the Kyma Eventing.
+The message is pushed to Kyma Eventing.
 It takes time to scale up a Function from zero. But no message is lost as Eventing retries delivery of the message to the subscriber until a running worker Pod eventually consumes it.
 
-Observe worker Function scaling up from zero. You can notice it by watching Function Pods or HPA.
+4. Observe worker Function scaling up from zero. You can notice it by watching Function Pods or HPA.
 ```bash
 kubectl get pods -l serverless.kyma-project.io/function-name=scalable-worker-fn -w 
 NAME                                   READY   STATUS      RESTARTS   AGE
@@ -88,7 +90,7 @@ keda-hpa-worker-fn-scaled-object   Function/scalable-worker-fn   0/2 (avg)      
 
 Observe that the payload was eventually processed.
 
-Check the worker Function logs. `Processing ... {"foo":"bar"}` eventually appears:
+5. Check the worker Function logs. `Processing ... {"foo":"bar"}` eventually appears:
 
  ```bash
 kubectl logs -l serverless.kyma-project.io/function-name=scalable-worker-fn -f
@@ -103,4 +105,4 @@ Processing ...
  
  If the traffic stops, the worker Function is scaled down back to zero replicas (after a configurable cooldown period).
  
- If you generate a much higher load, for example,> 2 req/sec - as configured in the threshold value of the scaledObject, you will observe scaling up to more replicas. One replica must be added for each additional 2req/sec measured. 
+6. If you generate a much higher load, for example,> 2 req/sec - as configured in the threshold value of the scaledObject, you will observe scaling up to more replicas. One replica must be added for each additional 2req/sec measured. 
