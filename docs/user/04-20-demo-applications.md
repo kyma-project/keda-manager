@@ -22,7 +22,7 @@ kubectl apply -f examples/keda-cpu-scaler-demo.yml
 
 2. Verify the successful deployment of the demo application:
 
-You should see that scaled object is created and has a status READY:
+You should see that scaled object is created and has a status `READY`:
 
 ```bash
 kubectl get scaledobjects.keda.sh -n keda-demo
