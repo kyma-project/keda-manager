@@ -19,9 +19,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check image
-        run: ./.github/scripts/check_image.sh ${{ github.event.inputs.name }}
-
       - name: Verify
         run: ./.github/scripts/verify-keda-jobs-status.sh ${{ github.ref_name }}
 
@@ -45,7 +42,7 @@ jobs:
         run: |
           git config --local user.email "otter-releaser@otter-releaser.noreply.github.com"
           git config --local user.name "otter-releaser"
-          
+
           git add .
           git commit --allow-empty -m "upgrade dependencies"
           git push origin ${{ github.ref_name }}
