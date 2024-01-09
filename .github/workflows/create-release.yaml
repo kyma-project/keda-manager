@@ -21,6 +21,8 @@ jobs:
 
       - name: Verify
         run: ./.github/scripts/verify-keda-jobs-status.sh ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   upgrade-images:
     name: Upgrade main images
@@ -86,6 +88,8 @@ jobs:
 
       - name: Verify Assets
         run: ./.github/scripts/verify-keda-jobs-status.sh ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
