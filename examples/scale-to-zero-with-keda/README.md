@@ -10,7 +10,16 @@ It uses:
 
 It realises the following scenario:
 
-![scenario](assets/scaling-scenario.png "Scenario")
+![KEDA scaling scenario](assets/scaling-scenario.png "Scenario")
+
+1. `http request` arrives in the `http-proxy-fn` Pod.
+2. `http-proxy-fn` sends a message to the initially scaled-down `scalable-worker-fn` using Kyma Eventing.
+3. Eventing keeps resending the message until it's received and acknowledged.
+4. Prometheus records the traffic between Eventing and the `scalable-worker-fn` Kubernetes service.
+5. KEDA reads a non-zero request rate targeted for the `scalable-worker-fn` Kubernetes service.
+6. KEDA scales up the `scalable-worker-fn` Function. Function Controller spins up the new Pod replicas.
+7. `scalable-worker-fn` eventually receives the message from Eventing and processes it; Eventing receives the acknowledgment and stops resending 
+8. After a cooldown period, the request rate targeted for `scalable-worker-fn` is again zero - KEDA scales it back down to zero
 
 The proxy Function receives the incoming HTTP traffic, and with every request, it publishes the payload as an in-cluster event to a particular topic.
 
