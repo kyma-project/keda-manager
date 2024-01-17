@@ -33,12 +33,21 @@ jobs:
       - uses: actions/checkout@v4
       - name: run test
         run: make test
-  # pre-keda-manager-verify, post-keda-manager-verify?
+  # pre-keda-manager-verify, post-keda-manager-verify
   integration-test:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: create single cluster
+        uses: AbsaOSS/k3d-action@4e8b3239042be1dc0aed6c5eb80c13b18200fc79 #v2.4.0
+        with:
+          cluster-name: "k3dCluster"
+          args: >-
+            --agents 1
+            --port 80:80@loadbalancer
+            --port 443:443@loadbalancer
+            --wait
       - name: run test
         run: make -C hack/ci k3d-integration-test
   # post-keda-manager-upgrade-latest-to-main
@@ -47,5 +56,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: create single cluster
+        uses: AbsaOSS/k3d-action@4e8b3239042be1dc0aed6c5eb80c13b18200fc79 #v2.4.0
+        with:
+          cluster-name: "k3dCluster"
+          args: >-
+            --agents 1
+            --port 80:80@loadbalancer
+            --port 443:443@loadbalancer
+            --wait
       - name: run test
         run: make -C hack/ci k3d-upgrade-test
