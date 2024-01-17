@@ -34,7 +34,12 @@ k3d-lm-integration-test: run-with-lifecycle-manager integration-test
 
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
-k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
+k3d-integration-test: k3d-run-without-lifecycle-manager integration-test remove-keda
+
+.PHONY: gha-integration-test
+gha-integration-test: ## Run integration tests.
+gha-integration-test: run-without-lifecycle-manager integration-test remove-keda
+
 
 .PHONY: k3d-k8s-compatibility-test
 k3d-k8s-compatibility-test: ## K8s compatibility tests not implemented yet.
