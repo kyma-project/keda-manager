@@ -2,11 +2,11 @@ name: Keda verify
 
 on:
   push:
-    branches: ["main", "release-*"]
+    branches: [ "main", "release-*" ]
   pull_request:
     paths-ignore:
-      - "docs/**"
-      - "examples/**"
+      - 'docs/**'
+      - 'examples/**'
     types:
       - opened
       - reopened
@@ -24,7 +24,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          working-directory: "."
+          working-directory: '.'
   # pre-keda-manager-operator-tests
   unit-test:
     if: github.event_name == 'pull_request'
