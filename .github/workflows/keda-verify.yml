@@ -69,5 +69,6 @@ jobs:
             --port 443:443@loadbalancer
             --wait
       - name: run test
-        run: make -C hack/ci k3d-upgrade-test
-        
+        run: make -C hack/ci upgrade-test
+        env:
+          IMG: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.sha }}
