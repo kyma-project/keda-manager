@@ -47,6 +47,14 @@ hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not impleme
 .PHONY: k3d-upgrade-test
 k3d-upgrade-test: ## Installs Keda from latest and upgrades to local.
 k3d-upgrade-test: \
+	create-k3d \
+	install-latest \
+	reinstall-keda \
+	integration-test
+
+.PHONY: upgrade-test
+upgrade-test: ## Installs Keda from latest and upgrades to local.
+upgrade-test: \
 	install-latest \
 	reinstall-keda \
 	integration-test
@@ -67,9 +75,12 @@ run-with-lifecycle-manager:
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
 
+.PHONY: create-k3d
+create-k3d:
+	@make -C ${PROJECT_COMMON} kyma create-k3d
+
 .PHONY: install-latest
 install-latest:
-	@make -C ${PROJECT_COMMON} kyma create-k3d
 	kubectl create ns kyma-system
 	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml -n kyma-system
