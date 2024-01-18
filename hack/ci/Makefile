@@ -76,6 +76,10 @@ render-manifest:
 run-with-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-with-lifecycle-manager
 
+.PHONY: k3d-run-without-lifecycle-manager
+k3d-run-without-lifecycle-manager:
+	@make -C ${PROJECT_COMMON} k3d-run-without-lifecycle-manager
+
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
