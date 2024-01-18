@@ -34,11 +34,11 @@ k3d-lm-integration-test: run-with-lifecycle-manager integration-test
 
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
-k3d-integration-test: k3d-run-without-lifecycle-manager integration-test remove-keda
+k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
 
 .PHONY: gha-integration-test
 gha-integration-test: ## Run integration tests.
-gha-integration-test: run-without-lifecycle-manager integration-test remove-keda
+gha-integration-test: run-without-lm-on-cluster integration-test remove-keda
 
 
 .PHONY: k3d-k8s-compatibility-test
@@ -76,13 +76,13 @@ render-manifest:
 run-with-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-with-lifecycle-manager
 
-.PHONY: k3d-run-without-lifecycle-manager
-k3d-run-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} k3d-run-without-lifecycle-manager
-
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+
+.PHONY: run-without-lm-on-cluster
+run-without-lm-on-cluster:
+	@make -C ${PROJECT_COMMON} run-without-lm-on-cluster
 
 .PHONY: create-k3d
 create-k3d:

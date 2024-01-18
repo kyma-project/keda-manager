@@ -33,9 +33,9 @@ run-with-lifecycle-manager: \
 	enable-module \
 	verify-kyma
 
-.PHONY: k3d-run-without-lifecycle-manager
-k3d-run-without-lifecycle-manager: ## Create k3d cluster and deploy module without the lifecycle-manager.
-k3d-run-without-lifecycle-manager: \
+.PHONY: run-without-lifecycle-manager
+run-without-lifecycle-manager: ## Create k3d cluster and deploy module without the lifecycle-manager.
+run-without-lifecycle-manager: \
     kyma \
 	create-k3d \
 	create-kyma-system-ns \
@@ -44,12 +44,11 @@ k3d-run-without-lifecycle-manager: \
 	apply-keda \
 	verify-keda
 
-.PHONY: run-without-lifecycle-manager
-run-without-lifecycle-manager: ## Create k3d cluster and deploy module without the lifecycle-manager.
-run-without-lifecycle-manager: \
+.PHONY: run-without-lm-on-cluster
+run-without-lm-on-cluster: ## Create k3d cluster and deploy module without the lifecycle-manager.
+run-without-lm-on-cluster: \
     kyma \
 	create-kyma-system-ns \
-	module-image \
 	deploy \
 	apply-keda \
 	verify-keda
