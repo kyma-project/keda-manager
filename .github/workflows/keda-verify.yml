@@ -52,7 +52,7 @@ jobs:
       - name: run test
         run: make -C hack/ci integration-test-on-cluster
         env:
-          IMG: europe-docker.pkg.dev/kyma-project/dev/serverless-operator:PR-${{ github.event.number }}
+          IMG: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
   # post-keda-manager-upgrade-latest-to-main
   upgrade-test:
     if: github.event_name == 'push'
