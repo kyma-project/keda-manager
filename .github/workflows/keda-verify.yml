@@ -36,7 +36,7 @@ jobs:
   
   # pre-keda-manager-verify
   integration-test:
-    if: github.event.pull_request.draft == false
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
             --port 443:443@loadbalancer
             --wait
       - name: run test
-        run: make -C hack/ci gha-integration-test
+        run: make -C hack/ci integration-test-on-cluster
 
   # post-keda-manager-upgrade-latest-to-main
   upgrade-test:
