@@ -36,6 +36,11 @@ k3d-lm-integration-test: run-with-lifecycle-manager integration-test
 k3d-integration-test: ## Run integration tests.
 k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
 
+.PHONY: integration-test-on-cluster
+integration-test-on-cluster: ## Run integration tests.
+integration-test-on-cluster: run-without-lm-on-cluster integration-test remove-keda
+
+
 .PHONY: k3d-k8s-compatibility-test
 k3d-k8s-compatibility-test: ## K8s compatibility tests not implemented yet.
 	@echo "k8s compatibility tests not implemented yet"
@@ -74,6 +79,10 @@ run-with-lifecycle-manager:
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
 	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+
+.PHONY: run-without-lm-on-cluster
+run-without-lm-on-cluster:
+	@make -C ${PROJECT_COMMON} run-without-lm-on-cluster
 
 .PHONY: create-k3d
 create-k3d:
