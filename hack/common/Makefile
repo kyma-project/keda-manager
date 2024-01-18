@@ -47,6 +47,8 @@ run-without-lifecycle-manager: \
 .PHONY: run-without-lm-on-cluster
 run-without-lm-on-cluster: ## Deploy module without the lifecycle-manager on existing cluster.
 run-without-lm-on-cluster: \
+	kyma \
+	create-kyma-system-ns \
 	deploy-cluster \
 	apply-keda \
 	verify-keda
