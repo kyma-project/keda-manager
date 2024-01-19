@@ -90,7 +90,7 @@ create-k3d:
 
 .PHONY: install-latest
 install-latest:
-	kubectl create ns kyma-system
+	kubectl create ns kyma-system || true
 	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 	kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml -n kyma-system
 	@make -C ${PROJECT_COMMON} verify-keda
