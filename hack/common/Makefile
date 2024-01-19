@@ -117,7 +117,7 @@ apply-keda: ## Apply the k3d serverless CR
 
 .PHONY: create-kyma-system-ns
 create-kyma-system-ns: ## Create kyma-system namespace.
-	kubectl create ns kyma-system
+	kubectl create ns kyma-system || true
 
 ### Internal Dependencies
 
