@@ -75,11 +75,27 @@ delete-k3d-cluster: ## Delete k3d kyma cluster.
 
 .PHONY: verify-keda
 verify-keda: ## Wait for Keda CR to be in Ready state.
-	@./verify_keda_status.sh
+	sleep 10
+
+	./verify_keda_status.sh || \
+		(make print-keda-details && false)
+
+	kubectl wait --for condition=Available deployment keda-operator -n kyma-system --timeout=60s || \
+		(make print-keda-details && false)
+
+	kubectl wait --for condition=Available deployment keda-manager -n kyma-system --timeout=60s || \
+		(make print-keda-details && false)
 
 .PHONY: verify-kyma
 verify-kyma: ## Wait for Kyma CR to be in Ready state.
 	@./verify_kyma_status.sh
+
+.PHONY: print-keda-details
+print-serverless-details: ## Print all pods, deploys and serverless CRs in the kyma-system namespace.
+	kubectl get keda -n kyma-system -oyaml
+	kubectl get deploy -n kyma-system -oyaml
+	kubectl get pods -n kyma-system -oyaml
+
 
 .PHONY: fix-template
 fix-template: ## Create moduletemplate-k3d.yaml based on moduletemplate.yaml with right URLs.
