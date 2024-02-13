@@ -29,9 +29,9 @@ run: \
 	apply-keda \
 	verify-keda
 
-.PHONY: run-without-lm-on-cluster
-run-without-lm-on-cluster: ## Deploy module without the lifecycle-manager on existing cluster.
-run-without-lm-on-cluster: \
+.PHONY: run-on-cluster
+run-on-cluster: ## Deploy module on existing cluster.
+run-on-cluster: \
 	kyma \
 	create-kyma-system-ns \
 	deploy-cluster \
