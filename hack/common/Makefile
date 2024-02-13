@@ -71,38 +71,11 @@ verify-keda: ## Wait for Keda CR to be in Ready state.
 	kubectl wait --for condition=Available deployment keda-manager -n kyma-system --timeout=60s || \
 		(make print-keda-details && false)
 
-.PHONY: verify-kyma
-verify-kyma: ## Wait for Kyma CR to be in Ready state.
-	@./verify_kyma_status.sh
-
 .PHONY: print-keda-details
-print-serverless-details: ## Print all pods, deploys and serverless CRs in the kyma-system namespace.
+print-keda-details: ## Print all pods, deploys and serverless CRs in the kyma-system namespace.
 	kubectl get keda -n kyma-system -oyaml
 	kubectl get deploy -n kyma-system -oyaml
 	kubectl get pods -n kyma-system -oyaml
-
-
-.PHONY: fix-template
-fix-template: ## Create moduletemplate-k3d.yaml based on moduletemplate.yaml with right URLs.
-	@cat ${PROJECT_ROOT}/moduletemplate.yaml \
-	| sed -e 's/${REGISTRY_PORT}/5000/g' \
-	    -e 's/localhost/k3d-${REGISTRY_NAME}.localhost/g' \
-		-e 's/moduletemplate-keda/keda-fast/g' \
-	> ${PROJECT_ROOT}/moduletemplate-k3d.yaml
-
-.PHONY: enable-module
-enable-module:
-	${KYMA} alpha enable module keda -c fast
-
-.PHONY: patch-mod-mgr-role
-patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.
-	kubectl patch clusterrole \
-		lifecycle-manager-manager-role \
-		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
-
-.PHONY: install-module-template
-install-module-template: ## Apply k3d-ready moduletemplate.
-	kubectl apply -f ${PROJECT_ROOT}/moduletemplate-k3d.yaml
 
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
