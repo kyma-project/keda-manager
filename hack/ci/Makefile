@@ -28,30 +28,9 @@ module-build: ## Build the Module, push it to a registry and print it based on t
 integration-test: ## Run integration tests
 	cd ${PROJECT_ROOT}/test && go run main.go
 
-.PHONY: k3d-integration-test
-k3d-integration-test: ## Run integration tests.
-k3d-integration-test: run integration-test remove-keda
-
 .PHONY: integration-test-on-cluster
 integration-test-on-cluster: ## Run integration tests.
 integration-test-on-cluster: run-on-cluster integration-test remove-keda
-
-
-.PHONY: k3d-k8s-compatibility-test
-k3d-k8s-compatibility-test: ## K8s compatibility tests not implemented yet.
-	@echo "k8s compatibility tests not implemented yet"
-
-.PHONY: hyperscalers-compatibility-test
-hyperscalers-compatibility-test: ## Hyperscalers compatibility tests not implemented yet.
-	@echo "hyperscalers compatibility tests not implemented yet"
-
-.PHONY: k3d-upgrade-test
-k3d-upgrade-test: ## Installs Keda from latest and upgrades to local.
-k3d-upgrade-test: \
-	create-k3d \
-	install-latest \
-	reinstall-keda \
-	integration-test
 
 .PHONY: upgrade-test
 upgrade-test: ## Installs Keda from latest and upgrades to local.
