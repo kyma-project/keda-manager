@@ -30,11 +30,11 @@ integration-test: ## Run integration tests
 
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
-k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
+k3d-integration-test: run integration-test remove-keda
 
 .PHONY: integration-test-on-cluster
 integration-test-on-cluster: ## Run integration tests.
-integration-test-on-cluster: run-without-lm-on-cluster integration-test remove-keda
+integration-test-on-cluster: run-on-cluster integration-test remove-keda
 
 
 .PHONY: k3d-k8s-compatibility-test
@@ -68,13 +68,13 @@ remove-keda: ## Remove Keda CR
 render-manifest:
 	@make -C ${PROJECT_ROOT} render-manifest
 
-.PHONY: run-without-lifecycle-manager
-run-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+.PHONY: run
+run:
+	@make -C ${PROJECT_COMMON} run
 
-.PHONY: run-without-lm-on-cluster
-run-without-lm-on-cluster:
-	@make -C ${PROJECT_COMMON} run-without-lm-on-cluster
+.PHONY: run-on-cluster
+run-on-cluster:
+	@make -C ${PROJECT_COMMON} run-on-cluster
 
 .PHONY: create-k3d
 create-k3d:
@@ -90,7 +90,7 @@ install-latest:
 
 .PHONY: reinstall-keda
 reinstall-keda:
-	@make -C ${PROJECT_COMMON} run-without-lm-on-cluster
+	@make -C ${PROJECT_COMMON} run-on-cluster
 
 	# wait some time to make sure lm starts the reconciliation first
 	sleep 5
