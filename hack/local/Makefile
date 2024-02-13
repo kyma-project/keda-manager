@@ -8,7 +8,7 @@ help: ## Display this help.
 
 .PHONY: run
 run: ## Create k3d cluster with module.
-run: run-k3d-with-keda-without-lifecycle-manager
+run: run-k3d-with-keda
 
 .PHONY: stop
 stop: ## Delete k3d cluster and registry.
@@ -16,6 +16,6 @@ stop: ## Delete k3d cluster and registry.
 
 ### Internal Dependencies
 
-.PHONY: run-k3d-with-keda-without-lifecycle-manager
-run-k3d-with-keda-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+.PHONY: run-k3d-with-keda
+run-k3d-with-keda:
+	@make -C ${PROJECT_COMMON} run
