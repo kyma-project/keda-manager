@@ -18,21 +18,6 @@ KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
 help:
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: run-with-lifecycle-manager
-run-with-lifecycle-manager: ## Create k3d cluster and deploy module with the lifecycle-manager.
-run-with-lifecycle-manager: \
-    kyma \
-	create-k3d \
-	create-kyma-system-ns \
-	module-image \
-	module-build \
-	fix-template \
-	install-kyma-with-lm \
-	patch-mod-mgr-role \
-	install-module-template \
-	enable-module \
-	verify-kyma
-
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager: ## Create k3d cluster and deploy module without the lifecycle-manager.
 run-without-lifecycle-manager: \
@@ -114,13 +99,6 @@ patch-mod-mgr-role: ## Path lifecycle-manager clusterrole.
 	kubectl patch clusterrole \
 		lifecycle-manager-manager-role \
 		--patch-file=./k3d-patches/patch-k3d-lifecycle-manager-clusterrole.yaml
-
-.PHONY: install-kyma-with-lm
-install-kyma-with-lm: ## Install Kyma with lifecycle-manager.
-	${KYMA} alpha deploy \
-		--ci \
-		--force-conflicts
-	kubectl label -n kyma-system kyma default-kyma operator.kyma-project.io/beta=true
 
 .PHONY: install-module-template
 install-module-template: ## Apply k3d-ready moduletemplate.
