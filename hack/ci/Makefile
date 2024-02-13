@@ -28,10 +28,6 @@ module-build: ## Build the Module, push it to a registry and print it based on t
 integration-test: ## Run integration tests
 	cd ${PROJECT_ROOT}/test && go run main.go
 
-.PHONY: k3d-lm-integration-test
-k3d-lm-integration-test: ## Run integration tests with lifecycle-manager.
-k3d-lm-integration-test: run-with-lifecycle-manager integration-test
-
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
 k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
@@ -71,10 +67,6 @@ remove-keda: ## Remove Keda CR
 .PHONY: render-manifest
 render-manifest:
 	@make -C ${PROJECT_ROOT} render-manifest
-
-.PHONY: run-with-lifecycle-manager
-run-with-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-with-lifecycle-manager
 
 .PHONY: run-without-lifecycle-manager
 run-without-lifecycle-manager:
