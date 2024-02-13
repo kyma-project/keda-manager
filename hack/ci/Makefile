@@ -30,7 +30,7 @@ integration-test: ## Run integration tests
 
 .PHONY: k3d-integration-test
 k3d-integration-test: ## Run integration tests.
-k3d-integration-test: run-without-lifecycle-manager integration-test remove-keda
+k3d-integration-test: run integration-test remove-keda
 
 .PHONY: integration-test-on-cluster
 integration-test-on-cluster: ## Run integration tests.
@@ -68,9 +68,9 @@ remove-keda: ## Remove Keda CR
 render-manifest:
 	@make -C ${PROJECT_ROOT} render-manifest
 
-.PHONY: run-without-lifecycle-manager
-run-without-lifecycle-manager:
-	@make -C ${PROJECT_COMMON} run-without-lifecycle-manager
+.PHONY: run
+run:
+	@make -C ${PROJECT_COMMON} run
 
 .PHONY: run-without-lm-on-cluster
 run-without-lm-on-cluster:
