@@ -64,10 +64,6 @@ upgrade-test: \
 remove-keda: ## Remove Keda CR
 	kubectl delete keda -n kyma-system default --timeout 1m || (kubectl get keda -n kyma-system -oyaml && false)
 
-.PHONY: render-manifest
-render-manifest:
-	@make -C ${PROJECT_ROOT} render-manifest
-
 .PHONY: run
 run:
 	@make -C ${PROJECT_COMMON} run
