@@ -1,15 +1,12 @@
-PROJECT_ROOT ?= ../..
+# local variables
 
-MODULE_VERSION ?= 0.0.0
+PROJECT_ROOT = ../..
 
-CLUSTER_NAME ?= kyma
-REGISTRY_PORT ?= 5001
-REGISTRY_NAME ?= ${CLUSTER_NAME}-registry
+CLUSTER_NAME = kyma
+REGISTRY_PORT = 5001
+REGISTRY_NAME = ${CLUSTER_NAME}-registry
 
-MANAGER_IMAGE_NAME ?= keda-manager-dev-local
-MANAGER_IMAGE_TAG ?= $(MODULE_VERSION)
-
-KYMA ?= ${PROJECT_ROOT}/bin/kyma-unstable
+KYMA = ${PROJECT_ROOT}/bin/kyma-unstable
 
 ##@ General
 
@@ -95,27 +92,12 @@ kyma:
 .PHONY: module-image
 module-image: 
 	@make -C ${PROJECT_ROOT} module-image \
-		IMG=localhost:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
-
-.PHONY: clean-charts
-clean-charts:
-	@rm -rf ${PROJECT_ROOT}/charts
-
-.PHONY: module-build
-module-build: clean-charts
-	@make -C ${PROJECT_ROOT} module-build \
-		PROW_JOB_ID= \
-		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG} \
-		MODULE_REGISTRY=localhost:${REGISTRY_PORT} \
-
-	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/moduletemplate.yaml
-	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
+		IMG=localhost:${REGISTRY_PORT}/keda-manager-dev-local:0.0.0
 
 .PHONY: deploy
 deploy:
 	@make -C ${PROJECT_ROOT} deploy \
-		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/${MANAGER_IMAGE_NAME}:${MANAGER_IMAGE_TAG}
+		IMG=k3d-${REGISTRY_NAME}:${REGISTRY_PORT}/keda-manager-dev-local:0.0.0
 
 .PHONY: deploy-cluster
 deploy-cluster:
