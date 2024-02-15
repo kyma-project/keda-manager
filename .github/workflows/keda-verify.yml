@@ -48,6 +48,7 @@ jobs:
             --agents 1
             --port 80:80@loadbalancer
             --port 443:443@loadbalancer
+            --image rancher/k3s:v1.28.6-k3s1
             --wait
       - name: run test
         run: make -C hack/ci integration-test-on-cluster
@@ -67,6 +68,7 @@ jobs:
             --agents 1
             --port 80:80@loadbalancer
             --port 443:443@loadbalancer
+            --image rancher/k3s:v1.28.6-k3s1
             --wait
       - name: run test
         run: make -C hack/ci upgrade-test
