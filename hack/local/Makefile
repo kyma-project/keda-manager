@@ -1,4 +1,6 @@
-PROJECT_COMMON ?= ../common
+# local variables
+
+PROJECT_COMMON = ../common
 
 ##@ General
 
@@ -8,14 +10,9 @@ help: ## Display this help.
 
 .PHONY: run
 run: ## Create k3d cluster with module.
-run: run-k3d-with-keda
+run:
+	@make -C ${PROJECT_COMMON} run
 
 .PHONY: stop
 stop: ## Delete k3d cluster and registry.
 	@make -C ${PROJECT_COMMON} delete-k3d
-
-### Internal Dependencies
-
-.PHONY: run-k3d-with-keda
-run-k3d-with-keda:
-	@make -C ${PROJECT_COMMON} run

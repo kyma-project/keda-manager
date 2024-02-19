@@ -1,28 +1,13 @@
-PROJECT_ROOT ?= ../..
-PROJECT_COMMON ?= ../common
+# local variables
 
-MODULE_VERSION ?= 0.0.0
-
-ifndef MODULE_SHA
-    MODULE_SHA = ${shell git rev-parse --short HEAD}
-endif
+PROJECT_ROOT = ../..
+PROJECT_COMMON = ../common
 
 ##@ General
 
 .PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-.PHONY: module-build
-module-build: ## Build the Module, push it to a registry and print it based on the commit hash.
-	@make -C ${PROJECT_ROOT} module-build \
-		IMG=${IMG} \
-		MODULE_REGISTRY=${MODULE_REGISTRY} \
-		MODULE_VERSION=${MODULE_VERSION}-${MODULE_SHA} \
-
-	@echo "\n~~~~~~~~~~~~BEGINING OF MODULE TEMPLATE~~~~~~~~~~~~~~"
-	@cat ${PROJECT_ROOT}/moduletemplate.yaml
-	@echo "\n~~~~~~~~~~~~~~~END OF MODULE TEMPLATE~~~~~~~~~~~~~~~~"
 
 .PHONY: integration-test
 integration-test: ## Run integration tests
@@ -43,17 +28,9 @@ upgrade-test: \
 remove-keda: ## Remove Keda CR
 	kubectl delete keda -n kyma-system default --timeout 1m || (kubectl get keda -n kyma-system -oyaml && false)
 
-.PHONY: run
-run:
-	@make -C ${PROJECT_COMMON} run
-
 .PHONY: run-on-cluster
 run-on-cluster:
 	@make -C ${PROJECT_COMMON} run-on-cluster
-
-.PHONY: create-k3d
-create-k3d:
-	@make -C ${PROJECT_COMMON} kyma create-k3d
 
 .PHONY: install-latest
 install-latest:

@@ -1,27 +1,18 @@
+# incoming variables
+
 MODULE_VERSION ?= 0.0.0
 
-# Path to the sec-scanners-config file
-SEC_SCANNERS_CONFIG ?= ""
-
-# Module Name used for bundling the OCI Image and later on for referencing in the Kyma Modules
-MODULE_NAME ?= keda
-
-# Module Registry used for pushing the image
-MODULE_REGISTRY_PORT ?= 8888
-MODULE_REGISTRY ?= op-kcp-registry.localhost:$(MODULE_REGISTRY_PORT)/unsigned
-# Desired Channel of the Generated Module Template
-MODULE_CHANNEL ?= fast
-
 # Image URL to use all building/pushing image targets
-IMG_REGISTRY_PORT ?= $(MODULE_REGISTRY_PORT)
-IMG_REGISTRY ?= op-skr-registry.localhost:$(IMG_REGISTRY_PORT)/unsigned/manager-images
-IMG ?= $(IMG_REGISTRY)/$(MODULE_NAME)-manager:$(MODULE_VERSION)
+IMG ?= op-skr-registry.localhost:8888/unsigned/manager-images/keda-manager:$(MODULE_VERSION)
 
 # Operating system architecture
 OS_ARCH ?= $(shell uname -m)
 
 # Operating system type
 OS_TYPE ?= $(shell uname)
+
+
+# local variables
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.24.2
@@ -31,22 +22,6 @@ ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
-endif
-
-# Credentials used for authenticating into the module registry
-# see `kyma alpha mod create --help for more info`
-# MODULE_CREDENTIALS ?= testuser:testpw
-
-# This will change the flags of the `kyma alpha module create` command in case we spot credentials
-# Otherwise we will assume http-based local registries without authentication (e.g. for k3d)
-ifneq (,$(PROW_JOB_ID))
-GCP_ACCESS_TOKEN=$(shell gcloud auth application-default print-access-token)
-MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite -c oauth2accesstoken:$(GCP_ACCESS_TOKEN)
-else ifeq (,$(MODULE_CREDENTIALS))
-# when built locally we should not include security content.
-MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite --insecure
-else
-MODULE_CREATION_FLAGS=--registry $(MODULE_REGISTRY) --module-archive-version-overwrite -c $(MODULE_CREDENTIALS)
 endif
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
@@ -129,30 +104,8 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 ##@ Module
 
 .PHONY: module-image
-module-image: docker-build docker-push ## Build the Module Image and push it to a registry defined in IMG_REGISTRY
+module-image: docker-build docker-push ## Build the Module Image and push it to a registry defined in IMG
 	echo "built and pushed module image $(IMG)"
-
-.PHONY: module-build
-module-build: ## Build the Module and push it to a registry defined in MODULE_REGISTRY
-module-build: kyma kustomize render-manifest module-config-template configure-git-origin
-	$(KYMA) alpha create module --path . --output=moduletemplate.yaml \
-		--sec-scanners-config="${SEC_SCANNERS_CONFIG}" \
-		--module-config-file=module-config.yaml $(MODULE_CREATION_FLAGS)
-
-.PHONY: module-config-template
-module-config-template:
-	@cat module-config-template.yaml \
-		| sed -e 's/{{.Channel}}/${MODULE_CHANNEL}/g' \
-			-e 's/{{.Version}}/$(MODULE_VERSION)/g' \
-			-e 's/{{.Name}}/kyma-project.io\/module\/$(MODULE_NAME)/g' \
-				> module-config.yaml
-
-.PHONY: configure-git-origin
-configure-git-origin:
-#	test-infra does not include origin remote in the .git directory.
-#	the CLI is looking for the origin url in the .git dir so first we need to be sure it's not empty
-	@git remote | grep '^origin$$' -q || \
-		git remote add origin https://github.com/kyma-project/keda-manager
 
 
 ##@ Tools
