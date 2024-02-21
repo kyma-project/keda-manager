@@ -24,7 +24,7 @@ Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 You can build and run the Keda Manager in the Kubernetes cluster without Kyma.
 For the day-to-day development on your machine, you don't always need to have it controlled by Kyma's Lifecycle Manager.
 
-Run the following commands to deploy Keda Manager on a target Kubernetes cluster, such as k3d:
+Run the following commands to deploy Keda Manager in a target Kubernetes cluster, such as k3d:
 
 1. Clone the project.
 
@@ -86,7 +86,7 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
    ```
-2. Build the manager locally and run it on the k3d cluster.
+2. Build the manager locally and run it in the k3d cluster.
 
    ```bash
    make -C hack/local run
