@@ -1,0 +1,13 @@
+namespace: redis
+generatorOptions:
+  disableNameSuffixHash: true
+secretGenerator:
+- name: redis-config
+  envs:
+  - redis.env
+
+resources:
+  - scaled-object-cr.yaml
+  - receiver-fn.yaml
+  - deployment.yaml
+

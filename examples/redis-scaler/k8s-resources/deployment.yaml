@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: processor
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: processor
+    spec:
+      containers:
+      - image: alpine:3.2
+        command:
+          - /bin/sh
+          - "-c"
+          - "sleep 60m"
+        imagePullPolicy: IfNotPresent
+        name: alpine
+        env:          
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+                key: redis-password
+                name: my-release-redis

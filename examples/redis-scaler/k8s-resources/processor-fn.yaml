@@ -1,0 +1,32 @@
+---
+apiVersion: serverless.kyma-project.io/v1alpha2
+kind: Function
+metadata:
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/name: processor-fn
+    name: processor-fn
+    namespace: redis
+spec:
+    env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+                key: redis-password
+                name: my-release-redis
+    runtime: nodejs18
+    source:
+        inline:
+            dependencies: |-
+                {
+                  "name": "processor-fn",
+                  "version": "0.0.1",
+                  "dependencies": {}
+                }
+            source: |-
+                module.exports = {
+                    main: function (event, context) {
+                        return 'Hello Serverless'
+                    }
+                }
+

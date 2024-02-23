@@ -1,0 +1,22 @@
+name: receiver-fn
+namespace: redis
+runtime: nodejs18
+source:
+    sourceType: inline
+schemaVersion: v0
+env:
+    - name: REDIS_HOST
+      valueFrom:
+        secretKeyRef:
+          name: redis-config
+          key: REDIS_HOST
+    - name: REDIS_PORT
+      valueFrom:
+        secretKeyRef:
+          name: redis-config
+          key: REDIS_PORT
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: my-release-redis
+          key: redis-password
