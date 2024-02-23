@@ -10,6 +10,10 @@ const errors = {
 
 module.exports = {
   main: async function (event, _) {
+
+    //TODO: rework to push to redis list    bikes:repairs
+    // https://redis.io/docs/data-types/lists/
+
     const storage = getStorage();
 
     if (!event.data || !Object.keys(event.data).length) {

@@ -4,6 +4,8 @@
 
  - `KUBECONFIG` env variable pointing to a kubernetes instance
  - helm installed
+ - keda module installed
+ - serverless module installed
 
 
 ### Deploy redis
