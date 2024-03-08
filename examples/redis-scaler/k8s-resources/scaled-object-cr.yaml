@@ -13,5 +13,5 @@ spec:
     metadata:
       address: my-release-redis-master.redis.svc.cluster.local:6379 # Format must be host:port
       passwordFromEnv: REDIS_PASSWORD
-      listName: bikes:repairs # Required
+      listName: demo # Required
       listLength: "5" # Required

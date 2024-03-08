@@ -1,4 +1,4 @@
-name: receiver-fn
+name: emitter-fn
 namespace: redis
 runtime: nodejs18
 source:
@@ -6,15 +6,9 @@ source:
 schemaVersion: v0
 env:
     - name: REDIS_HOST
-      valueFrom:
-        secretKeyRef:
-          name: redis-config
-          key: REDIS_HOST
+      value: my-release-redis-master.redis.svc.cluster.local
     - name: REDIS_PORT
-      valueFrom:
-        secretKeyRef:
-          name: redis-config
-          key: REDIS_PORT
+      value: "6379"
     - name: REDIS_PASSWORD
       valueFrom:
         secretKeyRef:

@@ -36,3 +36,4 @@ module-config.yaml
 .DS_Store
 
 manifests/keda/rendered.yaml
+examples/redis-scaler/src/emitter-fn/node_modules
