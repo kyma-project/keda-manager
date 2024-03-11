@@ -23,7 +23,7 @@ spec:
         inline:
             dependencies: |
                 {
-                  "name": "receiver-fn",
+                  "name": "emitter-fn",
                   "version": "0.0.1",
                   "dependencies": {
                     "redis": "^4.6.13"

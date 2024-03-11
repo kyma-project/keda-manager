@@ -37,3 +37,5 @@ module-config.yaml
 
 manifests/keda/rendered.yaml
 examples/redis-scaler/src/emitter-fn/node_modules
+examples/redis-scaler/src/receiver-job/node_modules
+examples/redis-scaler/src/receiver-job/package-lock.json

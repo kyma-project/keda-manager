@@ -1,8 +1,6 @@
-
 namespace: redis
 
 resources:
-  - scaled-object-cr.yaml
+  - scaled-job.yaml
   - emitter-fn.yaml
-  - deployment.yaml
 
