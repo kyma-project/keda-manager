@@ -1,12 +1,19 @@
-## Deploy 
+## Scenario
 
-### Prerequisites
+This example realises scaling of jobs based on the size of [list](https://redis.io/docs/data-types/lists/) in redis.
+Each job, when scheduled, is poping a message from the list and stops.
+Additionally there is a function that awaits  HTTP trafic and populates messages to redis list.
+
+![diagram](assets/scenario.drawio.svg)
+
+## Prerequisistes
 
  - `KUBECONFIG` env variable pointing to a kubernetes instance
  - helm client installed locally in your machine
- - keda module https://github.com/kyma-project/keda-manager?tab=readme-ov-file#install-keda-manager-and-keda-from-the-latest-release in your kyma cluster 
- - serverless module https://github.com/kyma-project/serverless?tab=readme-ov-file#install in your kyma cluster 
+ - keda and serverless modules enabled in th kyma cluster (`make ensure_kyma_modules`)
 
+
+## Deploy 
 
 ### Deploy redis
 
