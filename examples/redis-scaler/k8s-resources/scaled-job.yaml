@@ -29,7 +29,7 @@ spec:
                   key: redis-password
                   name: my-release-redis
   maxReplicaCount:  5
-  successfulJobsHistoryLimit: 0   
+  successfulJobsHistoryLimit: 3   
   triggers:
   - type: redis
     metadata:

@@ -3,6 +3,7 @@ const port = process.env["REDIS_PORT"];
 const host = process.env["REDIS_HOST"];
 const password = process.env["REDIS_PASSWORD"];
 const listName = "demo"
+var msg = undefined;
 
 async function popRedisList(host, port, password, listName) {
 
@@ -18,19 +19,18 @@ async function popRedisList(host, port, password, listName) {
 
     await client.connect();
 
-    const res1 = await client.lPop(listName);
+    msg = await client.lPop(listName);
 
     let waitTime = between(1000, 10000); 
-    console.log(`Processing started for ${res1}.. will finish in ${waitTime}ms`);
+    console.log(`Processing started for ${msg}.. will finish in ${waitTime}ms`);
 
-    await setTimeout(() => {
-        console.log(`Processing finished for ${res1}`);
-    }, waitTime)
-
+    await setTimeout(() => {}, waitTime)
+    
     return;
 }
 
 popRedisList(host, port, password, listName).then(()=>{
+    console.log(`Processing finished for ${msg}`);
     process.exit(0); 
 })
 
