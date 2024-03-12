@@ -24,6 +24,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
    ```bash
    kubectl delete -f config/samples/keda-default-cr.yaml
    ```
+
    This uninstalls all KEDA workloads but leaves Keda Manager.
 
    > **NOTE:** Keda Manager uses finalizers to uninstall the Keda module from the cluster. It means that Keda Manager blocks the uninstallation process of KEDA until there are user-created CRs (for example, ScaledObjects).
@@ -32,8 +33,7 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
 
    The [configuration example](../user/01-20-configuration.md) shows how to modify the Keda properties using the `keda.operator.kyma-project.io` CR.
 
-
-   ```bash
+  ```bash
    cat <<EOF | kubectl apply -f -
    apiVersion: operator.kyma-project.io/v1alpha1
    kind: Keda

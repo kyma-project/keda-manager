@@ -1,18 +1,23 @@
+# Demo applications
+
 ## Keda CPU Scaler Example
 
-## Context
+### Context
+
 This demo application shows how to scale the Kubernetes workloads using KEDA API based on a simple CPU consumption case.
 
 See the KEDA documentation:
- - [API of Scaled Object Custom Resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
- - [Available scalers](https://keda.sh/docs/latest/scalers/)
+
+- [API of Scaled Object Custom Resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
+- [Available scalers](https://keda.sh/docs/latest/scalers/)
 
 The KEDA demo application consists of:
- - order-service deployment (serving as a scale target)
- - busybox deployment (generating trafic)
- - scaled object using a simple CPU-based trigger
 
-## Procedure
+- order-service deployment (serving as a scale target)
+- busybox deployment (generating trafic)
+- scaled object using a simple CPU-based trigger
+
+### Procedure
 
 1. Deploy the demo application:
 
@@ -44,10 +49,11 @@ To experience how Kyma's Keda module can complement other Kyma components, read 
 
 It demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
 
-It uses: 
- - Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/#/serverless-manager/user/README)),
- - In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/#/eventing-manager/user/README)), 
- - Prometheus and Istio to deliver metrics essential for scaling decisions,
- - [KEDA](https://keda.sh/) to drive the scaling.
+It uses:
+
+- Functions to deploy workloads directly from a Git repository ([Kyma Serverless](https://kyma-project.io/#/serverless-manager/user/README)),
+- In-cluster Eventing to enable event-driven communication ([Kyma Eventing](https://kyma-project.io/#/eventing-manager/user/README)),
+- Prometheus and Istio to deliver metrics essential for scaling decisions,
+- [KEDA](https://keda.sh/) to drive the scaling.
 
 ![scenario](../assets/scaling-scenario.png "Scenario")

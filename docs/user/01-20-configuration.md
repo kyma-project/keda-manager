@@ -11,6 +11,7 @@ See how to configure the **logging.level** or resource consumption.
        operator:
          level: "debug"
    ```
+
 - Change the operator and metricServer resource consumption using your preferred values. For example:
 
    ```yaml
@@ -30,4 +31,5 @@ See how to configure the **logging.level** or resource consumption.
            cpu: "300m"
            memory: "500Mi"
    ```
+
 For more information about the Keda resources, visit the [Keda concepts](https://keda.sh/docs/latest/concepts/) documentation.

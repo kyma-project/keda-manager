@@ -3,7 +3,7 @@
 Keda Manager codebase is scaffolded with `kubebuilder`. For more information on `kubebuilder`, visit the [project site](https://github.com/kubernetes-sigs/kubebuilder).
 
 - `config`: A directory containing the [kustomize](https://github.com/kubernetes-sigs/kustomize) YAML definitions of the module. For more information, see [kubebuilder's documentation on launch configuration](https://book.kubebuilder.io/cronjob-tutorial/basic-project.html#launch-configuration).
-- `api`: Packages containing Keda CustomResourceDefinitions (CRD). 
+- `api`: Packages containing Keda CustomResourceDefinitions (CRD).
 - `controllers`: Package containing the implementation of the module's reconciliation loop responsible for managing Keda custom resources (CRs).
 - `Dockerfile`: The definition of the `keda-manager-module` image.
 - `bin`: A directory with binaries that are used to build/run project.

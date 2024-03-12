@@ -1,7 +1,6 @@
 
 # Scripts Don't Work
 
-
 ## Symptom
 
 For MacBook M1, some parts of the scripts may not work.
