@@ -28,6 +28,8 @@ Install Redis in the `redis` namespace.
 
 2. Deploy the example
 
+Run the following make target to deploy the application:
+
    ```sh
    make deploy_app
    ```
@@ -40,6 +42,7 @@ Install Redis in the `redis` namespace.
 3. Verify
 
 Observe Pods in the `redis` namespace. There is one Function pod and Redis itself.
+
    ```sh
    kubectl get pods -n redis -w
    NAME                                READY   STATUS        RESTARTS        AGE
