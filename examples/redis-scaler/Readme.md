@@ -21,12 +21,8 @@ Install redis into `redis` namespace.
 
 ```sh
 kubectl create ns redis
-```
-
-```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-kubectl create namespace redis
 helm install my-release bitnami/redis --namespace redis
 ```
 
