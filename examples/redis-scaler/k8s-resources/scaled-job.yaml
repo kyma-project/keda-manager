@@ -1,0 +1,39 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: processor-scaled-job
+  namespace: redis
+spec:
+  jobTargetRef:
+    parallelism: 5                            # [max number of desired pods](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism)
+    completions: 1                            # [desired number of successfully finished pods](https://kubernetes.io/docs/concepts/workloads/controllers/job/#controlling-parallelism)
+    activeDeadlineSeconds: 600                #  Specifies the duration in seconds relative to the startTime that the job may be active before the system tries to terminate it; value must be positive integer
+    backoffLimit: 6                           # Specifies the number of retries before marking this job failed. Defaults to 6
+    template:
+      metadata:
+        label: "processor-job"
+      spec:
+        containers:
+        - name: processor
+          image: kwiatekus/redispop
+          imagePullPolicy: Always
+          command: ["node",  "app.js"]
+          env:    
+          - name: REDIS_HOST
+            value: my-release-redis-master.redis.svc.cluster.local
+          - name: REDIS_PORT
+            value: "6379"      
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                  key: redis-password
+                  name: my-release-redis
+  maxReplicaCount:  5
+  successfulJobsHistoryLimit: 3   
+  triggers:
+  - type: redis
+    metadata:
+      address: my-release-redis-master.redis.svc.cluster.local:6379 # Format must be host:port
+      passwordFromEnv: REDIS_PASSWORD
+      listName: demo # Required
+      listLength: "1" # Required

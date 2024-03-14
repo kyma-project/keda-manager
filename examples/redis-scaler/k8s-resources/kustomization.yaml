@@ -1,0 +1,6 @@
+namespace: redis
+
+resources:
+  - scaled-job.yaml
+  - emitter-fn.yaml
+

@@ -1,0 +1,16 @@
+name: emitter-fn
+namespace: redis
+runtime: nodejs18
+source:
+    sourceType: inline
+schemaVersion: v0
+env:
+    - name: REDIS_HOST
+      value: my-release-redis-master.redis.svc.cluster.local
+    - name: REDIS_PORT
+      value: "6379"
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: my-release-redis
+          key: redis-password

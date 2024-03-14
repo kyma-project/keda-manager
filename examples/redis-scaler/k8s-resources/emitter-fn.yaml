@@ -1,0 +1,33 @@
+---
+apiVersion: serverless.kyma-project.io/v1alpha2
+kind: Function
+metadata:
+    creationTimestamp: null
+    labels:
+        app.kubernetes.io/name: emitter-fn
+    name: emitter-fn
+    namespace: redis
+spec:
+    env:
+        - name: REDIS_HOST
+          value: my-release-redis-master.redis.svc.cluster.local
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+                key: redis-password
+                name: my-release-redis
+    runtime: nodejs18
+    source:
+        inline:
+            dependencies: |
+                {
+                  "name": "emitter-fn",
+                  "version": "0.0.1",
+                  "dependencies": {
+                    "redis": "^4.6.13"
+                  }
+                }
+            source: "const { createClient } = require('redis');\nconst LIST = \"demo\"\n\n\nmodule.exports = {\n  main: async function (event, _) {\n\n    const port = process.env[\"REDIS_PORT\"];\n    const host = process.env[\"REDIS_HOST\"];\n    const password = process.env[\"REDIS_PASSWORD\"];\n\n    const client = createClient({\n      password,\n      socket: {\n          host,\n          port,\n      }\n    });\n\n    client.on('error', err => console.log('Redis Client Error', err));\n\n    await client.connect();\n\n    var msg=event.extensions.request.body.msg\n    console.log(msg); \n    const res1 = await client.lPush(LIST, msg);\n    console.log(res1); \n\n  }\n}\n\n"
+
