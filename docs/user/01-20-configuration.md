@@ -5,7 +5,7 @@ See how to configure the **logging.level** or resource consumption.
 
 - To change the logging level, choose one of the accepted values: `debug`, `info`, or `error`. For example:
 
-   ```bash
+   ```yaml
    spec:
      logging:
        operator:
