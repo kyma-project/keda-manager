@@ -7,7 +7,6 @@ Similarly to the operators, the `keda-admission-webhooks` workload stays idle mo
 
 The last workload, `keda-operator-metrics-apiserver`, continuously serves metrics for the Kubernetes autoscaling components. Here, the consumption is the highest, but in the case of one or two active KEDA scalers, it stays at 5-7 millicores of CPU time.
 
-
 | Name                            | CPU (cores) | Memory (bytes) |
 |---------------------------------|-------------|----------------|
 | keda-admission-webhooks         | 1m          | 10Mi           |

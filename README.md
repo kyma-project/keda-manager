@@ -1,10 +1,11 @@
 # Keda Manager
 
 ## Status
+
 ![GitHub tag checks state](https://img.shields.io/github/checks-status/kyma-project/keda-manager/main?label=keda-operator&link=https%3A%2F%2Fgithub.com%2Fkyma-project%2Fkeda-manager%2Fcommits%2Fmain)
 [![REUSE status](https://api.reuse.software/badge/github.com/kyma-project/keda-manager)](https://api.reuse.software/info/github.com/kyma-project/keda-manager)
 
-## Overview 
+## Overview
 
 Keda Manager is an extension to the Kyma runtime. It allows users to install KEDA. It follows the Kubernetes operator pattern to manage the lifecycle of the KEDA installation based on the existence and the content of the dedicated Keda custom resource (CR).
 
@@ -29,7 +30,6 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
 
 ### Procedure
 
-
 1. To install KEDA, you must install Keda Manager first. Apply the following script:
 
    ```bash
@@ -42,6 +42,7 @@ KEDA is a flexible Event Driven Autoscaler for the Kubernetes workloads. It exte
    ```bash
    kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml
    ```
+
    You should get a result similar to this example:
 
    ```bash

@@ -1,15 +1,15 @@
-# Install Keda Manager 
+# Install Keda Manager
 
 - [Install Keda Manager](#install-keda-manager)
-  - [Install Keda Manager from the local sources](#install-keda-manager-from-the-local-sources)
+  - [Install Keda Manager From the Local Sources](#install-keda-manager-from-the-local-sources)
     - [Prerequisites](#prerequisites)
     - [Procedure](#procedure)
-  - [Make targets to run Keda Manager locally on k3d](#make-targets-to-run-keda-manager-locally-on-k3d)
+  - [Make Targets To Run Keda Manager Locally on k3d](#make-targets-to-run-keda-manager-locally-on-k3d)
     - [Run Keda Manager](#run-keda-manager)
 
 Learn how to install the Keda module locally (on k3d) or on your remote cluster.
 
-## Install Keda Manager From the Local Sources 
+## Install Keda Manager From the Local Sources
 
 ### Prerequisites
 
@@ -35,6 +35,7 @@ Run the following commands to deploy Keda Manager in a target Kubernetes cluster
 2. Set the Keda Manager image name.
 
    > NOTE: You can use the local k3d registry or your Docker Hub account to push intermediate images.  
+
    ```bash
    export IMG=<DOCKER_USERNAME>/custom-keda-manager:0.0.2
    ```
@@ -44,11 +45,13 @@ Run the following commands to deploy Keda Manager in a target Kubernetes cluster
    ```bash
    make test
    ```
+
 4. Build and push the image to the registry.
 
    ```bash
    make module-image
    ```
+
 5. Create a target namespace.
 
    ```bash
@@ -69,7 +72,7 @@ Run the following commands to deploy Keda Manager in a target Kubernetes cluster
 
    You should get a result similar to this example:
 
-   ```
+   ```bash
    NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
    keda-manager            1/1     1            1           1m
    ```
@@ -86,10 +89,11 @@ Thanks to that, you don't need to push the Keda module images to a remote regist
    ```bash
    git clone https://github.com/kyma-project/keda-manager.git && cd keda-manager/
    ```
+
 2. Build the manager locally and run it in the k3d cluster.
 
    ```bash
    make -C hack/local run
    ```
-3. If you want to clean up the k3d cluster, use the `make -C hack/local stop` make target.
 
+3. If you want to clean up the k3d cluster, use the `make -C hack/local stop` make target.
