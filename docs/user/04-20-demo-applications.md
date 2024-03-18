@@ -1,4 +1,4 @@
-# Demo applications
+# Demo Application
 
 ## Keda CPU Scaler Example
 
