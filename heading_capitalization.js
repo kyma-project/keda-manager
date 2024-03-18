@@ -10,7 +10,7 @@ module.exports = [{
       var wordsInHeading = headingTokenContent.split(' ');
 
       for (var i = 0; i < wordsInHeading.length; i++) {
-        if (wordsInHeading[i].length >= 4 && wordsInHeading[i] &&
+        if (wordsInHeading[i].length > 4 && wordsInHeading[i] &&
           wordsInHeading[i].charAt(0) !== wordsInHeading[i].charAt(0).toUpperCase()) {
           var capitalizedWord = wordsInHeading[i].charAt(0).toUpperCase() + wordsInHeading[i].slice(1);
           var detailMessage = "Change " + "'" + wordsInHeading[i] + "'" + " to " + "'" + capitalizedWord + "'";
