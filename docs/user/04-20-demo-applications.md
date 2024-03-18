@@ -8,7 +8,7 @@ This demo application shows how to scale the Kubernetes workloads using KEDA API
 
 See the KEDA documentation:
 
-- [API of Scaled Object Custom Resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
+- [API of the ScaledObject custom resource](https://keda.sh/docs/latest/concepts/scaling-deployments/#scaledobject-spec)
 - [Available scalers](https://keda.sh/docs/latest/scalers/)
 
 The KEDA demo application consists of:
