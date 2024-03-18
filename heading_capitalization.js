@@ -13,7 +13,7 @@ module.exports = [{
         if (wordsInHeading[i].length >= 4 && wordsInHeading[i] &&
           wordsInHeading[i].charAt(0) !== wordsInHeading[i].charAt(0).toUpperCase()) {
           var capitalizedWord = wordsInHeading[i].charAt(0).toUpperCase() + wordsInHeading[i].slice(1);
-          var detailMessage = "Word " + "'" + wordsInHeading[i] + "'" + " should be changed to " + "'" + capitalizedWord + "'";
+          var detailMessage = "Change " + "'" + wordsInHeading[i] + "'" + " to " + "'" + capitalizedWord + "'";
 
           onError({
             "lineNumber": heading.lineNumber,
