@@ -6,15 +6,116 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator
     
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
 automountServiceAccountToken: true
+---
+# Source: keda/templates/crds/crd-cloudeventsources.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  labels:
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.13.2
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
+  name: cloudeventsources.eventing.keda.sh
+spec:
+  group: eventing.keda.sh
+  names:
+    kind: CloudEventSource
+    listKind: CloudEventSourceList
+    plural: cloudeventsources
+    singular: cloudeventsource
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Active")].status
+      name: Active
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: CloudEventSource defines how a KEDA event will be sent to event
+          sink
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CloudEventSourceSpec defines the spec of CloudEventSource
+            properties:
+              clusterName:
+                type: string
+              destination:
+                description: Destination defines the various ways to emit events
+                properties:
+                  http:
+                    properties:
+                      uri:
+                        type: string
+                    required:
+                    - uri
+                    type: object
+                type: object
+            required:
+            - destination
+            type: object
+          status:
+            description: CloudEventSourceStatus defines the observed state of CloudEventSource
+            properties:
+              conditions:
+                description: Conditions an array representation to store multiple
+                  Conditions
+                items:
+                  description: Condition to store the condition state
+                  properties:
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 ---
 # Source: keda/templates/crds/crd-clustertriggerauthentications.yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -24,12 +125,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
   name: clustertriggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -85,6 +185,127 @@ spec:
           spec:
             description: TriggerAuthenticationSpec defines the various ways to authenticate
             properties:
+              awsSecretManager:
+                description: AwsSecretManager is used to authenticate using AwsSecretManager
+                properties:
+                  credentials:
+                    properties:
+                      accessKey:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                      accessSecretKey:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                      accessToken:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                    required:
+                    - accessKey
+                    - accessSecretKey
+                    type: object
+                  podIdentity:
+                    description: AuthPodIdentity allows users to select the platform
+                      native identity mechanism
+                    properties:
+                      identityId:
+                        type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
+                      provider:
+                        description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
+                        type: string
+                    required:
+                    - provider
+                    type: object
+                  region:
+                    type: string
+                  secrets:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        parameter:
+                          type: string
+                        versionId:
+                          type: string
+                        versionStage:
+                          type: string
+                      required:
+                      - name
+                      - parameter
+                      type: object
+                    type: array
+                required:
+                - secrets
+                type: object
               azureKeyVault:
                 description: AzureKeyVault is used to authenticate using Azure Key
                   Vault
@@ -137,8 +358,27 @@ spec:
                     properties:
                       identityId:
                         type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
                       provider:
                         description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
                         type: string
                     required:
                     - provider
@@ -163,6 +403,23 @@ spec:
                 - secrets
                 - vaultUri
                 type: object
+              configMapTargetRef:
+                items:
+                  description: AuthConfigMapTargetRef is used to authenticate using
+                    a reference to a config map
+                  properties:
+                    key:
+                      type: string
+                    name:
+                      type: string
+                    parameter:
+                      type: string
+                  required:
+                  - key
+                  - name
+                  - parameter
+                  type: object
+                type: array
               env:
                 items:
                   description: AuthEnvironment is used to authenticate using environment
@@ -179,6 +436,81 @@ spec:
                   - parameter
                   type: object
                 type: array
+              gcpSecretManager:
+                properties:
+                  credentials:
+                    properties:
+                      clientSecret:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                    required:
+                    - clientSecret
+                    type: object
+                  podIdentity:
+                    description: AuthPodIdentity allows users to select the platform
+                      native identity mechanism
+                    properties:
+                      identityId:
+                        type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
+                      provider:
+                        description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
+                        type: string
+                    required:
+                    - provider
+                    type: object
+                  secrets:
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        parameter:
+                          type: string
+                        version:
+                          type: string
+                      required:
+                      - id
+                      - parameter
+                      type: object
+                    type: array
+                required:
+                - secrets
+                type: object
               hashiCorpVault:
                 description: HashiCorpVault is used to authenticate using Hashicorp
                   Vault
@@ -215,6 +547,26 @@ spec:
                           type: string
                         path:
                           type: string
+                        pkiData:
+                          properties:
+                            altNames:
+                              type: string
+                            commonName:
+                              type: string
+                            format:
+                              type: string
+                            ipSans:
+                              type: string
+                            otherSans:
+                              type: string
+                            ttl:
+                              type: string
+                            uriSans:
+                              type: string
+                          type: object
+                        type:
+                          description: VaultSecretType defines the type of vault secret
+                          type: string
                       required:
                       - key
                       - parameter
@@ -232,8 +584,27 @@ spec:
                 properties:
                   identityId:
                     type: string
+                  identityOwner:
+                    description: IdentityOwner configures which identity has to be
+                      used during auto discovery, keda or the scaled workload. Mutually
+                      exclusive with roleArn
+                    enum:
+                    - keda
+                    - workload
+                    type: string
                   provider:
                     description: PodIdentityProvider contains the list of providers
+                    enum:
+                    - azure
+                    - azure-workload
+                    - gcp
+                    - aws
+                    - aws-eks
+                    - aws-kiam
+                    type: string
+                  roleArn:
+                    description: RoleArn sets the AWS RoleArn to be used. Mutually
+                      exclusive with IdentityOwner
                     type: string
                 required:
                 - provider
@@ -281,12 +652,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
   name: scaledjobs.keda.sh
 spec:
   group: keda.sh
@@ -8661,12 +9031,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
   name: scaledobjects.keda.sh
 spec:
   group: keda.sh
@@ -9069,12 +9438,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.13.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
   name: triggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -9129,6 +9497,127 @@ spec:
           spec:
             description: TriggerAuthenticationSpec defines the various ways to authenticate
             properties:
+              awsSecretManager:
+                description: AwsSecretManager is used to authenticate using AwsSecretManager
+                properties:
+                  credentials:
+                    properties:
+                      accessKey:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                      accessSecretKey:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                      accessToken:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                    required:
+                    - accessKey
+                    - accessSecretKey
+                    type: object
+                  podIdentity:
+                    description: AuthPodIdentity allows users to select the platform
+                      native identity mechanism
+                    properties:
+                      identityId:
+                        type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
+                      provider:
+                        description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
+                        type: string
+                    required:
+                    - provider
+                    type: object
+                  region:
+                    type: string
+                  secrets:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        parameter:
+                          type: string
+                        versionId:
+                          type: string
+                        versionStage:
+                          type: string
+                      required:
+                      - name
+                      - parameter
+                      type: object
+                    type: array
+                required:
+                - secrets
+                type: object
               azureKeyVault:
                 description: AzureKeyVault is used to authenticate using Azure Key
                   Vault
@@ -9181,8 +9670,27 @@ spec:
                     properties:
                       identityId:
                         type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
                       provider:
                         description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
                         type: string
                     required:
                     - provider
@@ -9207,6 +9715,23 @@ spec:
                 - secrets
                 - vaultUri
                 type: object
+              configMapTargetRef:
+                items:
+                  description: AuthConfigMapTargetRef is used to authenticate using
+                    a reference to a config map
+                  properties:
+                    key:
+                      type: string
+                    name:
+                      type: string
+                    parameter:
+                      type: string
+                  required:
+                  - key
+                  - name
+                  - parameter
+                  type: object
+                type: array
               env:
                 items:
                   description: AuthEnvironment is used to authenticate using environment
@@ -9223,6 +9748,81 @@ spec:
                   - parameter
                   type: object
                 type: array
+              gcpSecretManager:
+                properties:
+                  credentials:
+                    properties:
+                      clientSecret:
+                        properties:
+                          valueFrom:
+                            properties:
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            required:
+                            - secretKeyRef
+                            type: object
+                        required:
+                        - valueFrom
+                        type: object
+                    required:
+                    - clientSecret
+                    type: object
+                  podIdentity:
+                    description: AuthPodIdentity allows users to select the platform
+                      native identity mechanism
+                    properties:
+                      identityId:
+                        type: string
+                      identityOwner:
+                        description: IdentityOwner configures which identity has to
+                          be used during auto discovery, keda or the scaled workload.
+                          Mutually exclusive with roleArn
+                        enum:
+                        - keda
+                        - workload
+                        type: string
+                      provider:
+                        description: PodIdentityProvider contains the list of providers
+                        enum:
+                        - azure
+                        - azure-workload
+                        - gcp
+                        - aws
+                        - aws-eks
+                        - aws-kiam
+                        type: string
+                      roleArn:
+                        description: RoleArn sets the AWS RoleArn to be used. Mutually
+                          exclusive with IdentityOwner
+                        type: string
+                    required:
+                    - provider
+                    type: object
+                  secrets:
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        parameter:
+                          type: string
+                        version:
+                          type: string
+                      required:
+                      - id
+                      - parameter
+                      type: object
+                    type: array
+                required:
+                - secrets
+                type: object
               hashiCorpVault:
                 description: HashiCorpVault is used to authenticate using Hashicorp
                   Vault
@@ -9259,6 +9859,26 @@ spec:
                           type: string
                         path:
                           type: string
+                        pkiData:
+                          properties:
+                            altNames:
+                              type: string
+                            commonName:
+                              type: string
+                            format:
+                              type: string
+                            ipSans:
+                              type: string
+                            otherSans:
+                              type: string
+                            ttl:
+                              type: string
+                            uriSans:
+                              type: string
+                          type: object
+                        type:
+                          description: VaultSecretType defines the type of vault secret
+                          type: string
                       required:
                       - key
                       - parameter
@@ -9276,8 +9896,27 @@ spec:
                 properties:
                   identityId:
                     type: string
+                  identityOwner:
+                    description: IdentityOwner configures which identity has to be
+                      used during auto discovery, keda or the scaled workload. Mutually
+                      exclusive with roleArn
+                    enum:
+                    - keda
+                    - workload
+                    type: string
                   provider:
                     description: PodIdentityProvider contains the list of providers
+                    enum:
+                    - azure
+                    - azure-workload
+                    - gcp
+                    - aws
+                    - aws-eks
+                    - aws-kiam
+                    type: string
+                  roleArn:
+                    description: RoleArn sets the AWS RoleArn to be used. Mutually
+                      exclusive with IdentityOwner
                     type: string
                 required:
                 - provider
@@ -9323,12 +9962,12 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
 rules:
 - apiGroups:
@@ -9336,6 +9975,13 @@ rules:
   resources:
   - configmaps
   - configmaps/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - events
   verbs:
   - '*'
@@ -9348,6 +9994,13 @@ rules:
   - services
   verbs:
   - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - limitranges
+  verbs:
   - list
   - watch
 - apiGroups:
@@ -9368,7 +10021,11 @@ rules:
   resources:
   - '*/scale'
   verbs:
-  - '*'
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -9410,9 +10067,10 @@ rules:
   verbs:
   - '*'
 - apiGroups:
-  - coordination.k8s.io
+  - eventing.keda.sh
   resources:
-  - leases
+  - cloudeventsources
+  - cloudeventsources/status
   verbs:
   - '*'
 - apiGroups:
@@ -9452,12 +10110,12 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-external-metrics-reader    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator-external-metrics-reader
 rules:
 - apiGroups:
@@ -9473,12 +10131,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9495,12 +10153,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-system-auth-delegator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator-system-auth-delegator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9517,12 +10175,12 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-hpa-controller-external-metrics    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator-hpa-controller-external-metrics
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -9539,15 +10197,21 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
 rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - '*'
 - apiGroups:
   - ""
   resources:
@@ -9567,12 +10231,12 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
 roleRef:
@@ -9590,12 +10254,12 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-auth-reader    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator-auth-reader
   namespace: kube-system
 roleRef:
@@ -9613,12 +10277,12 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
 spec:
@@ -9636,12 +10300,12 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator-metrics-apiserver
     app: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
 spec:
@@ -9663,17 +10327,17 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-admission-webhooks
   namespace: kyma-system
 spec:
   ports:
-  - name: http
+  - name: https
     port: 443
     protocol: TCP
     targetPort: 9443
@@ -9690,12 +10354,12 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
   replicas: 1
@@ -9708,12 +10372,12 @@ spec:
         app: keda-operator
         name: keda-operator
         app.kubernetes.io/name: keda-operator        
-        helm.sh/chart: keda-2.12.0
+        helm.sh/chart: keda-2.13.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.12.0
+        app.kubernetes.io/version: 2.13.1
+        app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9729,11 +10393,12 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.12.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.13.1"
           command:
           - "/keda"
           args:
           - "--leader-elect"
+          - "--disable-compression=true"
           - "--zap-log-level=info"
           - "--zap-encoder=console"
           - "--zap-time-encoding=rfc3339"
@@ -9743,7 +10408,9 @@ spec:
           - "--operator-service-name=keda-operator"
           - "--metrics-server-service-name=keda-operator-metrics-apiserver"
           - "--webhooks-service-name=keda-admission-webhooks"
+          - "--k8s-cluster-name=kubernetes-default"
           - "--k8s-cluster-domain=cluster.local"
+          - "--enable-prometheus-metrics=false"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -9764,8 +10431,8 @@ spec:
             failureThreshold: 3
             successThreshold: 1
           ports:
-          - containerPort: 8080
-            name: http
+          - containerPort: 9666
+            name: metricsservice
             protocol: TCP
           env:
             - name: WATCH_NAMESPACE
@@ -9813,12 +10480,12 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
   replicas: 1
@@ -9830,12 +10497,12 @@ spec:
       labels:
         app: keda-operator-metrics-apiserver
         app.kubernetes.io/name: keda-operator-metrics-apiserver        
-        helm.sh/chart: keda-2.12.0
+        helm.sh/chart: keda-2.13.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.12.0
+        app.kubernetes.io/version: 2.13.1
+        app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9851,7 +10518,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.12.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.13.1"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -9889,6 +10556,8 @@ spec:
           - --port=8080
           - --secure-port=6443
           - --logtostderr=true
+          - --stderrthreshold=ERROR
+          - --disable-compression=true
           - --metrics-service-address=keda-operator.kyma-system.svc.cluster.local:9666
           - --client-ca-file=/certs/ca.crt
           - --tls-cert-file=/certs/tls.crt
@@ -9933,12 +10602,12 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
   replicas: 1
@@ -9951,12 +10620,12 @@ spec:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
         app.kubernetes.io/name: keda-admission-webhooks        
-        helm.sh/chart: keda-2.12.0
+        helm.sh/chart: keda-2.13.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/instance: keda
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.12.0
+        app.kubernetes.io/version: 2.13.1
+        app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -9972,7 +10641,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.12.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.13.1"
           command:
           - /keda-admission-webhooks
           args:
@@ -10042,12 +10711,12 @@ kind: APIService
 metadata:
   labels:
     app.kubernetes.io/name: v1beta1.external.metrics.k8s.io    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: v1beta1.external.metrics.k8s.io
 spec:
   service:
@@ -10058,7 +10727,6 @@ spec:
   version: v1beta1
   groupPriorityMinimum: 100
   versionPriority: 100
-  insecureSkipTLSVerify: false
 ---
 # Source: keda/templates/webhooks/validatingconfiguration.yaml
 apiVersion: admissionregistration.k8s.io/v1
@@ -10066,12 +10734,12 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.12.0
+    helm.sh/chart: keda-2.13.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: keda
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.12.0
+    app.kubernetes.io/version: 2.13.1
+    app.kubernetes.io/instance: keda
   name: keda-admission
 webhooks:
 - admissionReviewVersions:
@@ -10096,5 +10764,53 @@ webhooks:
     - UPDATE
     resources:
     - scaledobjects
+  sideEffects: None
+  timeoutSeconds: 10
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: keda-admission-webhooks
+      namespace: kyma-system
+      path: /validate-keda-sh-v1alpha1-triggerauthentication
+  failurePolicy: Ignore
+  matchPolicy: Equivalent
+  name: vstriggerauthentication.kb.io
+  namespaceSelector: {}
+  objectSelector: {}
+  rules:
+  - apiGroups:
+    - keda.sh
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - triggerauthentications
+  sideEffects: None
+  timeoutSeconds: 10
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: keda-admission-webhooks
+      namespace: kyma-system
+      path: /validate-keda-sh-v1alpha1-clustertriggerauthentication
+  failurePolicy: Ignore
+  matchPolicy: Equivalent
+  name: vsclustertriggerauthentication.kb.io
+  namespaceSelector: {}
+  objectSelector: {}
+  rules:
+  - apiGroups:
+    - keda.sh
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clustertriggerauthentications
   sideEffects: None
   timeoutSeconds: 10

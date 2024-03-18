@@ -31,6 +31,13 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - limitranges
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - namespaces
   verbs:
   - create
@@ -128,6 +135,13 @@ rules:
   - coordination.k8s.io
   resources:
   - leases
+  verbs:
+  - '*'
+- apiGroups:
+  - eventing.keda.sh
+  resources:
+  - cloudeventsources
+  - cloudeventsources/status
   verbs:
   - '*'
 - apiGroups:
