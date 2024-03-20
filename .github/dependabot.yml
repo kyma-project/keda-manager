@@ -2,19 +2,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    labels:
-      - "area/dependency"
-      - "kind/chore"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "actions"
-      include: "scope"
-    ignore:
-      - dependency-name: "gaurav-nelson/github-action-markdown-link-check"
-
   - package-ecosystem: "docker"
     directory: "/"
     labels:
