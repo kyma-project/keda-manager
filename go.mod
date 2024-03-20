@@ -1,6 +1,6 @@
 module github.com/kyma-project/keda-manager
 
-go 1.18
+go 1.22
 
 replace golang.org/x/net v0.2.0 => golang.org/x/net v0.7.0
 
