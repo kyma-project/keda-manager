@@ -3,7 +3,7 @@
 MODULE_VERSION ?= 0.0.0
 
 # Image URL to use all building/pushing image targets
-IMG ?= op-skr-registry.localhost:8888/unsigned/manager-images/keda-manager:$(MODULE_VERSION)
+IMG ?= europe-docker.pkg.dev/kyma-project/prod/keda-manager:$(MODULE_VERSION)
 
 # Operating system architecture
 OS_ARCH ?= $(shell uname -m)
