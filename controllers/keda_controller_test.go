@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
-	rtypes "github.com/kyma-project/module-manager/pkg/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -113,7 +112,7 @@ func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploym
 	Eventually(h.createGetKedaStateFunc(kedaName)).
 		WithPolling(time.Second * 2).
 		WithTimeout(time.Second * 20).
-		Should(Equal(rtypes.StateReady))
+		Should(Equal(v1alpha1.StateReady))
 }
 
 func shouldDeleteKeda(h testHelper, kedaName string) {
@@ -121,7 +120,7 @@ func shouldDeleteKeda(h testHelper, kedaName string) {
 	Expect(h.getKedaCount()).To(Equal(1))
 	kedaState, err := h.getKedaState(kedaName)
 	Expect(err).To(BeNil())
-	Expect(kedaState).To(Equal(rtypes.StateReady))
+	Expect(kedaState).To(Equal(v1alpha1.StateReady))
 
 	// act
 	var keda v1alpha1.Keda
@@ -220,14 +219,14 @@ func (h *testHelper) getKedaCount() int {
 	return len(objectList.Items)
 }
 
-func (h *testHelper) createGetKedaStateFunc(kedaName string) func() (rtypes.State, error) {
-	return func() (rtypes.State, error) {
+func (h *testHelper) createGetKedaStateFunc(kedaName string) func() (string, error) {
+	return func() (string, error) {
 		return h.getKedaState(kedaName)
 	}
 }
 
-func (h *testHelper) getKedaState(kedaName string) (rtypes.State, error) {
-	var emptyState = rtypes.State("")
+func (h *testHelper) getKedaState(kedaName string) (string, error) {
+	var emptyState = ""
 	var keda v1alpha1.Keda
 	key := types.NamespacedName{
 		Name:      kedaName,
@@ -238,7 +237,7 @@ func (h *testHelper) getKedaState(kedaName string) (rtypes.State, error) {
 		return emptyState, err
 	}
 	// FIXME make sure to fix this
-	return rtypes.State(keda.Status.State), nil
+	return keda.Status.State, nil
 }
 
 func (h *testHelper) createGetKubernetesObjectFunc(serviceAccountName string, obj client.Object) func() (bool, error) {
