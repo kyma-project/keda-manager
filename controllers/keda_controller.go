@@ -33,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 type KedaReconciler interface {
@@ -48,9 +47,9 @@ type kedaReconciler struct {
 	reconciler.K8s
 }
 
-func (r *kedaReconciler) mapFunction(object client.Object) []reconcile.Request {
+func (r *kedaReconciler) mapFunction(ctx context.Context, object client.Object) []reconcile.Request {
 	var kedas v1alpha1.KedaList
-	err := r.List(context.Background(), &kedas)
+	err := r.List(ctx, &kedas)
 
 	if apierrors.IsNotFound(err) {
 		return nil
@@ -116,7 +115,7 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watchFn := func(u unstructured.Unstructured) {
 		r.log.With("gvk", u.GroupVersionKind().String()).Infoln("adding watcher")
 		b = b.Watches(
-			&source.Kind{Type: &u},
+			&u,
 			handler.EnqueueRequestsFromMapFunc(r.mapFunction),
 			builder.WithPredicates(
 				predicate.And(
