@@ -1,6 +1,6 @@
 module github.com/kyma-project/keda-manager/test
 
-go 1.22
+go 1.20
 
 require (
 	github.com/avast/retry-go/v4 v4.3.2
