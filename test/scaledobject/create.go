@@ -4,12 +4,12 @@ import (
 	"github.com/kedacore/keda/v2/apis/keda/v1alpha1"
 	"github.com/kyma-project/keda-manager/test/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 var (
-	MinReplicaCount = pointer.Int32(2)
-	MaxReplicaCount = pointer.Int32(2)
+	MinReplicaCount = ptr.To[int32](2)
+	MaxReplicaCount = ptr.To[int32](2)
 )
 
 func Create(utils *utils.TestUtils) error {
