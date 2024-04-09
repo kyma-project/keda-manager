@@ -160,14 +160,14 @@ func requireEqualFunc(t *testing.T, expected, actual stateFn) {
 
 	// check package paths (prefix)
 	require.Equal(t,
-		strings.Join(expectedElems[0:len(expectedElems)-2], "/"),
-		strings.Join(actualElems[0:len(actualElems)-2], "/"),
+		strings.Join(expectedElems[0:len(expectedElems)-3], "/"),
+		strings.Join(actualElems[0:len(actualElems)-3], "/"),
 	)
 
 	// check direct fn names (suffix)
 	require.Equal(t,
-		getDirectFnName(expectedElems[len(expectedElems)-1]),
-		getDirectFnName(actualElems[len(actualElems)-1]),
+		getDirectFnName(expectedElems[len(expectedElems)-2]),
+		getDirectFnName(actualElems[len(actualElems)-2]),
 	)
 }
 
