@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/kedacore/keda/v2 v2.13.1
 	github.com/onsi/ginkgo/v2 v2.17.1
-	github.com/onsi/gomega v1.31.0
+	github.com/onsi/gomega v1.32.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1
