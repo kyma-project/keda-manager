@@ -1,7 +1,7 @@
 # Build the manager binary
 FROM golang:1.22.2 as builder
 
-WORKDIR /workspace
+WORKDIR /app
 
 # Copy the Go Modules manifests
 COPY go.mod go.sum ./
@@ -21,8 +21,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /
-COPY --chown=65532:65532 --from=builder /workspace/manager .
-COPY --chown=65532:65532 --from=builder /workspace/keda.yaml .
+COPY --chown=65532:65532 --from=builder /app/manager .
+COPY --chown=65532:65532 --from=builder /app/keda.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
