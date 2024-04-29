@@ -132,7 +132,7 @@ CONTROLLER_TOOLS_VERSION ?= v0.14.0
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	test "$(${LOCALBIN}/controller-gen --version)" = "Version: ${CONTROLLER_TOOLS_VERSION}" || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 ########## Envtest ###########
 ENVTEST ?= $(LOCALBIN)/setup-envtest
