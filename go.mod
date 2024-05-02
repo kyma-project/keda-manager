@@ -3,7 +3,7 @@ module github.com/kyma-project/keda-manager
 go 1.22
 
 require (
-	github.com/avast/retry-go/v4 v4.5.1
+	github.com/avast/retry-go/v4 v4.6.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/kedacore/keda/v2 v2.13.1
