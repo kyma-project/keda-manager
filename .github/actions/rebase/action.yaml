@@ -13,6 +13,8 @@ runs:
       shell: bash
 
     # Update origin/main branch locally to cover case when repo is not fully cloned
+    # for example when using `actions/checkout@v4` action with `fetch-depth` flag other than 0
+    # read more: https://github.com/actions/checkout?tab=readme-ov-file#usage
     - name: Update origin/main
       run: |
         git fetch origin main
