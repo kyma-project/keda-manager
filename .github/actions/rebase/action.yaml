@@ -1,0 +1,31 @@
+name: 'Rebase'
+description: 'Action for rebasing to the main branch'
+
+runs:
+  using: 'composite'
+  steps:
+
+    - name: Setup git identity
+      run: |
+        git config --global user.email "rebase@action.com"
+        git config --global user.name "Rebase Action"
+      shell: bash
+
+    - name: Update origin/main
+      run: |
+        git fetch origin main
+        git checkout --track origin/main
+        git pull --unshallow origin main
+
+        git switch --detach -
+      shell: bash
+
+    - name: Rebase to main
+      run: |
+        git rebase main
+      shell: bash
+
+    - name: Print branch log
+      run: |
+        git log origin/main~1..
+      shell: bash

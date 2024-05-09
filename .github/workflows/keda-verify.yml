@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/rebase
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.SETUP_GO_VERSION }}
@@ -37,6 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/rebase
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.SETUP_GO_VERSION }}
@@ -49,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/rebase
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.SETUP_GO_VERSION }}
