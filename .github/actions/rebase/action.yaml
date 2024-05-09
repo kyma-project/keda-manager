@@ -5,12 +5,14 @@ runs:
   using: 'composite'
   steps:
 
+    # Setup identity to avoid errors when git is trying to rebase without identity set
     - name: Setup git identity
       run: |
         git config --global user.email "rebase@action.com"
         git config --global user.name "Rebase Action"
       shell: bash
 
+    # Update origin/main branch locally to cover case when repo is not fully cloned
     - name: Update origin/main
       run: |
         git fetch origin main
