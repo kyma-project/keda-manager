@@ -22,7 +22,8 @@ runs:
         git checkout -B main
         git pull --unshallow origin main
 
-        git switch --detach -
+        # go back to the HEAD commit
+        git switch --detach ${{ github.sha }}
       shell: bash
 
     - name: Rebase to main
