@@ -1,4 +1,4 @@
-name: "Create release"
+name: create release
 
 env:
   SETUP_GO_VERSION: '1.22'

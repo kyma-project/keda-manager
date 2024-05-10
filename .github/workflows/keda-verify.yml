@@ -1,4 +1,4 @@
-name: Keda verify
+name: keda verify
 
 env:
   SETUP_GO_VERSION: '1.22'
