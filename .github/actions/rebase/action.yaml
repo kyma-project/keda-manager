@@ -18,7 +18,8 @@ runs:
     - name: Update origin/main
       run: |
         git fetch origin main
-        git checkout --track origin/main
+        git checkout origin/main
+        git checkout -B main
         git pull --unshallow origin main
 
         git switch --detach -
