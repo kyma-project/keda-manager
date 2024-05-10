@@ -1,0 +1,17 @@
+name: upgrade tests
+
+on:
+  push:
+    branches: [ "main", "release-*" ]
+
+jobs:
+  upgrade-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+      - uses: ./.github/actions/create-k3d-cluster
+      - name: run test
+        run: make -C hack/ci upgrade-test
+        env:
+          IMG: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.sha }}
