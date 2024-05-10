@@ -1,0 +1,26 @@
+# CI/CD
+
+## Pipelines Running on Pull Requests
+
+The following CI jobs are part of the development cycle. They verify the functional correctness of Keda Manager but do not verify the contract concerning Kyma's Lifecycle Manager.
+
+| Name                                                                                                                                                    | Required | Description |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-------------|
+| [`Keda verify / lint`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/keda-verify.yml#L19)                                    |true|Responsible for the Keda Operator linting and static code analysis.|
+| [`markdown / documentation-link-check`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/markdown.yaml) |true|Checks if there are any broken links in `.md` files included in the pull request .|
+| [`Keda verify / unit-test`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/keda-verify.yml#L29)                               |true|Runs basic unit tests of Keda Operator's logic.|
+| [`Keda verify / integration-test`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/keda-verify.yml#L38)                        |true|Runs the basic functionality integration test suite for the Keda Operator in a k3d cluster.|
+| [`pre-keda-manager-operator-build`](https://github.com/kyma-project/test-infra/blob/main/templates/data/keda-manager.yaml#L43)                          |true|Builds Keda Operator's image and pushes it to the `dev` registry.|
+| `pre-keda-manager-presubmit-scanner`                                                                                                                    |true|Checks if the repository contains any vulnerabilities.|
+
+## Pipelines Running on `main` Branch
+
+The following CI jobs regenerate Keda Manager’s artifacts and initiate integration tests of Keda Manager to verify the contract with respect to Kyma’s Lifecycle Manager.
+
+| Name | Description |
+|------|-------------|
+|[`Keda verify / upgrade-test (push)`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/keda-verify.yml#L58)|Installs Keda module, using ModuleTemplate and Lifecycle Manager, from the latest released version and upgrades it to the version from `main`. Verifies reconciliation status on Kyma CR and runs smoke integration tests of KEDA.|
+
+## CI/CD Jobs Running on a Schedule
+
+- [`markdown / documentation-link-check`](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/markdown.yaml) - Runs Markdown link check every day at 05:00 AM.
