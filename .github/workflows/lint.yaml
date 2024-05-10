@@ -1,0 +1,20 @@
+name: lint
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'examples/**'
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rebase
+      - uses: ./.github/actions/setup-go
+      - uses: golangci/golangci-lint-action@v4.0.0
+        with:
+          version: latest
+          working-directory: '.'
