@@ -1,5 +1,5 @@
-name: 'Create single cluster'
-description: 'Action for creating single cluster'
+name: 'Create k3d cluster'
+description: 'Action for creating k3d cluster'
 
 runs:
   using: 'composite'
