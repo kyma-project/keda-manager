@@ -1,8 +1,11 @@
-name: PR Markdown Link Check
+name: markdown
 run-name: ${{github.event.pull_request.title}}
-on: [ pull_request ]
+on:
+    schedule:
+      - cron: "0 5 * * *" # Run everyday at 5:00 AM
+    pull_request:
 jobs:
-  markdown-link-check:
+  documentation-link-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,5 +17,3 @@ jobs:
           config-file: '.mlc.config.json'
           folder-path: '.'
           max-depth: -1
-          check-modified-files-only: 'yes'
-          base-branch: '${{ github.base_ref }}'

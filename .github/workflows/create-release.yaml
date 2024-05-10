@@ -1,7 +1,4 @@
-name: "Create release"
-
-env:
-  SETUP_GO_VERSION: '1.22'
+name: create release
 
 on:
   workflow_dispatch:
@@ -65,9 +62,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }} # checkout to latest branch changes ( by default this action checkouts to the SHA that triggers action )
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.SETUP_GO_VERSION }}
+      - uses: ./.github/actions/setup-go
 
       - name: Create changelog
         env:
