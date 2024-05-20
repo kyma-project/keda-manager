@@ -12,4 +12,4 @@ features:
     disableDelete: true
 description: >-
   {{[Keda CR](https://github.com/kyma-project/keda-manager/blob/main/docs/user/01-20-configuration.md)}}
-  configures keda installation.
+  configures the Keda module.
