@@ -13,7 +13,3 @@ The following CI jobs are part of the development cycle. They verify the functio
 
 - `markdown / documentation-link-check` - Checks if there are no broken links in `.md` files. For the configuration, see the [mlc.config.json](https://github.com/kyma-project/keda-manager/blob/main/mlc.config.json) and the [markdown.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/markdown.yaml) files.
 - `upgrade tests / upgrade-test`- Runs the upgrade integration test suite and verifies if the latest release can be successfully upgraded to the new (`main`) revision. For the configuration, see the [upgrade-tests.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/upgrade-tests.yaml) file.
-
-## CI/CD Jobs Running on a Schedule
-
-- `markdown / documentation-link-check` - Runs Markdown link check every day at 05:00 AM. For the configuration, see the [markdown.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/markdown.yaml) file.
