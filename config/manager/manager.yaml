@@ -17,6 +17,7 @@ spec:
       labels:
         control-plane: manager
     spec:
+      priorityClassName: "keda-manager-priority-class"
       securityContext:
         runAsNonRoot: true
         # TODO(user): For common cases that do not require escalating privileges
