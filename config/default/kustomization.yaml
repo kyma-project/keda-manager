@@ -16,6 +16,7 @@ commonLabels:
 resources:
 - ../crd
 - ../rbac
+- ../priority-class
 - ../manager
 - ../ui-extensions
 
