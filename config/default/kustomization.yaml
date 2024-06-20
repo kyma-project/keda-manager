@@ -10,13 +10,16 @@ namePrefix: keda-
 
 # Labels to add to all resources and selectors.
 commonLabels:
-  app.kubernetes.io/component: keda-manager.kyma-project.io
-
+  app.kubernetes.io/component: keda-manager
+  kyma-project.io/module: keda-manager
+  app.kubernetes.io/name: keda-manager
+  app.kubernetes.io/version: "1.1.0"
+  app.kubernetes.io/part-of: keda-manager
+  app.kubernetes.io/managed-by: kustomize
 
 resources:
-- ../crd
-- ../rbac
-- ../priority-class
-- ../manager
-- ../ui-extensions
-
+  - ../crd
+  - ../rbac
+  - ../priority-class
+  - ../manager
+  - ../ui-extensions
