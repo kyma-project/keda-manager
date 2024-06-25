@@ -170,6 +170,6 @@ func sidecarInjectionConfig(_ *v1alpha1.Keda) *sidecarConfig {
 }
 
 func priorityClassName(_ *v1alpha1.Keda) *string {
-	priorityClassName := "keda-manager-priority-class"
+	priorityClassName := "keda-priority-class"
 	return &priorityClassName
 }
