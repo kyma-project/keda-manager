@@ -8,14 +8,16 @@ namespace: kyma-system
 # field above.
 namePrefix: keda-
 
-# Labels to add to all resources and selectors.
-commonLabels:
-  app.kubernetes.io/component: keda-manager
-  kyma-project.io/module: keda-manager
-  app.kubernetes.io/name: keda-manager
-  app.kubernetes.io/version: "1.1.0"
-  app.kubernetes.io/part-of: keda-manager
-  app.kubernetes.io/managed-by: kustomize
+# Labels to add to all resources.
+labels:
+  - pairs:
+      app.kubernetes.io/component: keda-manager.kyma-project.io
+      kyma-project.io/module: keda-manager
+      app.kubernetes.io/name: keda-manager
+      app.kubernetes.io/version: "1.1.0"
+      app.kubernetes.io/part-of: keda-manager
+      app.kubernetes.io/managed-by: kustomize
+    includeSelectors: false
 
 resources:
   - ../crd
