@@ -89,6 +89,11 @@ func updateDeploymentSidecarInjection(deployment *appsv1.Deployment, config side
 	return nil
 }
 
+func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassName string) error {
+	deployment.Spec.Template.Spec.PriorityClassName = priorityClassName
+	return nil
+}
+
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingOperatorCfg) error {
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }

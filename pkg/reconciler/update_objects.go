@@ -37,8 +37,13 @@ func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateOperatorLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateOperatorResources(u)
+	next := buildSfnUpdateOperatorPriorityClass(u)
 	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+}
+
+func buildSfnUpdateOperatorPriorityClass(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateOperatorResources(u)
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, next)
 }
 
 func buildSfnUpdateOperatorResources(u *unstructured.Unstructured) stateFn {
@@ -70,8 +75,13 @@ func buildSfnUpdateMetricsSvrLogging(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateMetricsSvrLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateMetricsSvrResources(u)
+	next := buildSfnUpdateMetricsSvrPriorityClass(u)
 	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+}
+
+func buildSfnUpdateMetricsSvrPriorityClass(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateMetricsSvrResources(u)
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, next)
 }
 
 func buildSfnUpdateMetricsSvrResources(u *unstructured.Unstructured) stateFn {
@@ -98,7 +108,11 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, sFnApply)
+	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
+	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+}
+func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
 }
 
 func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update func(T, R) error, getData func(*v1alpha1.Keda) *R, next stateFn) stateFn {
@@ -153,4 +167,9 @@ type sidecarConfig struct {
 
 func sidecarInjectionConfig(_ *v1alpha1.Keda) *sidecarConfig {
 	return &sidecarConfig{false}
+}
+
+func priorityClassName(_ *v1alpha1.Keda) *string {
+	priorityClassName := "keda-priority-class"
+	return &priorityClassName
 }
