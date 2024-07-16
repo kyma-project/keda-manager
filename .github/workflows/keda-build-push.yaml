@@ -24,7 +24,7 @@ jobs:
             echo "${{ github.sha }}"
             echo "${{ github.ref_name}}"
             echo EOF
-          } >> "$GITHUB_ENV"
+          } >> "$GITHUB_OUTPUT"
   build-keda-manager:
     needs: compute-tags
     uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main # Usage: kyma-project/test-infra/.github/workflows/image-builder.yml@main
