@@ -3,9 +3,6 @@ name: keda build (push)
 on:
   push:
     branches: ["main", "release-*"]
-    paths-ignore:
-      - "docs/**"
-      - "examples/**"
 
 permissions:
   id-token: write # This is required for requesting the JWT token
