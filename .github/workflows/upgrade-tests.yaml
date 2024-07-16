@@ -2,7 +2,7 @@ name: upgrade tests
 
 on:
   push:
-    branches: ["main", "release-*"]
+    branches: [ "main", "release-*" ]
 
 jobs:
   upgrade-test:
