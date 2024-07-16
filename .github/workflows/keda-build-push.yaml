@@ -3,6 +3,8 @@ name: keda build (push)
 on:
   push:
     branches: ["main", "release-*"]
+    tags:
+      - '^v?\d+\.\d+\.\d+(?:-.*)?$'
 
 permissions:
   id-token: write # This is required for requesting the JWT token
