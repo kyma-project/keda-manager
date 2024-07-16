@@ -2,6 +2,9 @@ name: keda build (pull)
 
 on:
   pull_request_target:
+    paths-ignore:
+      - "docs/**"
+      - "examples/**"
     types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
