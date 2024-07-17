@@ -1,27 +1,36 @@
-name: release keda build
+name: keda build (push)
+
 on:
   push:
+    branches: ["main", "release-*"]
     tags:
       - '^v?\d+\.\d+\.\d+(?:-.*)?$'
+
 permissions:
   id-token: write # This is required for requesting the JWT token
   contents: read # This is required for actions/checkout
 
 jobs:
-  compute-tag:
+  compute-tags:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.get_tag.outputs.TAG }}
+      tags: ${{ steps.get_tag.outputs.TAGS }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get the latest tag
         id: get_tag
-        run: echo ::set-output name=TAG::${{ github.sha }}
+        run: |
+          {
+            echo 'TAGS<<EOF'
+            echo "${{ github.sha }}"
+            echo "${{ github.ref_name}}"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
   build-keda-manager:
-    needs: compute-tag
+    needs: compute-tags
     uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main # Usage: kyma-project/test-infra/.github/workflows/image-builder.yml@main
     with:
       name: keda-manager
       dockerfile: Dockerfile
-      tags: ${{ needs.compute-tag.outputs.tag }}
+      tags: ${{ needs.compute-tags.outputs.tags }}
