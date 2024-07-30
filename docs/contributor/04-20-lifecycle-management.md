@@ -1,10 +1,10 @@
 # Lifecycle Management Of Keda Manager in Kyma
 
-When you enable the Keda module using your Kyma custom resource (CR), the Lifecycle Manager (LM) downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
+When you add the Keda module using your Kyma custom resource (CR), the Lifecycle Manager (LM) downloads the bundled package of the Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
 
-![Enable Keda module with LM](../assets/keda-lm-overview.drawio.svg)
+![Add Keda module with LM](../assets/keda-lm-overview.drawio.svg)
 
-1. User enables the Keda module in the Kyma CR.
+1. User adds the Keda module in the Kyma CR.
 2. Lifecycle Manager reads the module template of the Keda module.
 3. Lifecycle Manager deploys Keda Manager, using artifacts from the module template.
 4. Lifecycle Manager applies the default Keda CR from the module template.

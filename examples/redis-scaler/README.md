@@ -10,7 +10,7 @@ Additionally, there is a function that awaits  HTTP traffic and populates messag
 
  - `KUBECONFIG` env variable pointing to a Kubernetes instance
  - Helm client installed locally on your machine
- - The Keda and Serverless modules enabled in the kyma cluster (`make ensure_kyma_modules`)
+ - The Keda and Serverless modules added in the Kyma cluster (`make ensure_kyma_modules`)
 
 
 ## Deploy 
