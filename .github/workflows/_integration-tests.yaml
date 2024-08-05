@@ -2,11 +2,6 @@ name: integration tests
 
 on:
   workflow_call:
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - 'examples/**'
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
 
 jobs:
   integration-test:

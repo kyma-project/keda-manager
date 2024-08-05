@@ -2,8 +2,6 @@ name: upgrade tests
 
 on:
   workflow_call:
-  push:
-    branches: [ "main", "release-*" ]
 
 jobs:
   upgrade-test:

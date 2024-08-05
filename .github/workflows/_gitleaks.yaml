@@ -1,8 +1,6 @@
 name: gitleaks
 on:
   workflow_call:
-  pull_request:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
 
 env:
   GITLEAKS_VERSION: 8.18.2

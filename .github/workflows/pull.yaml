@@ -9,15 +9,15 @@ permissions:
 
 jobs:
   unit-tests:
-    uses: ./.github/workflows/unit-tests.yaml
+    uses: ./.github/workflows/_unit-tests.yaml
 
   gitleaks:
-    uses: ./.github/workflows/gitleaks.yaml
+    uses: ./.github/workflows/_gitleaks.yaml
 
   builds:
     needs: [unit-tests, gitleaks]
-    uses: ./.github/workflows/build-pull.yaml
+    uses: ./.github/workflows/_build-pull.yaml
 
   integrations:
     needs: builds
-    uses: ./.github/workflows/integration-tests-pull.yaml
+    uses: ./.github/workflows/_integration-tests.yaml

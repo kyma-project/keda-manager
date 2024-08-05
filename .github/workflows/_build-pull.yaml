@@ -1,0 +1,11 @@
+name: build (pull)
+
+on:
+  workflow_call:
+
+jobs:
+  build-keda-manager:
+    uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main # Usage: kyma-project/test-infra/.github/workflows/image-builder.yml@main
+    with:
+      name: keda-manager
+      dockerfile: Dockerfile
