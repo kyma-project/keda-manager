@@ -1,0 +1,10 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '^v?\d+\.\d+\.\d+(?:-.*)?$'
+
+jobs:
+  builds:
+    uses: ./.github/workflows/_build.yaml

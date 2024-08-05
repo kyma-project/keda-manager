@@ -1,14 +1,7 @@
-name: keda build (push)
+name: build
 
 on:
-  push:
-    branches: ["main", "release-*"]
-    tags:
-      - '^v?\d+\.\d+\.\d+(?:-.*)?$'
-
-permissions:
-  id-token: write # This is required for requesting the JWT token
-  contents: read # This is required for actions/checkout
+  workflow_call:
 
 jobs:
   compute-tags:
@@ -18,7 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get the latest tag
+      - if: ${{ github.event_name == 'push' }}
+        name: Get the latest tag
         id: get_tag
         run: |
           {
@@ -27,6 +21,7 @@ jobs:
             echo "${{ github.ref_name}}"
             echo EOF
           } >> "$GITHUB_OUTPUT"
+
   build-keda-manager:
     needs: compute-tags
     uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main # Usage: kyma-project/test-infra/.github/workflows/image-builder.yml@main
