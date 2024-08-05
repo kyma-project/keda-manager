@@ -15,7 +15,6 @@ jobs:
     uses: ./.github/workflows/_gitleaks.yaml
 
   builds:
-    needs: [unit-tests, gitleaks]
     uses: ./.github/workflows/_build.yaml
 
   integrations:
