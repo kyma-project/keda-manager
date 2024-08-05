@@ -1,0 +1,23 @@
+name: pull
+on:
+  pull_request_target:
+    types: [ opened, edited, synchronize, reopened, ready_for_review ]
+
+permissions:
+  id-token: write # This is required for requesting the JWT token
+  contents: read # This is required for actions/checkout
+
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unit-tests.yaml
+
+  gitleaks:
+    uses: ./.github/workflows/gitleaks.yaml
+
+  builds:
+    needs: [unit-tests, gitleaks]
+    uses: ./.github/workflows/build-pull.yaml
+
+  integrations:
+    needs: builds
+    uses: ./.github/workflows/integration-tests-pull.yaml
