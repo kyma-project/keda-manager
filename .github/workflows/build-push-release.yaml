@@ -1,6 +1,7 @@
 name: keda build (push)
 
 on:
+  workflow_call:
   push:
     branches: ["main", "release-*"]
     tags:
