@@ -6,7 +6,7 @@ on:
 
 jobs:
   builds:
-    uses: ./.github/workflows/_build-push-release.yaml
+    uses: ./.github/workflows/_build.yaml
 
   upgrades:
     needs: builds
