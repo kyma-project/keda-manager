@@ -2,6 +2,11 @@ name: integration tests
 
 on:
   workflow_call:
+    inputs:
+      image:
+        description: 'The image to test'
+        required: true
+        type: string
 
 jobs:
   integration-test:
@@ -15,4 +20,4 @@ jobs:
       - name: run test
         run: make -C hack/ci integration-test-on-cluster
         env:
-          IMG: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
+          IMG: ${{ inputs.image }}
