@@ -117,7 +117,7 @@ jobs:
 
   publish-release:
     name: Publish release
-    needs: run-integration-test
+    needs: [run-integration-test, create-draft]
     runs-on: ubuntu-latest
 
     steps:
