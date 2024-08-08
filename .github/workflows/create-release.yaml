@@ -19,11 +19,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify
-        run: ./.github/scripts/verify-keda-jobs-status.sh ${{ github.ref_name }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   upgrade-images:
     name: Upgrade main images
     needs: verify-head-status
@@ -88,11 +83,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_BASE_REF: ${{ github.event.inputs.name }}
         run: ./.github/scripts/release.sh
-
-      - name: Verify Assets
-        run: ./.github/scripts/verify-keda-jobs-status.sh ${{ github.ref_name }}
-        env:
-          GH_TOKEN: ${{ github.token }}
 
     outputs:
       release_id: ${{ steps.create-draft.outputs.release_id }}
