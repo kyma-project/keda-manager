@@ -2,6 +2,12 @@ name: build
 
 on:
   workflow_call:
+    inputs:
+      tag:
+        description: 'Additional tag for built images'
+        required: false
+        type: string
+        default: ""
 
 jobs:
   compute-tags:
@@ -11,7 +17,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - if: ${{ github.event_name == 'push' }}
+      - if: ${{ !startsWith(github.event_name, 'pull_request') }}
         name: Get the latest tag
         id: get_tag
         run: |
@@ -19,6 +25,7 @@ jobs:
             echo 'TAGS<<EOF'
             echo "${{ github.sha }}"
             echo "${{ github.ref_name}}"
+            echo "${{ inputs.tag }}"
             echo EOF
           } >> "$GITHUB_OUTPUT"
 
