@@ -70,7 +70,7 @@ jobs:
 
   builds:
     needs: create-tag
-    uses: ./.github/workflows/_build-push.yaml
+    uses: ./.github/workflows/_build.yaml
 
   create-draft:
     name: Create draft release
