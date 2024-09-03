@@ -56,3 +56,15 @@ For more installation options, visit [Install Keda Manager](docs/contributor/01-
 If you want to use Kyma's Keda module, check the [user](docs/user/) folder to learn more about it. In this folder, you also get information on how to configure your module. You also find a demo application that shows how to scale the Kubernetes workloads using Keda API.
 
 The [contributor](docs/contributor/) folder includes all the necessary information on how to extend the module with new features. You can learn more about the project structure, make targets, CI/CD jobs that are part of the developing cycle, and different installation options.
+
+## Contributing
+
+See the [Contributing Rules](CONTRIBUTING.md).
+
+## Code of Conduct
+
+See the [Code of Conduct](CODE_OF_CONDUCT.md) document.
+
+## Licensing
+
+See the [license](./LICENSE) file.
