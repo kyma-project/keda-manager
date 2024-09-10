@@ -38,7 +38,7 @@ func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
 
 func buildSfnUpdateOperatorLabels(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateOperatorPriorityClass(u)
-	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+	return buildSfnUpdateObject(u, updateDeploymentLabels, sidecarInjectionConfig, next)
 }
 
 func buildSfnUpdateOperatorPriorityClass(u *unstructured.Unstructured) stateFn {
@@ -76,7 +76,7 @@ func buildSfnUpdateMetricsSvrLogging(u *unstructured.Unstructured) stateFn {
 
 func buildSfnUpdateMetricsSvrLabels(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateMetricsSvrPriorityClass(u)
-	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+	return buildSfnUpdateObject(u, updateDeploymentLabels, sidecarInjectionConfig, next)
 }
 
 func buildSfnUpdateMetricsSvrPriorityClass(u *unstructured.Unstructured) stateFn {
@@ -109,7 +109,7 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
-	return buildSfnUpdateObject(u, updateDeploymentSidecarInjection, sidecarInjectionConfig, next)
+	return buildSfnUpdateObject(u, updateDeploymentLabels, sidecarInjectionConfig, next)
 }
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
 	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
