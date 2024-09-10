@@ -14,12 +14,12 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.30.0
-	k8s.io/apiextensions-apiserver v0.30.0
-	k8s.io/apimachinery v0.31.0-beta.0
-	k8s.io/client-go v0.30.0
+	k8s.io/api v0.31.0
+	k8s.io/apiextensions-apiserver v0.31.0
+	k8s.io/apimachinery v0.31.0
+	k8s.io/client-go v0.31.0
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	sigs.k8s.io/controller-runtime v0.17.6
+	sigs.k8s.io/controller-runtime v0.19.0
 )
 
 require (
@@ -27,7 +27,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
-	github.com/evanphx/json-patch v5.8.1+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/expr-lang/expr v1.16.9 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -71,9 +70,9 @@ require (
 	golang.org/x/tools v0.24.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/component-base v0.30.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	knative.dev/pkg v0.0.0-20240805063731-c88d5dad9653 // indirect
