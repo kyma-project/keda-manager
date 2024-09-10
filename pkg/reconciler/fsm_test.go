@@ -5,7 +5,10 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apirt "k8s.io/apimachinery/pkg/runtime"
 )
@@ -67,4 +70,33 @@ func Test_updateObj_convert_errors(t *testing.T) {
 		})
 	}
 
+}
+
+func Test_UpdateupdateDeploymentLabels(t *testing.T) {
+
+	deployment := appsv1.Deployment{
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"test":                         "test",
+						"app.kubernetes.io/managed-by": "upstream",
+					},
+				},
+			},
+		},
+	}
+	config := sidecarConfig{}
+
+	expectedLabels := map[string]string{
+		"test":                         "test",
+		"sidecar.istio.io/inject":      "false",
+		"app.kubernetes.io/managed-by": "",
+		"kyma-project.io/module":       "keda-manager",
+		"app.kubernetes.io/part-of":    "keda-manager",
+	}
+
+	err := updateDeploymentLabels(&deployment, config)
+	require.NoError(t, err)
+	require.EqualValues(t, expectedLabels, deployment.Spec.Template.ObjectMeta.Labels)
 }
