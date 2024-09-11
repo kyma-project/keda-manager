@@ -1,16 +1,11 @@
-name: 'Setup go'
-description: 'Action for the go setup'
-
-inputs:
-  version:
-    description: 'go version to checkout'
-    required: true
-    default: '1.22'
+name: "Setup go"
+description: "Action for the go setup"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Setup go
       uses: actions/setup-go@v5
       with:
-        go-version: ${{ inputs.version }}
+        go-version-file: "go.mod"
+        cache-dependency-path: "go.sum"
