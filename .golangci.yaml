@@ -1,6 +1,7 @@
 run:
   modules-download-mode: readonly
   timeout: 15m
+  tests: false
 linters:
   disable-all: true
   enable:
