@@ -41,7 +41,7 @@ func Verify(utils *utils.TestUtils) error {
 	return verify(utils, &hpa.Items[0])
 }
 
-func verify(utils *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
+func verify(_ *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
 	if *hpa.Spec.MinReplicas != *scaledobject.MinReplicaCount {
 		return fmt.Errorf("hpa '%s' has minReplicas == '%d', expected '%d'", hpa.Name, *hpa.Spec.MinReplicas, *scaledobject.MinReplicaCount)
 	}
