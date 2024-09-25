@@ -1,6 +1,15 @@
 - path: spec.logging.operator.level
   name: Log Level
 
+- path: spec.istio
+  widget: FormGroup
+  name: Istio
+  children:
+   - path: operator.enabledSidecarInjection
+     name: Operator Sidecar Objection
+   - path: metricServer.enabledSidecarInjection
+     name: Metric Server Sidecar Objection
+
 - path: spec.resources.operator
   widget: FormGroup
   name: Operator Resources

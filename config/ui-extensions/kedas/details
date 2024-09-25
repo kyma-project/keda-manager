@@ -24,6 +24,8 @@ body:
             name: CPU limit
           - source: spec.resources.operator.limits.memory
             name: Memory limit
+          - source: spec.istio.operator.enabledSidecarInjection
+            name: Sidecar Injection
       - name: Metric Server
         widget: Panel
         children:
@@ -35,6 +37,8 @@ body:
             name: CPU limit
           - source: spec.resources.metricServer.limits.memory
             name: Memory limit
+          - source: spec.istio.metricServer.enabledSidecarInjection
+            name: Sidecar Injection
 
   - source: status.conditions
     widget: Table
