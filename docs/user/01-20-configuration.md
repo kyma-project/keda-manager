@@ -12,9 +12,21 @@ See how to configure the **logging.level** or resource consumption.
          level: "debug"
    ```
 
+- Change the operator and metricServer Istio sidecar injection. For example:
+
+  ```yaml
+  spec:
+    istio:
+      metricServer:
+        enabledSidecarInjection: true
+      operator:
+        enabledSidecarInjection: true
+  ```
+
 - Change the operator and metricServer resource consumption using your preferred values. For example:
 
    ```yaml
+   spec:
      resources:
        operator:
          limits:
