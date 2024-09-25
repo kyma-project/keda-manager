@@ -166,6 +166,19 @@ spec:
                   - name
                   type: object
                 type: array
+              istio:
+                properties:
+                  metricServer:
+                    properties:
+                      enabledSidecarInjection:
+                        type: boolean
+                    type: object
+                  operator:
+                    properties:
+                      enabledSidecarInjection:
+                        type: boolean
+                    type: object
+                type: object
               logging:
                 properties:
                   metricServer:

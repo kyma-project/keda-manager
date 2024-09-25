@@ -196,6 +196,15 @@ func (o *LoggingMetricsSrvCfg) UpdateArg(arg *string) {
 	}
 }
 
+type IstioCfg struct {
+	EnabledSidecarInjection bool `json:"enabledSidecarInjection,omitempty"`
+}
+
+type Istio struct {
+	Operator     *IstioCfg `json:"operator,omitempty"`
+	MetricServer *IstioCfg `json:"metricServer,omitempty"`
+}
+
 type LoggingCfg struct {
 	Operator      *LoggingOperatorCfg   `json:"operator,omitempty"`
 	MetricsServer *LoggingMetricsSrvCfg `json:"metricServer,omitempty"`
@@ -208,6 +217,7 @@ type Resources struct {
 
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
+	Istio     *Istio      `json:"istio,omitempty"`
 	Logging   *LoggingCfg `json:"logging,omitempty"`
 	Resources *Resources  `json:"resources,omitempty"`
 	Env       EnvVars     `json:"env,omitempty"`
