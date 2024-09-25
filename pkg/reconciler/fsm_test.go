@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -73,30 +74,64 @@ func Test_updateObj_convert_errors(t *testing.T) {
 }
 
 func Test_UpdateupdateDeploymentLabels(t *testing.T) {
-
-	deployment := appsv1.Deployment{
-		Spec: appsv1.DeploymentSpec{
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"test":                         "test",
-						"app.kubernetes.io/managed-by": "upstream",
+	t.Run("enable istio sidecar injection", func(t *testing.T) {
+		deployment := appsv1.Deployment{
+			Spec: appsv1.DeploymentSpec{
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{
+							"test":                         "test",
+							"app.kubernetes.io/managed-by": "upstream",
+						},
 					},
 				},
 			},
-		},
-	}
-	config := sidecarConfig{}
+		}
+		config := v1alpha1.IstioCfg{
+			EnabledSidecarInjection: true,
+		}
 
-	expectedLabels := map[string]string{
-		"test":                         "test",
-		"sidecar.istio.io/inject":      "false",
-		"app.kubernetes.io/managed-by": "",
-		"kyma-project.io/module":       "keda-manager",
-		"app.kubernetes.io/part-of":    "keda-manager",
-	}
+		expectedLabels := map[string]string{
+			"test":                         "test",
+			"sidecar.istio.io/inject":      "true",
+			"app.kubernetes.io/managed-by": "",
+			"kyma-project.io/module":       "keda-manager",
+			"app.kubernetes.io/part-of":    "keda-manager",
+		}
 
-	err := updateDeploymentLabels(&deployment, config)
-	require.NoError(t, err)
-	require.EqualValues(t, expectedLabels, deployment.Spec.Template.ObjectMeta.Labels)
+		err := updateDeploymentLabels(&deployment, config)
+		require.NoError(t, err)
+		require.EqualValues(t, expectedLabels, deployment.Spec.Template.ObjectMeta.Labels)
+	})
+
+	t.Run("disable istio sidecar injection", func(t *testing.T) {
+		deployment := appsv1.Deployment{
+			Spec: appsv1.DeploymentSpec{
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{
+							"test":                         "test",
+							"app.kubernetes.io/managed-by": "upstream",
+							"sidecar.istio.io/inject":      "true",
+						},
+					},
+				},
+			},
+		}
+		config := v1alpha1.IstioCfg{
+			EnabledSidecarInjection: false,
+		}
+
+		expectedLabels := map[string]string{
+			"test":                         "test",
+			"sidecar.istio.io/inject":      "false",
+			"app.kubernetes.io/managed-by": "",
+			"kyma-project.io/module":       "keda-manager",
+			"app.kubernetes.io/part-of":    "keda-manager",
+		}
+
+		err := updateDeploymentLabels(&deployment, config)
+		require.NoError(t, err)
+		require.EqualValues(t, expectedLabels, deployment.Spec.Template.ObjectMeta.Labels)
+	})
 }
