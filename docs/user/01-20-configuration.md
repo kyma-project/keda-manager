@@ -1,9 +1,12 @@
 # Keda Module Configuration
 
-This document describes how to configure the Keda module using Kyma CustomResourceDefinition (CRD).
+This document describes how to configure the Keda module using the Keda CustomResourceDefinition (CRD).
 See how to configure the **logging.level** or resource consumption.
 
-- To change the logging level, choose one of the accepted values: `debug`, `info`, or `error`. For example:
+- You can change the logging level of the KEDA workloads. To change **logging.level**, choose one of the accepted values:
+   - `debug` - is the most detailed option. Useful for a developer during debugging.
+   - `info` - provides standard log level indicating operations within the Keda module. For example, it can show whether the workload scaling operation was successful or not.
+   - `error` - shows error logs only. This means only log messages corresponding to errors and misconfigurations are visible in logs.
 
    ```yaml
    spec:
@@ -12,7 +15,7 @@ See how to configure the **logging.level** or resource consumption.
          level: "debug"
    ```
 
-- Change the operator and metricServer Istio sidecar injection. For example:
+- To enable the Istio sidecar injection for **operator** and **metricServer**, set the value of **enabledSidecarInjection** to `true`. For example:
 
   ```yaml
   spec:
@@ -23,7 +26,7 @@ See how to configure the **logging.level** or resource consumption.
         enabledSidecarInjection: true
   ```
 
-- Change the operator and metricServer resource consumption using your preferred values. For example:
+- To change the resource consumption, enter your preferred values for **operator** and **metricServer**. For example:
 
    ```yaml
    spec:

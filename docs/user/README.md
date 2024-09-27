@@ -16,6 +16,14 @@ Keda module is an extension to Kyma that allows you to install and manage KEDA o
 
 Keda Manager helps you to install and manage KEDA on your cluster. It manages the lifecycle of KEDA based on the dedicated Keda custom resource (CR).
 
+![Keda Module architecture](../assets/keda_architecture.svg)
+
+1. User applies the Keda custom resource (CR).
+2. Keda Manager watches the Keda CR.
+3. Keda Manager reconciles the KEDA workloads.
+
+To learn more about the KEDA architecture, see the [KEDA architecture diagram](https://keda.sh/docs/latest/concepts/#architecture).
+
 ## Useful Links
 
 - [KEDA configuration](01-20-configuration.md) - provides exemplary configuation of the KEDA components.
