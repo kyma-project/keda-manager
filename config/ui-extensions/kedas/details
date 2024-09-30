@@ -24,7 +24,7 @@ body:
             name: CPU limit
           - source: spec.resources.operator.limits.memory
             name: Memory limit
-          - source: spec.istio.operator.enabledSidecarInjection
+          - source: $exists(spec.istio.operator.enabledSidecarInjection)
             name: Istio Sidecar
       - name: Metric Server
         widget: Panel
@@ -37,7 +37,7 @@ body:
             name: CPU limit
           - source: spec.resources.metricServer.limits.memory
             name: Memory limit
-          - source: spec.istio.metricServer.enabledSidecarInjection
+          - source: $exists(spec.istio.metricServer.enabledSidecarInjection)
             name: Istio Sidecar
 
   - source: status.conditions
