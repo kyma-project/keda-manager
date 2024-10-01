@@ -297,6 +297,7 @@ func (v *EnvVars) Sanitize() {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:categories={kyma,kyma-modules,kyma-keda}
 //+kubebuilder:printcolumn:name="generation",type="integer",JSONPath=".metadata.generation"
 //+kubebuilder:printcolumn:name="age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:printcolumn:name="state",type="string",JSONPath=".status.state"
