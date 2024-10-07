@@ -1,0 +1,24 @@
+name: 'Setup BTP CLI'
+description: 'Action for the BTP CLI setup'
+
+inputs:
+  path:
+    description: 'path where BTP CLI should be installed'
+    required: false
+    default: "../bin"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install BTP CLI
+      shell: bash
+      run: |
+        sudo ln -sf bash /bin/sh
+        eval BTP_FILE=$(./tests/btp/hack/get_btp_file_name.sh "$(uname -s)" "$(uname -m)")
+        ## Detect if operating system
+        [[ -z "$BTP_FILE" ]] && { echo "$(uname -s) $(uname -m)" ; exit 1; }
+        mkdir -p ${{ inputs.path }}
+        curl -LJO https://tools.hana.ondemand.com/additional/${BTP_FILE} --cookie "eula_3_2_agreed=tools.hana.ondemand.com/developer-license-3_2.txt"
+        tar -zxf ${BTP_FILE} --strip-components=1 -C ${{ inputs.path }}
+        rm -f ${BTP_FILE}
+        echo "BTP CLI downloaded into ${{ inputs.path }}"

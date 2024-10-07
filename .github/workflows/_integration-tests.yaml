@@ -54,17 +54,6 @@ jobs:
         env:
           BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
 
-#      - name: Add bindings
-#        run: |
-#          . ./set-tf-envs.sh
-#          KUBECONFIG=tmp/sa-kubeconfig.yaml BTP_PROVIDER_SUBACCOUNT_ID=$TF_VAR_BTP_PROVIDER_SUBACCOUNT_ID make share-sm-service-operator-access
-#          KUBECONFIG=tmp/sa-kubeconfig.yaml make create-object-store-reference
-#          make -C ../../../components/operator/ render-manifest
-#          KUBECONFIG=tmp/sa-kubeconfig.yaml OPERATOR_MANIFEST=../../../keda-manager.yaml make enable_docker_registry
-#        env:
-#          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
-#          IMG: ${{ inputs.image }}
-
       - name: Run integration test
         run: make -C hack/ci integration-test-on-cluster
         env:
