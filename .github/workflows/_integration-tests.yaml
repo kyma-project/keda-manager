@@ -23,3 +23,63 @@ jobs:
         run: make -C hack/ci integration-test-on-cluster
         env:
           IMG: ${{ inputs.image }}
+
+  btp-integration-tests:
+    if: ${{ !startsWith(github.event_name, 'pull_request') }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/btp/hack
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-kyma
+        with:
+          path: "tests/btp/bin"
+      - name: Create btp account with kyma enable
+        run: |
+          . ./set-tf-envs.sh
+          terraform -chdir=../tf init
+          terraform -chdir=../tf apply -auto-approve
+          echo "SUBACC_ID=$(terraform -chdir=../tf output -raw subaccount_id)" >> $GITHUB_ENV
+        env:
+          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
+          TF_VAR_BTP_NEW_SUBACCOUNT_NAME: keda-manager-test-${{ github.sha }}-${{ github.run_attempt }}
+
+      - name: Generate access
+        run: |
+          sudo ln -sf bash /bin/sh
+          . ./set-tf-envs.sh
+          mkdir -p tmp
+          CLUSTERROLE=cluster-admin make service-account-kubeconfig
+        env:
+          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
+
+#      - name: Add bindings
+#        run: |
+#          . ./set-tf-envs.sh
+#          KUBECONFIG=tmp/sa-kubeconfig.yaml BTP_PROVIDER_SUBACCOUNT_ID=$TF_VAR_BTP_PROVIDER_SUBACCOUNT_ID make share-sm-service-operator-access
+#          KUBECONFIG=tmp/sa-kubeconfig.yaml make create-object-store-reference
+#          make -C ../../../components/operator/ render-manifest
+#          KUBECONFIG=tmp/sa-kubeconfig.yaml OPERATOR_MANIFEST=../../../keda-manager.yaml make enable_docker_registry
+#        env:
+#          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
+#          IMG: ${{ inputs.image }}
+
+      - name: Run integration test
+        run: make -C hack/ci integration-test-on-cluster
+        env:
+          IMG: ${{ inputs.image }}
+
+      - uses: ./.github/actions/setup-btp
+        if: always()
+        with:
+          path: "tests/btp/bin"
+
+      - name: Force delete btp account
+        if: always()
+        run: |
+          . ./set-tf-envs.sh
+          ../bin/btp login --url $TF_VAR_BTP_BACKEND_URL --user $TF_VAR_BTP_BOT_USER --password $TF_VAR_BTP_BOT_PASSWORD --idp $TF_VAR_BTP_CUSTOM_IAS_TENANT --subdomain $TF_VAR_BTP_GLOBAL_ACCOUNT
+          ../bin/btp delete accounts/subaccount ${SUBACC_ID} --global-account ${TF_VAR_BTP_GLOBAL_ACCOUNT} --force-delete true --confirm true
+        env:
+          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
