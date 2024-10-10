@@ -5,9 +5,7 @@ on:
     branches: [ "main", "release-*" ]
 
 jobs:
-  builds:
-    uses: ./.github/workflows/_build.yaml
-
-  upgrades:
-    needs: builds
-    uses: ./.github/workflows/_upgrade-tests.yaml
+  integrations:
+    uses: ./.github/workflows/_integration-tests.yaml
+    with:
+      image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-515

@@ -39,3 +39,17 @@ manifests/keda/rendered.yaml
 examples/redis-scaler/src/emitter-fn/node_modules
 examples/redis-scaler/src/receiver-job/node_modules
 examples/redis-scaler/src/receiver-job/package-lock.json
+
+#opentofu
+.terraform
+.terraform.lock.hcl
+
+*.tfstate
+*.tfstate.*
+
+test/btp/tf/*.txt
+test/btp/tf/*.json
+test/btp/tf/*.env
+
+test/btp/env/.env
+test/btp/hack/tmp/
