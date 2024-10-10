@@ -106,6 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_BASE_REF: ${{ github.event.inputs.name }}
+          RELEASE_ID: ${{ steps.create-draft.outputs.release_id }}
         run: ./.github/scripts/release.sh
 
     outputs:
