@@ -91,14 +91,14 @@ jobs:
       - name: Create changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.github/scripts/create_changelog.sh ${{ github.event.inputs.name }}
+        run: ./.github/scripts/create-changelog.sh ${{ github.event.inputs.name }}
 
       - name: Create draft release
         id: create-draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_ID=$(./.github/scripts/create_draft_release.sh ${{ github.event.inputs.name }})
+          RELEASE_ID=$(./.github/scripts/create-draft-release.sh ${{ github.event.inputs.name }})
           echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
 
       - name: Create release assets
@@ -132,4 +132,4 @@ jobs:
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.github/scripts/publish_release.sh ${{ needs.create-draft.outputs.release_id }} ${{ github.event.inputs.latest_release }}
+        run: ./.github/scripts/publish-release.sh ${{ needs.create-draft.outputs.release_id }} ${{ github.event.inputs.latest_release }}
