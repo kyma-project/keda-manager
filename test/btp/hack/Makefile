@@ -1,7 +1,7 @@
 .PHONY: service-account-kubeconfig
 service-account-kubeconfig:
 	@echo "Generating expiring service-account based kubeconfig..."
-	../bin/kyma alpha access --clusterrole ${CLUSTERROLE} --kubeconfig ../tf/kubeconfig.yaml --name ci-workflow-sa --time 1h --output /tmp/sa-kubeconfig.yaml
+	kyma alpha access --clusterrole ${CLUSTERROLE} --kubeconfig ../tf/kubeconfig.yaml --name ci-workflow-sa --time 1h --output /tmp/sa-kubeconfig.yaml
 	@echo "Service-account based kubeconfig generated"
 
 .PHONY cleanup-tf-force:

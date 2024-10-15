@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-kyma
         with:
-          path: "tests/btp/bin"
+          path: "/usr/local/bin"
       - uses: ./.github/actions/setup-terraform
       - name: Create btp account with kyma enabled
         run: |
