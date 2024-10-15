@@ -5,7 +5,7 @@ inputs:
   path:
     description: 'path where BTP CLI should be installed'
     required: false
-    default: "../bin"
+    default: "/usr/local/bin"
 
 runs:
   using: 'composite'

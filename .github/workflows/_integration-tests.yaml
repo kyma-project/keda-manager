@@ -35,6 +35,7 @@ jobs:
       - uses: ./.github/actions/setup-kyma
         with:
           path: "tests/btp/bin"
+      - uses: ./.github/actions/setup-terraform
       - name: Create btp account with kyma enabled
         run: |
           . ./set-tf-envs.sh
@@ -61,13 +62,13 @@ jobs:
       - uses: ./.github/actions/setup-btp
         if: always()
         with:
-          path: "test/btp/bin"
+          path: "/usr/local/bin"
 
       - name: Force delete btp account
         if: always()
         run: |
           . ./set-tf-envs.sh
-          ../bin/btp login --url $TF_VAR_BTP_BACKEND_URL --user $TF_VAR_BTP_BOT_USER --password $TF_VAR_BTP_BOT_PASSWORD --idp $TF_VAR_BTP_CUSTOM_IAS_TENANT --subdomain $TF_VAR_BTP_GLOBAL_ACCOUNT
-          ../bin/btp delete accounts/subaccount ${SUBACC_ID} --global-account ${TF_VAR_BTP_GLOBAL_ACCOUNT} --force-delete true --confirm true
+          btp login --url $TF_VAR_BTP_BACKEND_URL --user $TF_VAR_BTP_BOT_USER --password $TF_VAR_BTP_BOT_PASSWORD --idp $TF_VAR_BTP_CUSTOM_IAS_TENANT --subdomain $TF_VAR_BTP_GLOBAL_ACCOUNT
+          btp delete accounts/subaccount ${SUBACC_ID} --global-account ${TF_VAR_BTP_GLOBAL_ACCOUNT} --force-delete true --confirm true
         env:
           BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
