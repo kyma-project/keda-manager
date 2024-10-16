@@ -10,14 +10,14 @@ spec:
     operator:
       limits:
         cpu: "800m"
-        memory: "200Mi"
+        memory: "800Mi"
       requests:
-        cpu: "300m"
-        memory: "150Mi"
+        cpu: "50m"
+        memory: "100Mi"
     metricServer:
       limits:
         cpu: "800m"
-        memory: "500Mi"
+        memory: "800Mi"
       requests:
-        cpu: "300m"
-        memory: "500Mi"
+        cpu: "50m"
+        memory: "100Mi"

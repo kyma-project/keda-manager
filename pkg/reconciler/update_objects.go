@@ -5,6 +5,7 @@ import (
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -116,9 +117,15 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
+	next := buildSfnUpdateAdmissionWebhooksResources(u)
 	return buildSfnUpdateObject(u, updateDeploymentLabels, disabledIstioSidecar, next)
 }
+
+func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
+	return buildSfnUpdateObject(u, updateKedaContanier0Resources, admissionWebhookResources, next)
+}
+
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
 	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
 }
@@ -187,4 +194,17 @@ func disabledIstioSidecar(_ *v1alpha1.Keda) *v1alpha1.IstioCfg {
 func priorityClassName(_ *v1alpha1.Keda) *string {
 	priorityClassName := "keda-priority-class"
 	return &priorityClassName
+}
+
+func admissionWebhookResources(_ *v1alpha1.Keda) *corev1.ResourceRequirements {
+	return &corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse("50m"),
+			corev1.ResourceMemory: resource.MustParse("100Mi"),
+		},
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse("800m"),
+			corev1.ResourceMemory: resource.MustParse("800Mi"),
+		},
+	}
 }
