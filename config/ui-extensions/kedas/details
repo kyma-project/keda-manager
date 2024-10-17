@@ -39,7 +39,17 @@ body:
             name: Memory limit
           - source: $exists(spec.istio.metricServer.enabledSidecarInjection)
             name: Istio Sidecar
-
+      - name: Admission Webhook
+        widget: Panel
+        children:
+          - source: spec.resources.admissionWebhook.requests.cpu
+            name: CPU request
+          - source: spec.resources.admissionWebhook.requests.memory
+            name: Memory request
+          - source: spec.resources.admissionWebhook.limits.cpu
+            name: CPU limit
+          - source: spec.resources.admissionWebhook.limits.memory
+            name: Memory limit
   - source: status.conditions
     widget: Table
     name: Reconciliation Conditions
