@@ -5,7 +5,6 @@ import (
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -196,15 +195,9 @@ func priorityClassName(_ *v1alpha1.Keda) *string {
 	return &priorityClassName
 }
 
-func admissionWebhookResources(_ *v1alpha1.Keda) *corev1.ResourceRequirements {
-	return &corev1.ResourceRequirements{
-		Requests: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("50m"),
-			corev1.ResourceMemory: resource.MustParse("100Mi"),
-		},
-		Limits: corev1.ResourceList{
-			corev1.ResourceCPU:    resource.MustParse("800m"),
-			corev1.ResourceMemory: resource.MustParse("800Mi"),
-		},
+func admissionWebhookResources(k *v1alpha1.Keda) *corev1.ResourceRequirements {
+	if k != nil && k.Spec.Resources != nil {
+		return k.Spec.Resources.AdmissionWebhook
 	}
+	return nil
 }

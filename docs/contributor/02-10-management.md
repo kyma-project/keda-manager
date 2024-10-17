@@ -46,17 +46,24 @@ Keda Manager reconciles KEDA deployment based on the watched Keda custom resourc
    resources:
       operator:
          limits:
-         cpu: "1"
-         memory: "200Mi"
+            cpu: "1"
+            memory: "200Mi"
          requests:
-         cpu: "0.5"
-         memory: "150Mi"
+            cpu: "100m"
+            memory: "100Mi"
       metricServer:
          limits:
-         cpu: "1"
-         memory: "1000Mi"
+            cpu: "1"
+            memory: "1000Mi"
          requests:
-         cpu: "300m"
-         memory: "500Mi"
+            cpu: "100m"
+            memory: "500Mi"
+      admissionWebhook:
+         limits:
+            cpu: "500m"
+            memory: "1000Mi"
+         requests:
+            cpu: "50m"
+            memory: "500Mi"
    EOF
    ```
