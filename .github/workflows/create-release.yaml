@@ -114,6 +114,7 @@ jobs:
 
   run-integration-test:
     needs: create-draft
+    secrets: inherit
     uses: ./.github/workflows/_integration-tests.yaml
     with:
       image: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.event.inputs.name }}
