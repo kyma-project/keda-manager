@@ -31,6 +31,16 @@
    - widget: KeyValuePair
      path: limits
      keyEnum: ['cpu', 'memory']
-     
+
+- path: spec.resources.admissionWebhook
+  widget: FormGroup
+  name: Admission Webhook Resources
+  children:
+   - widget: KeyValuePair
+     path: requests
+     keyEnum: ['cpu', 'memory']
+   - widget: KeyValuePair
+     path: limits
+     keyEnum: ['cpu', 'memory']
 
 
