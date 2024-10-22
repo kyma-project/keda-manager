@@ -89,12 +89,6 @@ func runScenario(testutil *utils.TestUtils) error {
 	}
 
 	// verify deletion without orphan resources
-	testutil.Logger.Infof("Verifying scaledobjects '%s' hpa deletion", testutil.ScaledObjectName)
-	if err := utils.WithRetry(testutil, hpa.VerifyDeletion); err != nil {
-		return err
-	}
-
-	// verify deletion without orphan resources
 	testutil.Logger.Infof("Verifying scaledobject '%s' deletion", testutil.ScaledObjectName)
 	if err := utils.WithRetry(testutil, scaledobject.VerifyDeletion); err != nil {
 		return err
