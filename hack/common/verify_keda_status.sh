@@ -1,18 +1,15 @@
 #!/bin/bash
 
-function get_keda_status () {
-	local number=1
-	while [[ $number -le 100 ]] ; do
-		echo ">--> checking keda status #$number"
-		local STATUS=$(kubectl get keda -n kyma-system default -o jsonpath='{.status.state}')
-		echo "keda status: ${STATUS:='UNKNOWN'}"
-		[[ "$STATUS" == "Ready" ]] && return 0
-		sleep 5
-        	((number = number + 1))
-	done
-
+get_all_and_fail() {
 	kubectl get all --all-namespaces
 	exit 1
 }
 
-get_keda_status
+echo "waiting for deployment"
+kubectl wait -n kyma-system --for=condition=Available --timeout=2m deployment keda-manager || get_all_and_fail
+
+echo "waiting for pod"
+kubectl wait -n kyma-system --for=condition=Ready --timeout=2m pod --selector "app.kubernetes.io/component"="keda-manager.kyma-project.io" || get_all_and_fail
+
+echo "waiting for keda"
+kubectl wait -n kyma-system --for=condition=Installed --timeout=2m keda default || get_all_and_fail
