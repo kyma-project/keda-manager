@@ -211,8 +211,9 @@ type LoggingCfg struct {
 }
 
 type Resources struct {
-	Operator      *corev1.ResourceRequirements `json:"operator,omitempty"`
-	MetricsServer *corev1.ResourceRequirements `json:"metricServer,omitempty"`
+	Operator         *corev1.ResourceRequirements `json:"operator,omitempty"`
+	MetricsServer    *corev1.ResourceRequirements `json:"metricServer,omitempty"`
+	AdmissionWebhook *corev1.ResourceRequirements `json:"admissionWebhook,omitempty"`
 }
 
 // KedaSpec defines the desired state of Keda

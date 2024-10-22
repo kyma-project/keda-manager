@@ -116,9 +116,15 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
+	next := buildSfnUpdateAdmissionWebhooksResources(u)
 	return buildSfnUpdateObject(u, updateDeploymentLabels, disabledIstioSidecar, next)
 }
+
+func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateAdmissionWebhooksPriorityClass(u)
+	return buildSfnUpdateObject(u, updateKedaContanier0Resources, admissionWebhookResources, next)
+}
+
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
 	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
 }
@@ -187,4 +193,11 @@ func disabledIstioSidecar(_ *v1alpha1.Keda) *v1alpha1.IstioCfg {
 func priorityClassName(_ *v1alpha1.Keda) *string {
 	priorityClassName := "keda-priority-class"
 	return &priorityClassName
+}
+
+func admissionWebhookResources(k *v1alpha1.Keda) *corev1.ResourceRequirements {
+	if k != nil && k.Spec.Resources != nil {
+		return k.Spec.Resources.AdmissionWebhook
+	}
+	return nil
 }
