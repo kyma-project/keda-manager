@@ -11,7 +11,7 @@ for VAR in "${REQUIRED_ENV_VARIABLES[@]}"; do
   fi
 done
 
-VERSION_SELECTOR='.commonLabels."app.kubernetes.io/version"'
+VERSION_SELECTOR='.labels[0].pairs."app.kubernetes.io/version"'
 yq --inplace "${VERSION_SELECTOR} = \"${IMG_VERSION}\"" ${KUSTOMIZATION_FILE}
 
-make -C ${PROJECT_ROOT}/components/serverless manifests
+make -C ${PROJECT_ROOT} manifests
