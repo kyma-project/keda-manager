@@ -1,0 +1,15 @@
+name: test dora download
+
+on:
+  workflow_dispatch:
+
+permissions: # used by build images steps
+  id-token: write # This is required for requesting the JWT token
+  contents: write # This is required for actions/checkout
+
+jobs:
+
+  devOps-Insights:
+    name: DevOps Insights Test
+    uses: "./.github/workflows/metrics-test.yaml"
+
