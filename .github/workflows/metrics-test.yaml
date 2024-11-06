@@ -1,0 +1,16 @@
+name: DevOps Insight Test
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DevOps-Insights-Test
+        env:
+          GH_ENTERPRISE_TOKEN: ${{ secrets.GH_TOOLS_SAP_TOKEN }}
+        run: |
+          gh release download v0.7.6 -R ${{ secrets.DORA_REPO_URL }} --pattern 'devops-insights.linux.amd64' --output devops-insights.linux.amd64
+          chmod +x ./devops-insights.linux.amd64
+          ./devops-insights.linux.amd64 --help
