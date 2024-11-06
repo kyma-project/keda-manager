@@ -8,8 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: DevOps-Insights
+        env:
+          GH_ENTERPRISE_TOKEN: ${{ secrets.GH_TOOLS_SAP_TOKEN }}
         run: |
-          curl -O https://int.repositories.cloud.sap/artifactory/devops-insights-generic/bin/latest/devops-insights.linux.amd64
+          gh release download v0.7.6 -R ${{ secrets.DORA_REPO_URL }} --pattern 'devops-insights.linux.amd64' --output devops-insights.linux.amd64
           chmod +x ./devops-insights.linux.amd64
       - name: Dora
         run: |
