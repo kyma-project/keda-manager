@@ -22,7 +22,7 @@ jobs:
             --devOpsInsightsToken=${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }} \
             --identifier=keda-manager \
             --commitID=${{ github.sha }} \
-            --deploymentTarget=development \
+            --deploymentTarget=production \
             --gitInstance=github.com \
             --gitOrganization=kyma-project \
             --gitRepository=keda-manager \
