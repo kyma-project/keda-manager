@@ -1,0 +1,30 @@
+name: DevOps Insight
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DevOps-Insights
+        env:
+          GH_ENTERPRISE_TOKEN: ${{ secrets.GH_TOOLS_SAP_TOKEN }}
+          DORA_REPO_URL: ${{ secrets.DORA_REPO_URL }}
+        run: |
+          gh release download v0.7.6 -R ${DORA_REPO_URL} --pattern 'devops-insights.linux.amd64' --output devops-insights.linux.amd64
+          chmod +x ./devops-insights.linux.amd64
+          ./devops-insights.linux.amd64 --help
+      # - name: Dora
+      #   run: |
+      #     ./devops-insights.linux.amd64 \
+      #       --artifactVersion=${{ github.event.inputs.name  }} \
+      #       --devOpsInsightsToken=${{ secrets.ACCESS_TOKEN_HYPERSPACE_GITHUB }} \
+      #       --identifier=keda-manager \
+      #       --commitID=${{ github.sha }} \
+      #       --deploymentTarget=development \
+      #       --gitInstance=github.com \
+      #       --gitOrganization=kyma-project \
+      #       --gitRepository=keda-manager \
+      #       --githubToken=${{ secrets.GITHUB_TOKEN }} \
+      #       --verbose
