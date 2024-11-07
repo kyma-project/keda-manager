@@ -11,5 +11,6 @@ jobs:
 
   devOps-Insights:
     name: DevOps Insights Test
-    uses: "./.github/workflows/metrics-test.yaml"
+    uses: "./.github/workflows/_metrics.yaml"
+    secrets: inherit
 
