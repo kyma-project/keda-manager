@@ -27,49 +27,34 @@ jobs:
   btp-integration-tests:
     if: ${{ !startsWith(github.event_name, 'pull_request') }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: test/btp/hack
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-kyma
+      - name: compute github commit sha
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - uses: kyma-project/terraform-module/.github/actions/create-sap-btp-kyma@6af78799edd07b5301494de20aaecee28f51af27
+        id: create-btp-resources
         with:
-          path: "/usr/local/bin"
-      - uses: ./.github/actions/setup-terraform
-      - name: Create btp account with kyma enabled
-        run: |
-          . ./set-tf-envs.sh
-          terraform -chdir=../tf init
-          terraform -chdir=../tf apply -auto-approve
-          echo "SUBACC_ID=$(terraform -chdir=../tf output -raw subaccount_id)" >> $GITHUB_ENV
-        env:
-          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
-          TF_VAR_BTP_NEW_SUBACCOUNT_NAME: keda-manager-test-${{ github.sha }}-${{ github.run_attempt }}
-
-      - name: Generate access
-        run: |
-          sudo ln -sf bash /bin/sh
-          . ./set-tf-envs.sh
-          mkdir -p tmp
-          CLUSTERROLE=cluster-admin make service-account-kubeconfig
-        env:
-          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
+          btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
+          btp_backend_url: '${{ secrets.BTP_BACKEND_URL}}'
+          btp_user: '${{ secrets.BTP_BOT_USER}}'
+          btp_password: '${{ secrets.BTP_BOT_PASSWORD}}'
+          btp_global_account: '${{ secrets.BTP_GLOBAL_ACCOUNT }}'
+          btp_idp_tenant: '${{ secrets.BTP_CUSTOM_IAS_TENANT }}'
+          btp_subaccount_region: '${{ secrets.BTP_SUBACCOUNT_REGION }}'
+          btp_kyma_region: '${{ secrets.BTP_KYMA_REGION }}'
+          btp_kyma_plan: '${{ secrets.BTP_KYMA_PLAN }}'
 
       - name: Run Keda Manager's integration test
         run: |
-          sleep 10
-          KUBECONFIG=/tmp/sa-kubeconfig.yaml make -C ../../../hack/ci integration-test-on-cluster
+          KUBECONFIG=${KUBECONFIG} make -C hack/ci integration-test-on-cluster
 
-      - uses: ./.github/actions/setup-btp
+      - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@6af78799edd07b5301494de20aaecee28f51af27
         if: always()
         with:
-          path: "/usr/local/bin"
-
-      - name: Force delete btp account
-        if: always()
-        run: |
-          . ./set-tf-envs.sh
-          btp login --url $TF_VAR_BTP_BACKEND_URL --user $TF_VAR_BTP_BOT_USER --password $TF_VAR_BTP_BOT_PASSWORD --idp $TF_VAR_BTP_CUSTOM_IAS_TENANT --subdomain $TF_VAR_BTP_GLOBAL_ACCOUNT
-          btp delete accounts/subaccount ${SUBACC_ID} --global-account ${TF_VAR_BTP_GLOBAL_ACCOUNT} --force-delete true --confirm true
-        env:
-          BTP_ENV: ${{ secrets.BTP_INTEGRATION_TEST }}
+          btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
+          btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
+          btp_user: ${{ secrets.BTP_BOT_USER}}
+          btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
+          btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
+          btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
