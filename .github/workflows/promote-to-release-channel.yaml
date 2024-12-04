@@ -1,0 +1,94 @@
+name: promote to release channel
+
+on:
+  workflow_dispatch:
+    inputs:
+      keda_tag:
+        description: 'Keda tag to promote (`x.x.x`)'
+        default: ""
+        required: true
+      channel:
+        type: choice
+        description: 'Module channel'
+        options:
+          - fast
+          - regular
+          - experimental
+          - dev
+        required: true
+
+env:
+  MODULE_VERSION: ${{ github.event.inputs.keda_tag }}
+  CHANNEL: ${{ github.event.inputs.channel }}
+  # needed by gh cli for GitHub enterprise
+  GH_ENTERPRISE_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+  BOT_USERNAME: kyma-otter-serviceuser
+  BOT_EMAIL: dl_545734d8fd84a02c39000002@global.corp.sap
+  GH_TOOLS_REPO_URL: ${{ secrets.GH_TOOLS_REPO_URL }}
+  KEDA_REPO_URL: ${{ secrets.KEDA_REPO_URL }}
+
+jobs:
+
+  promote-keda:
+    name: Get, render and push keda assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.keda_tag }}
+
+      - name: Download release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ github.event.inputs.keda_tag}} -R "${KEDA_REPO_URL}" --pattern '*.yaml'
+
+      - name: Render module-config
+        env:
+          CHANNEL: ${{ github.event.inputs.channel }}
+          MODULE_VERSION: ${{ github.event.inputs.keda_tag }}
+        run: |
+          make module-config
+          echo "==== module-config ==="
+          cat module-config.yaml 
+
+      - name: Set up module-manifests repo
+        run: |
+          git config --global user.email "${BOT_EMAIL}"
+          git config --global user.name "${BOT_USERNAME}"
+          git clone "https://${BOT_USERNAME}:${GH_ENTERPRISE_TOKEN}@${GH_TOOLS_REPO_URL}/${BOT_USERNAME}/module-manifests.git"
+          git -C module-manifests remote add upstream "https://${BOT_USERNAME}:${GH_ENTERPRISE_TOKEN}@${GH_TOOLS_REPO_URL}/kyma/module-manifests.git"
+
+      - name: Commit manifest
+        working-directory: module-manifests
+        run: |
+          git fetch upstream
+          git checkout -B "${MODULE_VERSION}-${CHANNEL}" upstream/main
+
+          mkdir -p modules/keda/${CHANNEL}
+          cp ../keda-manager.yaml modules/keda/${CHANNEL}/keda-manager.yaml
+          cp ../keda-default-cr.yaml modules/keda/${CHANNEL}/keda-default-cr.yaml
+          cp ../module-config.yaml modules/keda/${CHANNEL}/module-config.yaml
+          
+          git add .
+          git commit -m "promote keda ${MODULE_VERSION} to ${CHANNEL} channel"
+          git push origin "${MODULE_VERSION}-${CHANNEL}" -f
+
+      - name: Create PullRequest to module-manifests
+        working-directory: module-manifests
+        run: |
+          prs=$(gh pr list -R "https://${GH_TOOLS_REPO_URL}/kyma/module-manifests" -A "${BOT_USERNAME}" --state open --json headRefName)
+
+          if  echo $prs | jq -e ".[] | select(.headRefName==\"${MODULE_VERSION}-${CHANNEL}\")"; then
+              echo "opened PR already exists, no need to create new one, PR will be updated by push from previous step"
+              exit 0
+          fi
+
+          gh pr create -B main --fill \
+            -H "${BOT_USERNAME}:${MODULE_VERSION}-${CHANNEL}" \
+            -R "https://${GH_TOOLS_REPO_URL}/kyma/module-manifests/" \
+            --title "Promote Keda ${MODULE_VERSION} to ${CHANNEL} channel" \
+            --body "https://github.com/kyma-project/keda-manager/actions/${{github.run_id}}"
