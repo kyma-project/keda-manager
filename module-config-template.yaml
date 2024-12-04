@@ -1,4 +1,4 @@
-name: {{.Name}}
+name: kyma-project.io/module/keda
 channel: {{.Channel}}
 version: {{.Version}}
 defaultCR: config/samples/keda-default-cr.yaml

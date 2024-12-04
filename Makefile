@@ -164,3 +164,9 @@ $(KYMA):
 .PHONY: grafana-dashboard
 grafana-dashboard: ## Generating Grafana manifests to visualize controller status.
 	cd operator && kubebuilder edit --plugins grafana.kubebuilder.io/v1-alpha
+
+##@ Actions
+.PHONY: module-config
+module-config:
+	yq ".channel = \"${CHANNEL}\" | .version = \"${MODULE_VERSION}\""\
+    	module-config-template.yaml > module-config.yaml
