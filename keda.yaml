@@ -6,11 +6,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator
     
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -23,11 +23,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-metrics-server
     
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   annotations:
   name: keda-metrics-server
@@ -41,11 +41,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-webhook
     
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   annotations:
   name: keda-webhook
@@ -60,11 +60,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
   name: cloudeventsources.eventing.keda.sh
 spec:
   group: eventing.keda.sh
@@ -149,6 +149,16 @@ spec:
                       enum:
                       - keda.scaledobject.ready.v1
                       - keda.scaledobject.failed.v1
+                      - keda.scaledobject.removed.v1
+                      - keda.scaledjob.ready.v1
+                      - keda.scaledjob.failed.v1
+                      - keda.scaledjob.removed.v1
+                      - keda.authentication.triggerauthentication.created.v1
+                      - keda.authentication.triggerauthentication.updated.v1
+                      - keda.authentication.triggerauthentication.removed.v1
+                      - keda.authentication.clustertriggerauthentication.created.v1
+                      - keda.authentication.clustertriggerauthentication.updated.v1
+                      - keda.authentication.clustertriggerauthentication.removed.v1
                       type: string
                     type: array
                   includedEventTypes:
@@ -158,6 +168,182 @@ spec:
                       enum:
                       - keda.scaledobject.ready.v1
                       - keda.scaledobject.failed.v1
+                      - keda.scaledobject.removed.v1
+                      - keda.scaledjob.ready.v1
+                      - keda.scaledjob.failed.v1
+                      - keda.scaledjob.removed.v1
+                      - keda.authentication.triggerauthentication.created.v1
+                      - keda.authentication.triggerauthentication.updated.v1
+                      - keda.authentication.triggerauthentication.removed.v1
+                      - keda.authentication.clustertriggerauthentication.created.v1
+                      - keda.authentication.clustertriggerauthentication.updated.v1
+                      - keda.authentication.clustertriggerauthentication.removed.v1
+                      type: string
+                    type: array
+                type: object
+            required:
+            - destination
+            type: object
+          status:
+            description: CloudEventSourceStatus defines the observed state of CloudEventSource
+            properties:
+              conditions:
+                description: Conditions an array representation to store multiple
+                  Conditions
+                items:
+                  description: Condition to store the condition state
+                  properties:
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+# Source: keda/templates/crds/crd-clustercloudeventsources.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  labels:
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.16.1
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.16.1
+  name: clustercloudeventsources.eventing.keda.sh
+spec:
+  group: eventing.keda.sh
+  names:
+    kind: ClusterCloudEventSource
+    listKind: ClusterCloudEventSourceList
+    plural: clustercloudeventsources
+    singular: clustercloudeventsource
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Active")].status
+      name: Active
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CloudEventSourceSpec defines the spec of CloudEventSource
+            properties:
+              authenticationRef:
+                description: |-
+                  AuthenticationRef points to the TriggerAuthentication or ClusterTriggerAuthentication object that
+                  is used to authenticate the scaler with the environment
+                properties:
+                  kind:
+                    description: Kind of the resource being referred to. Defaults
+                      to TriggerAuthentication.
+                    type: string
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+              clusterName:
+                type: string
+              destination:
+                description: Destination defines the various ways to emit events
+                properties:
+                  azureEventGridTopic:
+                    properties:
+                      endpoint:
+                        type: string
+                    required:
+                    - endpoint
+                    type: object
+                  http:
+                    properties:
+                      uri:
+                        type: string
+                    required:
+                    - uri
+                    type: object
+                type: object
+              eventSubscription:
+                description: EventSubscription defines filters for events
+                properties:
+                  excludedEventTypes:
+                    items:
+                      description: CloudEventType contains the list of cloudevent
+                        types
+                      enum:
+                      - keda.scaledobject.ready.v1
+                      - keda.scaledobject.failed.v1
+                      - keda.scaledobject.removed.v1
+                      - keda.scaledjob.ready.v1
+                      - keda.scaledjob.failed.v1
+                      - keda.scaledjob.removed.v1
+                      - keda.authentication.triggerauthentication.created.v1
+                      - keda.authentication.triggerauthentication.updated.v1
+                      - keda.authentication.triggerauthentication.removed.v1
+                      - keda.authentication.clustertriggerauthentication.created.v1
+                      - keda.authentication.clustertriggerauthentication.updated.v1
+                      - keda.authentication.clustertriggerauthentication.removed.v1
+                      type: string
+                    type: array
+                  includedEventTypes:
+                    items:
+                      description: CloudEventType contains the list of cloudevent
+                        types
+                      enum:
+                      - keda.scaledobject.ready.v1
+                      - keda.scaledobject.failed.v1
+                      - keda.scaledobject.removed.v1
+                      - keda.scaledjob.ready.v1
+                      - keda.scaledjob.failed.v1
+                      - keda.scaledjob.removed.v1
+                      - keda.authentication.triggerauthentication.created.v1
+                      - keda.authentication.triggerauthentication.updated.v1
+                      - keda.authentication.triggerauthentication.removed.v1
+                      - keda.authentication.clustertriggerauthentication.created.v1
+                      - keda.authentication.clustertriggerauthentication.updated.v1
+                      - keda.authentication.clustertriggerauthentication.removed.v1
                       type: string
                     type: array
                 type: object
@@ -208,11 +394,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
   name: clustertriggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -781,11 +967,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
   name: scaledjobs.keda.sh
 spec:
   group: keda.sh
@@ -805,12 +991,6 @@ spec:
     - jsonPath: .spec.maxReplicaCount
       name: Max
       type: integer
-    - jsonPath: .spec.triggers[*].type
-      name: Triggers
-      type: string
-    - jsonPath: .spec.triggers[*].authenticationRef.name
-      name: Authentication
-      type: string
     - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: string
@@ -819,6 +999,12 @@ spec:
       type: string
     - jsonPath: .status.conditions[?(@.type=="Paused")].status
       name: Paused
+      type: string
+    - jsonPath: .status.triggersTypes
+      name: Triggers
+      type: string
+    - jsonPath: .status.authenticationsTypes
+      name: Authentications
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -8851,11 +9037,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
   name: scaledobjects.keda.sh
 spec:
   group: keda.sh
@@ -8881,12 +9067,6 @@ spec:
     - jsonPath: .spec.maxReplicaCount
       name: Max
       type: integer
-    - jsonPath: .spec.triggers[*].type
-      name: Triggers
-      type: string
-    - jsonPath: .spec.triggers[*].authenticationRef.name
-      name: Authentication
-      type: string
     - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: string
@@ -8898,6 +9078,12 @@ spec:
       type: string
     - jsonPath: .status.conditions[?(@.type=="Paused")].status
       name: Paused
+      type: string
+    - jsonPath: .status.triggersTypes
+      name: Triggers
+      type: string
+    - jsonPath: .status.authenticationsTypes
+      name: Authentications
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -9260,11 +9446,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.14.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
   name: triggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -9830,11 +10016,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator
 rules:
@@ -9856,10 +10042,11 @@ rules:
   resources:
   - events
   verbs:
-  - '*'
+  - create
+  - patch
 - apiGroups:
   - ""
-  resources:    
+  resources:
   - secrets
   verbs:
   - list
@@ -9905,20 +10092,38 @@ rules:
   resources:
   - horizontalpodautoscalers
   verbs:
-  - '*'
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - batch
   resources:
   - jobs
   verbs:
-  - '*'
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - eventing.keda.sh
   resources:
   - cloudeventsources
   - cloudeventsources/status
+  - clustercloudeventsources
+  - clustercloudeventsources/status
   verbs:
-  - '*'
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - keda.sh
   resources:
@@ -9931,7 +10136,11 @@ rules:
   - triggerauthentications
   - triggerauthentications/status
   verbs:
-  - '*'
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -9939,11 +10148,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal-cluster-role    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal-cluster-role
 rules:
@@ -9953,7 +10162,11 @@ rules:
   - clustertriggerauthentications
   - clustertriggerauthentications/status
   verbs:
-  - '*'
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -9981,20 +10194,20 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-external-metrics-reader    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-external-metrics-reader
 rules:
 - apiGroups:
   - external.metrics.k8s.io
   resources:
-  - '*'
+  - 'externalmetrics'
   verbs:
-  - '*'
+  - 'get'
 ---
 # Source: keda/templates/webhooks/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -10002,11 +10215,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 rules:
@@ -10046,11 +10259,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator
 roleRef:
@@ -10068,11 +10281,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal
 roleRef:
@@ -10090,11 +10303,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-system-auth-delegator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-system-auth-delegator
 roleRef:
@@ -10112,11 +10325,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-hpa-controller-external-metrics    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-hpa-controller-external-metrics
 roleRef:
@@ -10134,11 +10347,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 roleRef:
@@ -10156,11 +10369,11 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -10170,7 +10383,13 @@ rules:
   resources:
   - leases
   verbs:
-  - '*'
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - ""
   resources:
@@ -10193,11 +10412,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -10217,11 +10436,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-auth-reader    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-auth-reader
   namespace: kube-system
@@ -10240,11 +10459,11 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -10263,11 +10482,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator-metrics-apiserver
     app: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
@@ -10278,6 +10497,7 @@ spec:
     port: 443
     targetPort: 6443
     protocol: TCP
+    appProtocol: https
   - name: metrics
     port: 8080
     targetPort: 8080
@@ -10291,11 +10511,11 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-admission-webhooks
   namespace: kyma-system
@@ -10305,6 +10525,7 @@ spec:
     port: 443
     protocol: TCP
     targetPort: 9443
+    appProtocol: https
   selector:
     app: keda-admission-webhooks
 ---
@@ -10318,11 +10539,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -10336,11 +10557,11 @@ spec:
         app: keda-operator
         name: keda-operator
         app.kubernetes.io/name: keda-operator        
-        helm.sh/chart: keda-2.15.1
+        helm.sh/chart: keda-2.16.1
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.15.1
+        app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-operator
@@ -10357,7 +10578,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.15.1"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.16.1"
           command:
           - "/keda"
           args:
@@ -10444,11 +10665,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -10461,11 +10682,11 @@ spec:
       labels:
         app: keda-operator-metrics-apiserver
         app.kubernetes.io/name: keda-operator-metrics-apiserver        
-        helm.sh/chart: keda-2.15.1
+        helm.sh/chart: keda-2.16.1
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.15.1
+        app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-metrics-server
@@ -10482,8 +10703,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.15.1"
-
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.16.1"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -10516,8 +10736,9 @@ spec:
               value: "3000"
             - name: KEDA_HTTP_MIN_TLS_VERSION
               value: TLS12
+          command:
+           - /keda-adapter
           args:
-          - /usr/local/bin/keda-adapter
           - --port=8080
           - --secure-port=6443
           - --logtostderr=true
@@ -10567,11 +10788,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -10585,11 +10806,11 @@ spec:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
         app.kubernetes.io/name: keda-admission-webhooks        
-        helm.sh/chart: keda-2.15.1
+        helm.sh/chart: keda-2.16.1
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.15.1
+        app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
     spec:
       serviceAccountName: keda-webhook
@@ -10606,7 +10827,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.15.1"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.16.1"
           command:
           - /keda-admission-webhooks
           args:
@@ -10676,11 +10897,11 @@ kind: APIService
 metadata:
   labels:
     app.kubernetes.io/name: v1beta1.external.metrics.k8s.io    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: v1beta1.external.metrics.k8s.io
 spec:
@@ -10699,11 +10920,11 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.15.1
+    helm.sh/chart: keda-2.16.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.15.1
+    app.kubernetes.io/version: 2.16.1
     app.kubernetes.io/instance: keda
   name: keda-admission
 webhooks:
