@@ -1,6 +1,7 @@
 module github.com/kyma-project/keda-manager
 
-go 1.23.3
+go 1.23.4
+
 require (
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/google/go-cmp v0.6.0
