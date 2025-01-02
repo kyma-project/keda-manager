@@ -10405,6 +10405,7 @@ rules:
   verbs:
   - create
   - update
+  - list
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
