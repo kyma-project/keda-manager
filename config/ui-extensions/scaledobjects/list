@@ -1,11 +1,11 @@
 - name: Target
   source: $join([spec.scaleTargetRef.name, ' (', spec.scaleTargetRef.kind?spec.scaleTargetRef.kind:"Deployment", ')'])
 - name: Triggers
-  source: spec.triggers[].type
+  source: status.triggersTypes
   widget: JoinedArray
 - name: Replicas
   source: $join([$string(spec.minReplicaCount), '..', $string(spec.maxReplicaCount)])
-- name: Ready  
+- name: Ready
   source: status.conditions[0].status
   description: status.conditions[0].message
   widget: Badge
