@@ -1,10 +1,8 @@
-header:
-  - name: Ready  
-    source: status.state
-    widget: Badge
-    highlights:
-      positive:
-        - 'Ready'
+status:
+  body:
+    - name: Condition details
+      widget: ConditionList
+      source: status.conditions
 body:
   - name: Configuration
     widget: Panel
@@ -50,27 +48,6 @@ body:
             name: CPU limit
           - source: spec.resources.admissionWebhook.limits.memory
             name: Memory limit
-  - source: status.conditions
-    widget: Table
-    name: Reconciliation Conditions
-    children:
-      - source: type
-        name: Type
-      - source: status
-        name: Status
-        widget: Badge
-        highlights:
-          positive:
-            - 'True'
-          negative:
-            - 'False'
-      - source: reason
-        name: Reason
-      - source: message
-        name: Message
-      - source: '$readableTimestamp(lastTransitionTime)'
-        name: Last transition
-        sort: true
 
   - widget: EventList
     filter: '$matchEvents($$, $root.kind, $root.metadata.name)'

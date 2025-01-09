@@ -1,13 +1,8 @@
-header:
-  - name: Ready  
-    source: status.conditions[0].status
-    description: status.conditions[0].message
-    widget: Badge
-    highlights:
-      positive:
-        - 'True'
-      negative:
-        - 'False'
+status:
+  body:
+    - name: Condition details
+      widget: ConditionList
+      source: status.conditions
 body:
   - name: columns.container
     widget: Columns

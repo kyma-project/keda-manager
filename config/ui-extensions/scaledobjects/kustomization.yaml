@@ -1,6 +1,5 @@
 configMapGenerator:
 - name: scaledobjects.keda.sh
-  namespace: kube-public
   files:
   - general
   - presets
