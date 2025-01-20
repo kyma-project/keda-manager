@@ -1,6 +1,6 @@
 ## Scenario
 
-This example realizes the scaling of jobs based on the size of [list](https://redis.io/docs/data-types/lists/) in Redis.
+This example realizes the scaling of jobs based on the size of [list](https://redis.io/docs/latest/develop/data-types/#lists) in Redis.
 When scheduled, each job pops a message from the list and stops.
 Additionally, there is a function that awaits  HTTP traffic and populates messages to the Redis list.
 
