@@ -1,3 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 # Adds namespace to all resources.
 namespace: kyma-system
 
@@ -10,18 +13,17 @@ namePrefix: keda-
 
 # Labels to add to all resources.
 labels:
-  - pairs:
-      app.kubernetes.io/component: keda-manager.kyma-project.io
-      kyma-project.io/module: keda
-      app.kubernetes.io/name: keda-manager
-      app.kubernetes.io/version: "1.1.0"
-      app.kubernetes.io/part-of: keda-manager
-      app.kubernetes.io/managed-by: kustomize
-    includeSelectors: false
+- pairs:
+    app.kubernetes.io/component: keda-manager.kyma-project.io
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: keda-manager
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/version: 1.1.0
+    kyma-project.io/module: keda-manager
 
 resources:
-  - ../crd
-  - ../rbac
-  - ../priority-class
-  - ../manager
-  - ../ui-extensions
+- ../crd
+- ../rbac
+- ../priority-class
+- ../manager
+- ../ui-extensions
