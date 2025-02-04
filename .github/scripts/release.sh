@@ -7,7 +7,6 @@ set -E          # needs to be set if we want the ERR trap
 set -o pipefail # prevents errors in a pipeline from being masked
 
 # Expected variables:
-PULL_BASE_REF=${PULL_BASE_REF?"Define PULL_BASE_REF env"} # name of the tag
 GITHUB_TOKEN=${GITHUB_TOKEN?"Define GITHUB_TOKEN env"} # github token used to upload the template yaml
 RELEASE_ID=${RELEASE_ID?"Define RELEASE_ID env"} # github token used to upload the template yaml
 
@@ -31,9 +30,7 @@ uploadFile() {
   fi
 }
 
-echo "PULL_BASE_REF ${PULL_BASE_REF}"
-
-MODULE_VERSION=${PULL_BASE_REF} make render-manifest
+make render-manifest
 
 echo "Generated keda-manager.yaml:"
 cat keda-manager.yaml

@@ -28,12 +28,12 @@ jobs:
           token: ${{ secrets.BOT_TOKEN }}
           fetch-depth: 0
 
-      - name: Bump crd
+      - name: Bump kustomize
         run: | 
-          ./hack/replace_keda_crd_version.sh
+          ./.github/scripts/upgrade-operator-kustomize.sh
         env:
-            IMG_VERSION: ${{ github.event.inputs.name }}
-            PROJECT_ROOT: "."
+            IMG: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.event.inputs.name }}
+            MODULE_VERSION: ${{ github.event.inputs.name }}
 
       - name: Bump sec-scanners-config.yaml
         run: ./.github/scripts/upgrade-sec-scanners-config.sh
@@ -101,7 +101,6 @@ jobs:
         id: create-assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_BASE_REF: ${{ github.event.inputs.name }}
           RELEASE_ID: ${{ steps.create-draft.outputs.release_id }}
         run: ./.github/scripts/release.sh
 

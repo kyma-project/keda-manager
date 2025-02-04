@@ -94,7 +94,6 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 
 .PHONY: render-manifest
 render-manifest: manifests kustomize ## Render keda-manager.yaml manifest.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > keda-manager.yaml
 
 .PHONY: undeploy
