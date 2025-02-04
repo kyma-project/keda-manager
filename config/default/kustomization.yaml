@@ -12,7 +12,7 @@ namePrefix: keda-
 labels:
   - pairs:
       app.kubernetes.io/component: keda-manager.kyma-project.io
-      kyma-project.io/module: keda-manager
+      kyma-project.io/module: keda
       app.kubernetes.io/name: keda-manager
       app.kubernetes.io/version: "1.1.0"
       app.kubernetes.io/part-of: keda-manager
