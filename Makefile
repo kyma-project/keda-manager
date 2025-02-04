@@ -93,7 +93,7 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: render-manifest
-render-manifest: manifests kustomize ## Render keda-manager.yaml manifest.
+render-manifest: kustomize ## Render keda-manager.yaml manifest.
 	$(KUSTOMIZE) build config/default > keda-manager.yaml
 
 .PHONY: undeploy
