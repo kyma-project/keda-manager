@@ -22,3 +22,6 @@ cd ${CONFIG_OPERATOR}/manager && ${PROJECT_ROOT}/bin/kustomize edit set image co
 
 echo "upgrade module version to ${MODULE_VERSION}..."
 cd ${CONFIG_OPERATOR}/default && ${PROJECT_ROOT}/bin/kustomize edit add label app.kubernetes.io/version:${MODULE_VERSION} --force --without-selector --include-templates
+
+echo "upgrade manager deployment env with version ${MODULE_VERSION}..."
+cd ${CONFIG_OPERATOR}/manager && yq --inplace ".spec.template.spec.containers[0].env[0].value=\"${MODULE_VERSION}\"" ${CONFIG_OPERATOR}/manager/manager.yaml
