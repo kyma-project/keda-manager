@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -85,11 +86,17 @@ func updateDeploymentContainer0Args(deployment appsv1.Deployment, updater api.Ar
 }
 
 func updateDeploymentLabels(deployment *appsv1.Deployment, config v1alpha1.IstioCfg) error {
-	deployment.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"] = strconv.FormatBool(config.EnabledSidecarInjection)
-	deployment.Spec.Template.ObjectMeta.Labels["kyma-project.io/module"] = "keda-manager"
-	deployment.Spec.Template.ObjectMeta.Labels["app.kubernetes.io/part-of"] = "keda-manager"
-	deployment.Spec.Template.ObjectMeta.Labels["app.kubernetes.io/managed-by"] = ""
+	deployment.Spec.Template.SetLabels(setCommonLabels(deployment.Spec.Template.GetLabels()))
+	deployment.Spec.Template.Labels["sidecar.istio.io/inject"] = strconv.FormatBool(config.EnabledSidecarInjection)
 	return nil
+}
+
+func setCommonLabels(labels map[string]string) map[string]string {
+	labels["kyma-project.io/module"] = "keda"
+	labels["app.kubernetes.io/part-of"] = "keda-manager"
+	labels["app.kubernetes.io/managed-by"] = "keda-manager"
+	labels["app.kubernetes.io/version"] = os.Getenv("KEDA_MODULE_VERSION")
+	return labels
 }
 
 func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassName string) error {

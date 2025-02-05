@@ -25,6 +25,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 			Debug("applying")
 
 		obj = annotation.AddDoNotEditDisclaimer(obj)
+		obj.SetLabels(setCommonLabels(obj.GetLabels()))
 		err := r.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
 			Force:        ptr.To[bool](true),
 			FieldManager: "keda-manager",

@@ -75,6 +75,8 @@ func Test_updateObj_convert_errors(t *testing.T) {
 
 func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 	t.Run("enable istio sidecar injection", func(t *testing.T) {
+		t.Setenv("KEDA_MODULE_VERSION", "test")
+
 		deployment := appsv1.Deployment{
 			Spec: appsv1.DeploymentSpec{
 				Template: corev1.PodTemplateSpec{
@@ -94,9 +96,10 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 		expectedLabels := map[string]string{
 			"test":                         "test",
 			"sidecar.istio.io/inject":      "true",
-			"app.kubernetes.io/managed-by": "",
-			"kyma-project.io/module":       "keda-manager",
+			"app.kubernetes.io/managed-by": "keda-manager",
+			"kyma-project.io/module":       "keda",
 			"app.kubernetes.io/part-of":    "keda-manager",
+			"app.kubernetes.io/version":    "test",
 		}
 
 		err := updateDeploymentLabels(&deployment, config)
@@ -105,6 +108,8 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 	})
 
 	t.Run("disable istio sidecar injection", func(t *testing.T) {
+		t.Setenv("KEDA_MODULE_VERSION", "test")
+
 		deployment := appsv1.Deployment{
 			Spec: appsv1.DeploymentSpec{
 				Template: corev1.PodTemplateSpec{
@@ -125,9 +130,10 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 		expectedLabels := map[string]string{
 			"test":                         "test",
 			"sidecar.istio.io/inject":      "false",
-			"app.kubernetes.io/managed-by": "",
-			"kyma-project.io/module":       "keda-manager",
+			"app.kubernetes.io/managed-by": "keda-manager",
+			"kyma-project.io/module":       "keda",
 			"app.kubernetes.io/part-of":    "keda-manager",
+			"app.kubernetes.io/version":    "test",
 		}
 
 		err := updateDeploymentLabels(&deployment, config)

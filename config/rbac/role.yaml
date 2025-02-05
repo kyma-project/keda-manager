@@ -141,6 +141,8 @@ rules:
   resources:
   - cloudeventsources
   - cloudeventsources/status
+  - clustercloudeventsources
+  - clustercloudeventsources/status
   verbs:
   - '*'
 - apiGroups:
