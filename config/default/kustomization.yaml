@@ -19,7 +19,7 @@ labels:
     app.kubernetes.io/name: keda-manager
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/version: 1.1.0
-    kyma-project.io/module: keda-manager
+    kyma-project.io/module: keda
 
 resources:
 - ../crd
