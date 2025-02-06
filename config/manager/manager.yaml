@@ -30,39 +30,39 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       containers:
-      - command:
-        - /manager
-        args:
-        - --leader-elect
-        image: controller:latest
-        imagePullPolicy: Always
-        name: manager
-        env:
-        - name: KEDA_MODULE_VERSION
-          value: main
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        resources:
-          requests:
-            memory: 32Mi
-            cpu: 10m
-          limits:
-            memory: 128Mi
-            cpu: 200m
+        - command:
+            - /manager
+          args:
+            - --leader-elect
+          image: controller:latest
+          imagePullPolicy: Always
+          name: manager
+          env:
+            - name: KEDA_MODULE_VERSION
+              value: main
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 10m
+            limits:
+              memory: 128Mi
+              cpu: 200m
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
