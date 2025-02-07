@@ -13,12 +13,13 @@ namePrefix: keda-
 
 # Labels to add to all resources.
 labels:
-- pairs:
+- includeTemplates: true
+  pairs:
     app.kubernetes.io/component: keda-manager.kyma-project.io
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: keda-manager
     app.kubernetes.io/part-of: keda-manager
-    app.kubernetes.io/version: 1.1.0
+    app.kubernetes.io/version: main
     kyma-project.io/module: keda
 
 resources:
