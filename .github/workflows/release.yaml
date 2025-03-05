@@ -5,6 +5,9 @@ on:
     tags:
       - '^v?\d+\.\d+\.\d+(?:-.*)?$'
 
+permissions:
+  id-token: write # This is required for requesting the JWT token
+  contents: read # This is required for actions/checkout
 jobs:
   builds:
     uses: ./.github/workflows/_build.yaml
