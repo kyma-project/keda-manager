@@ -40,7 +40,7 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: upgrade-keda
-upgrade-keda:
+upgrade-keda: ## Upgrade keda.yaml based on the KEDA_VERSION env and chart from the https://github.com/kedacore/charts/tree/main/keda
 	helm repo add kedacore https://kedacore.github.io/charts
 	helm repo update
 	helm template keda kedacore/keda --version $(KEDA_VERSION) --namespace kyma-system --values hack/keda_values.yaml  > keda.yaml
