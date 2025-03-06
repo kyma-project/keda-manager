@@ -1,5 +1,7 @@
 # incoming variables
 
+KEDA_VERSION ?= 2.16.1
+
 MODULE_VERSION ?= 0.0.0
 
 # Image URL to use all building/pushing image targets
@@ -36,6 +38,13 @@ help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
+
+.PHONY: upgrade-keda
+upgrade-keda:
+	helm repo add kedacore https://kedacore.github.io/charts
+	helm repo update
+	helm template keda kedacore/keda --version $(KEDA_VERSION) --namespace kyma-system --values hack/keda_values.yaml  > keda.yaml
+  
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
