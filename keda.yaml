@@ -10582,10 +10582,10 @@ spec:
         app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
       annotations:
-        metrics.dynatrace.com/path: metrics
-        metrics.dynatrace.com/port: 8080
-        metrics.dynatrace.com/scrape: true
-        metrics.dynatrace.com/secure: false
+        metrics.dynatrace.com/path: /metrics
+        metrics.dynatrace.com/port: "8080"
+        metrics.dynatrace.com/scrape: "true"
+        metrics.dynatrace.com/secure: "false"
     spec:
       serviceAccountName: keda-operator
       automountServiceAccountToken: true
@@ -10718,10 +10718,10 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
-        metrics.dynatrace.com/path: metrics
-        metrics.dynatrace.com/port: 8080
-        metrics.dynatrace.com/scrape: true
-        metrics.dynatrace.com/secure: false
+        metrics.dynatrace.com/path: /metrics
+        metrics.dynatrace.com/port: "8080"
+        metrics.dynatrace.com/scrape: "true"
+        metrics.dynatrace.com/secure: "false"
     spec:
       serviceAccountName: keda-metrics-server
       automountServiceAccountToken: true
@@ -10847,10 +10847,10 @@ spec:
         app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
       annotations:
-        metrics.dynatrace.com/path: metrics
-        metrics.dynatrace.com/port: 8080
-        metrics.dynatrace.com/scrape: true
-        metrics.dynatrace.com/secure: false
+        metrics.dynatrace.com/path: /metrics
+        metrics.dynatrace.com/port: "8080"
+        metrics.dynatrace.com/scrape: "true"
+        metrics.dynatrace.com/secure: "false"
     spec:
       serviceAccountName: keda-webhook
       automountServiceAccountToken: true
