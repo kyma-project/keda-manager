@@ -13,7 +13,6 @@ prometheus:
     port: 8080
     # -- HTTP port name for exposing metrics server prometheus metrics
     portName: metrics
-    # -- App Protocol for service when scraping metrics endpoint
   operator:
     # -- Enable KEDA Operator prometheus metrics expose
     enabled: true
@@ -24,4 +23,3 @@ prometheus:
     enabled: true
     # -- Port used for exposing KEDA admission webhooks prometheus metrics
     port: 8080
-    # -- App Protocol for service when scraping metrics endpoint
