@@ -1,3 +1,6 @@
+# this is set of overwrites used to template this chart:
+# https://github.com/kedacore/charts/tree/main/keda
+
 global:
   image:
     registry: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io"
@@ -22,24 +25,3 @@ prometheus:
     # -- Port used for exposing KEDA admission webhooks prometheus metrics
     port: 8080
     # -- App Protocol for service when scraping metrics endpoint
-
-podAnnotations:
-  # -- Pod annotations for KEDA operator
-  keda:
-     metrics.dynatrace.com/scrape: 'true'
-     metrics.dynatrace.com/path: '/metrics'
-     metrics.dynatrace.com/port: '8080'
-     metrics.dynatrace.com/secure: 'false'	
-  # -- Pod annotations for KEDA Metrics Adapter
-  metricsAdapter:
-    metrics.dynatrace.com/scrape: 'true'
-    metrics.dynatrace.com/path: '/metrics'
-    metrics.dynatrace.com/port: '8080'
-    metrics.dynatrace.com/secure: 'false'
-  # -- Pod annotations for KEDA Admission webhooks
-  webhooks:
-    metrics.dynatrace.com/scrape: 'true'
-    metrics.dynatrace.com/path: '/metrics'
-    metrics.dynatrace.com/port: '8080'
-    metrics.dynatrace.com/secure: 'false'
-
