@@ -12,7 +12,7 @@ prometheus:
     # -- HTTP port used for exposing metrics server prometheus metrics
     port: 8080
     # -- HTTP port name for exposing metrics server prometheus metrics
-    portName: metrics
+    portName: http-metrics
   operator:
     # -- Enable KEDA Operator prometheus metrics expose
     enabled: true
