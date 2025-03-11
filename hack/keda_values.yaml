@@ -7,19 +7,8 @@ global:
 
 prometheus:
   metricServer:
-    # -- Enable metric server Prometheus metrics expose
     enabled: true
-    # -- HTTP port used for exposing metrics server prometheus metrics
-    port: 8080
-    # -- HTTP port name for exposing metrics server prometheus metrics
-    portName: http-metrics
   operator:
-    # -- Enable KEDA Operator prometheus metrics expose
     enabled: true
-    # -- Port used for exposing KEDA Operator prometheus metrics
-    port: 8080
   webhooks:
-    # -- Enable KEDA admission webhooks prometheus metrics expose
     enabled: true
-    # -- Port used for exposing KEDA admission webhooks prometheus metrics
-    port: 8080

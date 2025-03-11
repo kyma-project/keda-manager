@@ -10509,7 +10509,7 @@ spec:
     targetPort: 6443
     protocol: TCP
     appProtocol: https
-  - name: http-metrics
+  - name: metrics
     port: 8080
     targetPort: 8080
     protocol: TCP
@@ -10780,7 +10780,7 @@ spec:
               name: https
               protocol: TCP
             - containerPort: 8080
-              name: http-metrics
+              name: metrics
               protocol: TCP
           volumeMounts:
           - mountPath: /certs
