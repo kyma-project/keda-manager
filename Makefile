@@ -44,7 +44,6 @@ keda-manifest: ## Upgrade keda.yaml based on the KEDA_VERSION env and chart from
 	helm repo add kedacore https://kedacore.github.io/charts
 	helm repo update
 	helm template keda kedacore/keda --version $(KEDA_VERSION) --namespace kyma-system --values hack/keda_values.yaml  > keda.yaml
-  
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
