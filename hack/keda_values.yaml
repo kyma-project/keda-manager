@@ -1,0 +1,14 @@
+# this is set of overwrites used to template this chart:
+# https://github.com/kedacore/charts/tree/main/keda
+
+global:
+  image:
+    registry: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io"
+
+prometheus:
+  metricServer:
+    enabled: true
+  operator:
+    enabled: true
+  webhooks:
+    enabled: true

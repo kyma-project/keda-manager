@@ -10405,7 +10405,6 @@ rules:
   verbs:
   - create
   - update
-  - list
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -10458,6 +10457,10 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-operator    
     helm.sh/chart: keda-2.16.1
@@ -10473,6 +10476,9 @@ spec:
   - name: metricsservice
     port: 9666
     targetPort: 9666
+  - name: metrics
+    port: 8080
+    targetPort: 8080
   selector:
     app: keda-operator
 ---
@@ -10491,6 +10497,10 @@ metadata:
     app.kubernetes.io/instance: keda
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
 spec:
   type: ClusterIP
   ports:
@@ -10510,6 +10520,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
     helm.sh/chart: keda-2.16.1
@@ -10527,6 +10541,9 @@ spec:
     protocol: TCP
     targetPort: 9443
     appProtocol: https
+  - name: metrics
+    port: 8080
+    targetPort: 8080
   selector:
     app: keda-admission-webhooks
 ---
@@ -10596,7 +10613,8 @@ spec:
           - "--webhooks-service-name=keda-admission-webhooks"
           - "--k8s-cluster-name=kubernetes-default"
           - "--k8s-cluster-domain=cluster.local"
-          - "--enable-prometheus-metrics=false"
+          - "--enable-prometheus-metrics=true"
+          - "--metrics-bind-address=:8080"
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
@@ -10617,6 +10635,9 @@ spec:
             failureThreshold: 3
             successThreshold: 1
           ports:
+          - containerPort: 8080
+            name: metrics
+            protocol: TCP
           - containerPort: 9666
             name: metricsservice
             protocol: TCP
@@ -10689,6 +10710,9 @@ spec:
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.16.1
         app.kubernetes.io/instance: keda
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       serviceAccountName: keda-metrics-server
       automountServiceAccountToken: true
@@ -10860,6 +10884,9 @@ spec:
           ports:
           - containerPort: 9443
             name: http
+            protocol: TCP
+          - containerPort: 8080
+            name: metrics
             protocol: TCP
           env:
             - name: WATCH_NAMESPACE
