@@ -1,9 +1,4 @@
-# These are the default owners for the whole content of the `keda-manager` repository. The default owners are automatically added as reviewers when you open a pull request unless different owners are specified in the file.
-* @pPrecel @dbadura @kwiatekus @cortey @anoipm @MichalKalke @halamix2
+# Repo owners list
 
-# All files and subdirectories in /docs
-/docs/ @mmitoraj @NHingerl @grego952 @IwonaLanger @nataliasitko
-
-# All .md files
-*.md @mmitoraj @NHingerl @grego952 @IwonaLanger @nataliasitko
-
+* @kyma-project/otters-dev
+*.md @kyma-project/technical-writers
