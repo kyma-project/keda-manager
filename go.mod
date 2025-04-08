@@ -1,6 +1,6 @@
 module github.com/kyma-project/keda-manager
 
-go 1.23.8
+go 1.24.0
 
 toolchain go1.24.2
 
