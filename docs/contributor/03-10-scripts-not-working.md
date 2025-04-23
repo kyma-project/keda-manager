@@ -11,7 +11,7 @@ The example error may look like this: `Error: unsupported platform OS_TYPE: Darw
 
 Kyma CLI is not released for Apple Silicon users.
 
-## Remedy
+## Solution
 
 Install [Kyma CLI manually](https://github.com/kyma-project/cli#installation) and export the path to it.
 
