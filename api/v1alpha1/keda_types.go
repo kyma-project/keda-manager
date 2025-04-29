@@ -257,7 +257,7 @@ var (
 	}
 	kedaHTTPMinTLSVersion = corev1.EnvVar{
 		Name:  "KEDA_HTTP_MIN_TLS_VERSION",
-		Value: "TLS12",
+		Value: "TLS13",
 	}
 )
 
