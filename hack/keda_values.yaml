@@ -15,3 +15,6 @@ prometheus:
 
 http:
   minTlsVersion: TLS13
+
+image:
+  pullPolicy: IfNotPresent
