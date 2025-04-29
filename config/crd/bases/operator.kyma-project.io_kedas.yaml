@@ -216,6 +216,21 @@ spec:
                         type: string
                     type: object
                 type: object
+              podAnnotations:
+                properties:
+                  admissionWebhook:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  metricServer:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  operator:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
               resources:
                 properties:
                   admissionWebhook:
