@@ -216,6 +216,12 @@ type Resources struct {
 	AdmissionWebhook *corev1.ResourceRequirements `json:"admissionWebhook,omitempty"`
 }
 
+type PodAnnotations struct {
+	Operator         map[string]string `json:"operator,omitempty"`
+	MetricsServer    map[string]string `json:"metricServer,omitempty"`
+	AdmissionWebhook map[string]string `json:"admissionWebhook,omitempty"`
+}
+
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
 	Istio     *Istio      `json:"istio,omitempty"`
