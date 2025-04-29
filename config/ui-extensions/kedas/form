@@ -43,4 +43,11 @@
      path: limits
      keyEnum: ['cpu', 'memory']
 
+- path: spec.podAnnotations.operator
+  widget: KeyValuePair
 
+- path: spec.podAnnotations.metricServer
+  widget: KeyValuePair
+
+- path: spec.podAnnotations.admissionWebhook
+  widget: KeyValuePair
