@@ -45,9 +45,12 @@
 
 - path: spec.podAnnotations.operator
   widget: KeyValuePair
+  name: Operator Annotations
 
 - path: spec.podAnnotations.metricServer
   widget: KeyValuePair
+  name: Metric Server Annotations
 
 - path: spec.podAnnotations.admissionWebhook
   widget: KeyValuePair
+  name: Admission Webhook Annotations

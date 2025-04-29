@@ -4,7 +4,7 @@ status:
       widget: ConditionList
       source: status.conditions
 body:
-  - name: Configuration
+  - name: Log Level
     widget: Panel
     children:
       - name: Log Level
@@ -52,11 +52,14 @@ body:
     widget: Panel
     children:
       - source: spec.podAnnotations.operator
-        name: Keda Operator Annotations
+        name: Operator Annotations
+        widget: Labels
       - source: spec.podAnnotations.metricServer
         name: Metric Server Annotations
+        widget: Labels
       - source: spec.podAnnotations.admissionWebhook
         name: Admission Webhook Annotations
+        widget: Labels
 
   - widget: EventList
     filter: '$matchEvents($$, $root.kind, $root.metadata.name)'
