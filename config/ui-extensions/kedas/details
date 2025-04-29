@@ -4,7 +4,7 @@ status:
       widget: ConditionList
       source: status.conditions
 body:
-  - name: Configuration
+  - name: Log Level
     widget: Panel
     children:
       - name: Log Level
@@ -48,6 +48,18 @@ body:
             name: CPU limit
           - source: spec.resources.admissionWebhook.limits.memory
             name: Memory limit
+  - name: Keda Pods Annotations
+    widget: Panel
+    children:
+      - source: spec.podAnnotations.operator
+        name: Operator Annotations
+        widget: Labels
+      - source: spec.podAnnotations.metricServer
+        name: Metric Server Annotations
+        widget: Labels
+      - source: spec.podAnnotations.admissionWebhook
+        name: Admission Webhook Annotations
+        widget: Labels
 
   - widget: EventList
     filter: '$matchEvents($$, $root.kind, $root.metadata.name)'
