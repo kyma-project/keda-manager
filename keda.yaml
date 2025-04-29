@@ -11185,7 +11185,7 @@ spec:
           - "--k8s-cluster-domain=cluster.local"
           - "--enable-prometheus-metrics=true"
           - "--metrics-bind-address=:8080"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               path: /healthz
@@ -11300,7 +11300,7 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.17.0"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               path: /healthz
@@ -11434,7 +11434,7 @@ spec:
           - "--cert-dir=/certs"
           - "--health-probe-bind-address=:8081"
           - --metrics-bind-address=:8080
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               path: /healthz
