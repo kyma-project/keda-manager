@@ -12,6 +12,3 @@ prometheus:
     enabled: true
   webhooks:
     enabled: true
-
-http:
-  minTlsVersion: TLS13

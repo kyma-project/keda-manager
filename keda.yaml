@@ -11227,7 +11227,7 @@ spec:
             - name: KEDA_HTTP_DEFAULT_TIMEOUT
               value: "3000"
             - name: KEDA_HTTP_MIN_TLS_VERSION
-              value: TLS13
+              value: TLS12
           volumeMounts:         
           - mountPath: /certs
             name: certificates
@@ -11331,7 +11331,7 @@ spec:
             - name: KEDA_HTTP_DEFAULT_TIMEOUT
               value: "3000"
             - name: KEDA_HTTP_MIN_TLS_VERSION
-              value: TLS13
+              value: TLS12
           command:
            - /keda-adapter
           args:
