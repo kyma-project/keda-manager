@@ -15,3 +15,4 @@ checkmarx-one:
   exclude:
     - "**/test/**"
     - "**/*_test.go"
+protecode: []
