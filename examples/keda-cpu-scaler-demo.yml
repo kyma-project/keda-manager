@@ -2,62 +2,57 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: keda-demo
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orders-service
+  name: httpbin
   namespace: keda-demo
   labels:
-    app: orders-service
-    example: orders-service
+    app: httpbin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: orders-service
-      example: orders-service
+      app: httpbin
   template:
     metadata:
       labels:
-        app: orders-service
-        example: orders-service
+        app: httpbin
     spec:
       containers:
-        - name: orders-service
-          image: "eu.gcr.io/kyma-project/develop/orders-service:e8175c63"
+        - name: httpbin
+          image: "kennethreitz/httpbin:latest"
           imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+            protocol: TCP
           resources:
             limits:
-              cpu: 20m
-              memory: 32Mi
+              cpu: 100m
+              memory: 256Mi
             requests:
-              cpu: 10m
-              memory: 16Mi
-          env:
-            - name: APP_PORT
-              value: "8080"
-            - name: APP_REDIS_PREFIX
-              value: "REDIS_"
+              cpu: 20m
+              memory: 64Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: orders-service
+  name: httpbin
   namespace: keda-demo
   labels:
-    app: orders-service
-    example: orders-service
+    app: httpbin
 spec:
   type: ClusterIP
   ports:
     - name: http
       port: 80
       protocol: TCP
-      targetPort: 8080
+      targetPort: 80
   selector:
-    app: orders-service
-    example: orders-service
+    app: httpbin
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,18 +83,18 @@ spec:
           - "while true; do sleep $SLEEP; wget -q -O- $URL > /dev/null ; done"
         env:
           - name: URL
-            value: orders-service/orders
+            value: httpbin.keda-demo.svc.cluster.local/get
           - name: SLEEP
             value: '0.1'
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: orders-service-cpu-scaler
+  name: httpbin-cpu-scaler
   namespace: keda-demo
 spec:
   scaleTargetRef:
-    name: orders-service
+    name: httpbin
   minReplicaCount:  1
   maxReplicaCount:  10    
   triggers:
