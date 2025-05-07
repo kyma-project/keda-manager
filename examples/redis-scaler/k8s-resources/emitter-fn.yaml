@@ -18,16 +18,47 @@ spec:
             secretKeyRef:
                 key: redis-password
                 name: my-release-redis
-    runtime: nodejs18
+    runtime: nodejs22
     source:
         inline:
             dependencies: |
-                {
-                  "name": "emitter-fn",
-                  "version": "0.0.1",
-                  "dependencies": {
-                    "redis": "^4.6.13"
-                  }
+              {
+                "name": "emitter-fn",
+                "version": "0.0.1",
+                "dependencies": {
+                  "redis": "^4.6.13"
                 }
-            source: "const { createClient } = require('redis');\nconst LIST = \"demo\"\n\n\nmodule.exports = {\n  main: async function (event, _) {\n\n    const port = process.env[\"REDIS_PORT\"];\n    const host = process.env[\"REDIS_HOST\"];\n    const password = process.env[\"REDIS_PASSWORD\"];\n\n    const client = createClient({\n      password,\n      socket: {\n          host,\n          port,\n      }\n    });\n\n    client.on('error', err => console.log('Redis Client Error', err));\n\n    await client.connect();\n\n    var msg=event.extensions.request.body.msg\n    console.log(msg); \n    const res1 = await client.lPush(LIST, msg);\n    console.log(res1); \n\n  }\n}\n\n"
+              }
+            source: |
+              const { createClient } = require('redis');
+              const LIST = "demo"
+
+
+              module.exports = {
+                main: async function (event, _) {
+
+                  const port = process.env["REDIS_PORT"];
+                  const host = process.env["REDIS_HOST"];
+                  const password = process.env["REDIS_PASSWORD"];
+
+                  const client = createClient({
+                    password,
+                    socket: {
+                        host,
+                        port,
+                    }
+                  });
+
+                  client.on('error', err => console.log('Redis Client Error', err));
+
+                  await client.connect();
+
+                  var msg=event.extensions.request.body.msg
+                  console.log(msg); 
+                  const res1 = await client.lPush(LIST, msg);
+                  console.log(res1); 
+
+                }
+              }
+
 

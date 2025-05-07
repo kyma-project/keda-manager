@@ -55,4 +55,21 @@ See how to configure the **logging.level** or resource consumption.
    
    ```
 
+- To define custom annotations for Keda workloads, enter your preferred values for **operator**, **metricServer** and **admissionWebhook**. For example:
+
+   ```yaml
+   spec:
+     podAnnotations:
+      operator:
+        metrics.dynatrace.com/scrape: 'true'
+        metrics.dynatrace.com/path: '/metrics'
+      metricServer:
+        metrics.dynatrace.com/scrape: 'true'
+        metrics.dynatrace.com/path: '/metrics'
+      admissionWebhook:
+        metrics.dynatrace.com/scrape: 'true'
+        metrics.dynatrace.com/path: '/metrics'
+   
+   ```
+
 For more information about the Keda resources, visit the [Keda concepts](https://keda.sh/docs/latest/concepts/) documentation.
