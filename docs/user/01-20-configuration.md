@@ -74,13 +74,13 @@ See how to configure the **logging.level** attribute or the resource consumption
    
    ```
 
-- To override the minimum TLS version used by Keda (default is `TLS13`), set the `KEDA_HTTP_MIN_TLS_VERSION` environment variable. For example:
+- To override the minimum TLS version used by Keda (default is `TLS12`), set the `KEDA_HTTP_MIN_TLS_VERSION` environment variable. For example:
 
    ```yaml
    spec:
      env:
        - name: KEDA_HTTP_MIN_TLS_VERSION
-         value: TLS12
+         value: TLS13
    ```
 
 For more information about the Keda resources, see [Keda concepts](https://keda.sh/docs/latest/concepts/).
