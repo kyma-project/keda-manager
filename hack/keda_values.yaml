@@ -14,7 +14,7 @@ prometheus:
     enabled: true
 
 http:
-  minTlsVersion: TLS13
+  minTlsVersion: TLS12
 
 image:
   pullPolicy: IfNotPresent
