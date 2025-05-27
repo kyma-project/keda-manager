@@ -39,7 +39,7 @@ spec:
           name: manager
           env:
             - name: KEDA_MODULE_VERSION
-              value: 1.7.0
+              value: 1.7.1
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
