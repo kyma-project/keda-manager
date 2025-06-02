@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.24.2-alpine3.21 as builder
+FROM europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.24.3-alpine3.21 as builder
 
 WORKDIR /app
 
