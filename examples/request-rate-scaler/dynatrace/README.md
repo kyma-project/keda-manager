@@ -24,11 +24,11 @@ This example helps you set up the infrastructure needed for request rate-based a
 ## How It Works
 
 1. **Metric Exposure**  
-   The Istio sidecar in the `httpbin` deployment exposes metrics on port 15090 at the `/stats/prometheus` endpoint.  
-   The Service is annotated so Dynatrace can discover and scrape these metrics.
+   The Istio sidecar in the `httpbin` Deployment exposes metrics on port 15090 at the `/stats/prometheus` endpoint.  
+   The dedicated `httpbin-metrics` Service exposes metrics port 15090 and is annotated so that Dynatrace can discover and scrape these metrics.
 
 2. **Dynatrace Integration**  
-   Dynatrace will scrape the Istio metrics, including request rate, from the annotated Service.
+   Dynatrace will scrape the Istio metrics, including total request count, from the annotated Service.
 
 3. **Keda Scaling**  
    Keda `ScaledObject` with a `dynatrace` trigger autoscales the `httpbin` deployment based on incoming request rate.
