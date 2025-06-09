@@ -12,10 +12,6 @@ metadata:
   labels:
     app.kubernetes.io/created-by: kyma-cli
     app.kubernetes.io/name: httpbin
-  annotations:
-    metrics.dynatrace.com/scrape: "true"
-    metrics.dynatrace.com/port: "15090"         
-    metrics.dynatrace.com/path: "/stats/prometheus" 
   name: httpbin
   namespace: keda-dynatrace
 spec:
@@ -24,6 +20,22 @@ spec:
     protocol: TCP
     targetPort: 80
     name: http
+  selector:
+    app: httpbin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: httpbin-metrics
+  annotations:
+    metrics.dynatrace.com/scrape: "true"
+    metrics.dynatrace.com/port: "15090"         
+    metrics.dynatrace.com/path: "/stats/prometheus" 
+  name: httpbin-metrics
+  namespace: keda-dynatrace
+spec:
+  ports:
   - port: 15090
     targetPort: 15090
     protocol: TCP

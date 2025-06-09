@@ -6,8 +6,6 @@ metadata:
   namespace: keda-dynatrace
 type: Opaque
 data:
-  host: # base64 encoded host URL of your Dynatrace environment (without the /api/v2/ prefix)
-  token: # base64 encoded Dynatrace API token (dt0c01.VKNWE3ZBA....) with `metrics.read` permission 
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
@@ -33,13 +31,14 @@ spec:
     name: httpbin
   minReplicaCount: 1 # Adjust the minimum replica count as needed
   maxReplicaCount: 10 # Adjust the maximum replica count as needed
-  pollingInterval: 5 # seconds (Adjust the polling interval as needed)
+  pollingInterval: 30 # seconds (Adjust the polling interval as needed)
+  cooldownPeriod:  10 # seconds (Adjust the cooldown period as needed)
   triggers:
     - type: dynatrace
       metadata:
         # Dynatrace metric selector for Istio request rate (adjust as needed)
-        metricSelector: 'istio_requests_total.count:splitBy("destination_service"):filter(eq("destination_service","httpbin.keda-dynatrace.svc.cluster.local")):auto:rate(1m)'
+        metricSelector: 'istio_requests_total.count:filter(eq("destination_service_name","httpbin")):splitBy("destination_service_name"):sum:value:rate(2m)'
         from: 'now-1h'
-        threshold: '1' # Adjust the threshold as needed
+        threshold: '50' # Adjust the threshold as needed
       authenticationRef:
         name: dynatrace-trigger-auth 
