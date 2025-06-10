@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dynatrace-secret
+  namespace: keda-dynatrace
+type: Opaque
+data:
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: dynatrace-trigger-auth
+  namespace: keda-dynatrace
+spec:
+  secretTargetRef:
+  - parameter: token
+    name: dynatrace-secret
+    key: token 
+  - parameter: host
+    name: dynatrace-secret
+    key: host
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: httpbin-dynatrace-scaler
+  namespace: keda-dynatrace
+spec:
+  scaleTargetRef:
+    name: httpbin
+  minReplicaCount: 1 # Adjust the minimum replica count as needed
+  maxReplicaCount: 10 # Adjust the maximum replica count as needed
+  pollingInterval: 30 # seconds (Adjust the polling interval as needed)
+  cooldownPeriod:  10 # seconds (Adjust the cooldown period as needed)
+  triggers:
+    - type: dynatrace
+      metadata:
+        # Dynatrace metric selector for Istio request rate (adjust as needed)
+        metricSelector: 'istio_requests_total.count:filter(eq("destination_service_name","httpbin")):splitBy("destination_service_name"):sum:value:rate(2m)'
+        from: 'now-1h'
+        threshold: '50' # Adjust the threshold as needed
+      authenticationRef:
+        name: dynatrace-trigger-auth 
