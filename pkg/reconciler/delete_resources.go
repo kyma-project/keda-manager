@@ -21,10 +21,6 @@ const (
 	kedaManagerLeaseName    = "4123c01c.operator.kyma-project.io"
 )
 
-var (
-	DeletionErr = errors.New("deletion error")
-)
-
 func fixLeaseObject(leaseName string) unstructured.Unstructured {
 	return unstructured.Unstructured{
 		Object: map[string]interface{}{

@@ -1,7 +1,9 @@
 # Keda Module Configuration
 
-This document describes how to configure the Keda module using the Keda CustomResourceDefinition (CRD).
-See how to configure the **logging.level** or resource consumption.
+Learn how to configure the Keda module using the Keda CustomResourceDefinition (CRD).
+See how to configure the **logging.level** attribute or the resource consumption.
+
+## Procedure
 
 - You can change the logging level of the KEDA workloads. To change **logging.level**, choose one of the accepted values:
    - `debug` - is the most detailed option. Useful for a developer during debugging.
@@ -72,4 +74,13 @@ See how to configure the **logging.level** or resource consumption.
    
    ```
 
-For more information about the Keda resources, visit the [Keda concepts](https://keda.sh/docs/latest/concepts/) documentation.
+- To override the minimum TLS version used by Keda (default is `TLS12`), set the `KEDA_HTTP_MIN_TLS_VERSION` environment variable. For example:
+
+   ```yaml
+   spec:
+     env:
+       - name: KEDA_HTTP_MIN_TLS_VERSION
+         value: TLS13
+   ```
+
+For more information about the Keda resources, see [Keda concepts](https://keda.sh/docs/latest/concepts/).
