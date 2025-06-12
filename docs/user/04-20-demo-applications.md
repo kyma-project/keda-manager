@@ -46,3 +46,7 @@ keda-demo   keda-hpa-orders-service-cpu-scaler   Deployment/orders-service   80%
 ## Keda Prometheus Scaler Example
 
 To experience how Kyma's Keda module can complement other Kyma components, read [Scale to Zero With Keda](https://github.com/kyma-project/keda-manager/tree/main/examples/scale-to-zero-with-keda).
+
+## Dynatrace Request Rate Scaler Example
+
+To learn how to set up the infrastructure needed for request rate-based autoscaling using Dynatrace and the Keda and Istio modules in the Kyma environment, see [Dynatrace Request Rate Scaler Example](https://github.com/kyma-project/keda-manager/tree/main/examples/request-rate-scaler/dynatrace).
