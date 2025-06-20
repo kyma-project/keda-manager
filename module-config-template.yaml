@@ -1,8 +1,38 @@
 name: kyma-project.io/module/keda
-channel: {{.Channel}}
 version: {{.Version}}
-defaultCR: config/samples/keda-default-cr.yaml
-manifest: keda-manager.yaml
-annotations:
-  "operator.kyma-project.io/doc-url": "https://kyma-project.io/#/keda-manager/user/README"
+defaultCR:
+manifest:
+documentation: "https://kyma-project.io/#/keda-manager/user/README"
 moduleRepo: https://github.com/kyma-project/keda-manager.git
+security: sec-scanners-config.yaml
+manager:
+  name: keda-operator
+  group: apps
+  version: v1
+  kind: Deployment
+associatedResources:
+  - group: operator.kyma-project.io
+    kind: Keda
+    version: v1alpha1
+  - group: eventing.keda.sh
+    kind: CloudEventSource
+    version: v1alpha1
+  - group: eventing.keda.sh
+    kind: ClusterCloudEventSource
+    version: v1alpha1
+  - group: keda.sh
+    kind: ClusterTriggerAuthentication
+    version: v1alpha1
+  - group: keda.sh
+    kind: ScaledJob
+    version: v1alpha1
+  - group: keda.sh
+    kind: ScaledObject
+    version: v1alpha1
+  - group: keda.sh
+    kind: TriggerAuthentication
+    version: v1alpha1
+icons:
+  - name: module-icon
+    #TODO: Provide icon for keda-manager
+    link: https://raw.githubusercontent.com/kyma-project/kyma/refs/heads/main/docs/assets/logo_icon.svg
