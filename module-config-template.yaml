@@ -1,5 +1,5 @@
 name: kyma-project.io/module/keda
-version: {{.Version}}
+version:
 defaultCR:
 manifest:
 documentation: "https://kyma-project.io/#/keda-manager/user/README"
