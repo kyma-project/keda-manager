@@ -69,7 +69,7 @@ jobs:
           git checkout -B "${MODULE_VERSION}-${CHANNEL}" upstream/main
 
           mkdir -p modules/keda/${CHANNEL}
-          cp ../module-config.yaml modules/keda/${CHANNEL}/${MODULE_VERSION}/module-config.yaml
+          cp ../module-config.yaml modules/keda/${MODULE_VERSION}/module-config.yaml
           
           git add .
           git commit -m "promote keda ${MODULE_VERSION} to ${CHANNEL} channel"
