@@ -4,5 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: europe-docker.pkg.dev/kyma-project/prod/keda-manager
+  newName: k3d-kyma-registry:5001/keda-manager-dev-local
   newTag: 0.0.0
