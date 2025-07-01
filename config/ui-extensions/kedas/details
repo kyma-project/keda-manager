@@ -3,6 +3,8 @@ status:
     - name: Condition details
       widget: ConditionList
       source: status.conditions
+    - name: Keda version
+      source: status.kedaVersion
 body:
   - name: Log Level
     widget: Panel
