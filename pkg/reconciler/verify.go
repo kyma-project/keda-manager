@@ -12,6 +12,7 @@ import (
 
 func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var count int
+	var kedaVersion string
 	for _, obj := range s.objs {
 		if !isDeployment(obj) {
 			continue
@@ -25,6 +26,10 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 				err,
 			)
 			return stopWithErrorAndNoRequeue(err)
+		}
+
+		if deployment.GetName() == "keda-operator" {
+			kedaVersion = deployment.GetLabels()["app.kubernetes.io/version"]
 		}
 
 		for _, cond := range deployment.Status.Conditions {
@@ -49,6 +54,7 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		return nil, nil, nil
 	}
 
+	s.instance.Status.KedaVersion = kedaVersion
 	s.instance.UpdateStateReady(
 		v1alpha1.ConditionTypeInstalled,
 		v1alpha1.ConditionReasonVerified,
