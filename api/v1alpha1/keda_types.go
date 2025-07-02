@@ -400,9 +400,10 @@ func (k *Keda) IsServedEmpty() bool {
 }
 
 type Status struct {
-	State      string             `json:"state"`
-	Served     string             `json:"served"`
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	State       string             `json:"state"`
+	Served      string             `json:"served"`
+	KedaVersion string             `json:"kedaVersion,omitempty"`
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

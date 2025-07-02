@@ -473,6 +473,8 @@ spec:
                   - type
                   type: object
                 type: array
+              kedaVersion:
+                type: string
               served:
                 type: string
               state:
