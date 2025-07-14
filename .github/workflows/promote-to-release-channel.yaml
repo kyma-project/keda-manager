@@ -68,7 +68,7 @@ jobs:
           git fetch upstream
           git checkout -B "${MODULE_VERSION}-${CHANNEL}" upstream/main
 
-          mkdir -p modules/keda/${CHANNEL}
+          mkdir -p modules/keda/${MODULE_VERSION}
           cp ../module-config.yaml modules/keda/${MODULE_VERSION}/module-config.yaml
           
           git add .
