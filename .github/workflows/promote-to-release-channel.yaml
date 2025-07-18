@@ -7,19 +7,9 @@ on:
         description: 'Keda tag to promote (`x.x.x`)'
         default: ""
         required: true
-      channel:
-        type: choice
-        description: 'Module channel'
-        options:
-          - fast
-          - regular
-          - experimental
-          - dev
-        required: true
 
 env:
   MODULE_VERSION: ${{ github.event.inputs.keda_tag }}
-  CHANNEL: ${{ github.event.inputs.channel }}
   # needed by gh cli for GitHub enterprise
   GH_ENTERPRISE_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
   BOT_USERNAME: kyma-otter-serviceuser
@@ -48,7 +38,6 @@ jobs:
 
       - name: Render module-config
         env:
-          CHANNEL: ${{ github.event.inputs.channel }}
           MODULE_VERSION: ${{ github.event.inputs.keda_tag }}
         run: |
           make module-config
@@ -66,27 +55,27 @@ jobs:
         working-directory: module-manifests
         run: |
           git fetch upstream
-          git checkout -B "${MODULE_VERSION}-${CHANNEL}" upstream/main
+          git checkout -B "${MODULE_VERSION}" upstream/main
 
           mkdir -p modules/keda/${MODULE_VERSION}
           cp ../module-config.yaml modules/keda/${MODULE_VERSION}/module-config.yaml
           
           git add .
-          git commit -m "promote keda ${MODULE_VERSION} to ${CHANNEL} channel"
-          git push origin "${MODULE_VERSION}-${CHANNEL}" -f
+          git commit -m "promote keda ${MODULE_VERSION}"
+          git push origin "${MODULE_VERSION}" -f
 
       - name: Create PullRequest to module-manifests
         working-directory: module-manifests
         run: |
           prs=$(gh pr list -R "https://${GH_TOOLS_REPO_URL}/kyma/module-manifests" -A "${BOT_USERNAME}" --state open --json headRefName)
 
-          if  echo $prs | jq -e ".[] | select(.headRefName==\"${MODULE_VERSION}-${CHANNEL}\")"; then
+          if  echo $prs | jq -e ".[] | select(.headRefName==\"${MODULE_VERSION}\")"; then
               echo "opened PR already exists, no need to create new one, PR will be updated by push from previous step"
               exit 0
           fi
 
           gh pr create -B main --fill \
-            -H "${BOT_USERNAME}:${MODULE_VERSION}-${CHANNEL}" \
+            -H "${BOT_USERNAME}:${MODULE_VERSION}" \
             -R "https://${GH_TOOLS_REPO_URL}/kyma/module-manifests/" \
-            --title "Promote Keda ${MODULE_VERSION} to ${CHANNEL} channel" \
+            --title "Promote Keda ${MODULE_VERSION}" \
             --body "https://github.com/kyma-project/keda-manager/actions/${{github.run_id}}"
