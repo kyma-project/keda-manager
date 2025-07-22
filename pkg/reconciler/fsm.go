@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -100,7 +99,6 @@ func setCommonLabels(labels map[string]string) map[string]string {
 	labels["kyma-project.io/module"] = "keda"
 	labels["app.kubernetes.io/part-of"] = "keda-manager"
 	labels["app.kubernetes.io/managed-by"] = "keda-manager"
-	labels["app.kubernetes.io/version"] = os.Getenv("KEDA_MODULE_VERSION")
 	return labels
 }
 

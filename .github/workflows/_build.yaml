@@ -39,3 +39,4 @@ jobs:
       name: keda-manager
       dockerfile: Dockerfile
       tags: ${{ needs.compute-tags.outputs.tags }}
+      build-engine: buildx
