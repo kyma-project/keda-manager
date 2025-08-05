@@ -6,7 +6,7 @@ documentation: "https://kyma-project.io/#/keda-manager/user/README"
 repository: https://github.com/kyma-project/keda-manager.git
 security: sec-scanners-config.yaml
 manager:
-  name: keda-operator
+  name: keda-manager
   group: apps
   version: v1
   kind: Deployment

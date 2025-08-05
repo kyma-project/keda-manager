@@ -1,10 +1,10 @@
-name: promote to release channel
+name: add module version to module-manifests
 
 on:
   workflow_dispatch:
     inputs:
       keda_tag:
-        description: 'Keda tag to promote (`x.x.x`)'
+        description: 'Keda tag to add (`x.x.x`)'
         default: ""
         required: true
 
@@ -19,7 +19,7 @@ env:
 
 jobs:
 
-  promote-keda:
+  add-keda:
     name: Get, render and push keda assets
     runs-on: ubuntu-latest
 
@@ -61,7 +61,7 @@ jobs:
           cp ../module-config.yaml modules/keda/${MODULE_VERSION}/module-config.yaml
           
           git add .
-          git commit -m "promote keda ${MODULE_VERSION}"
+          git commit -m "add keda ${MODULE_VERSION}"
           git push origin "${MODULE_VERSION}" -f
 
       - name: Create PullRequest to module-manifests
@@ -77,5 +77,5 @@ jobs:
           gh pr create -B main --fill \
             -H "${BOT_USERNAME}:${MODULE_VERSION}" \
             -R "https://${GH_TOOLS_REPO_URL}/kyma/module-manifests/" \
-            --title "Promote Keda ${MODULE_VERSION}" \
+            --title "add Keda ${MODULE_VERSION}" \
             --body "https://github.com/kyma-project/keda-manager/actions/${{github.run_id}}"
