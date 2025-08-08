@@ -8,7 +8,6 @@ import (
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/annotation"
-	"go.uber.org/zap"
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -46,10 +45,12 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 			isError = true
 		}
 
-		err = updateImagesInDeployments(&obj.Object, r.log)
-		if err != nil {
-			r.log.With("err", err).Error("update images error")
-			isError = true
+		if obj.Object["kind"] == "Deployment" {
+			obj.Object, err = updateImagesInDeployments(obj.Object)
+			if err != nil {
+				r.log.With("err", err).Error("update images error")
+				isError = true
+			}
 		}
 
 		s.objs = append(s.objs, obj)
@@ -67,36 +68,30 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 	return stopWithNoRequeue()
 }
 
-func updateImagesInDeployments(obj *map[string]interface{}, log *zap.SugaredLogger) error {
-	if (*obj)["kind"] == "Deployment" {
-		/// convert obj to Deployment
+func updateImagesInDeployments(obj map[string]interface{}) (map[string]interface{}, error) {
+	if obj["kind"] == "Deployment" {
 		var dep v1.Deployment
-		err := fromUnstructured(*obj, &dep)
+		err := fromUnstructured(obj, &dep)
 		if err != nil {
-			return fmt.Errorf("convert from unstructured error: %w", err)
+			return nil, fmt.Errorf("convert from unstructured error: %w", err)
 		}
 
 		switch dep.ObjectMeta.Name {
-		case "keda-operator":
-			// "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.17.0"
+		case operatorName:
 			updateImageIfOverride(EnvOperatorImage, &dep)
-
-			// spec.template.spec.containers[0].image
-		case "keda-operator-metrics-apiserver":
-			// "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.17.0"
+		case matricsServerName:
 			updateImageIfOverride(EnvMetricsImage, &dep)
-		case "keda-admission-webhooks":
-			// "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.17.0"
+		case admissionWebhooksName:
 			updateImageIfOverride(EnvAdmissionImage, &dep)
 		}
 
-		converted, err := toUnstructed(dep)
+		converted, err := toUnstructed(&dep)
 		if err != nil {
-			return fmt.Errorf("convert to unstructured error: %w", err)
+			return nil, fmt.Errorf("convert to unstructured error: %w", err)
 		}
-		obj = &converted
+		return converted, nil
 	}
-	return nil
+	return obj, nil
 }
 
 func updateImageIfOverride(envName string, dep *v1.Deployment) {
