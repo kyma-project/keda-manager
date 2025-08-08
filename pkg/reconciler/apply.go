@@ -26,6 +26,7 @@ var (
 
 func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var isError bool
+	var err error
 	for _, obj := range r.Objs {
 		r.log.
 			With("gvk", obj.GetObjectKind().GroupVersionKind()).
@@ -35,7 +36,15 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 
 		obj = annotation.AddDoNotEditDisclaimer(obj)
 		obj.SetLabels(setCommonLabels(obj.GetLabels()))
-		err := r.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
+		if obj.Object["kind"] == "Deployment" {
+			obj.Object, err = updateImagesInDeployments(obj.Object)
+			if err != nil {
+				r.log.With("err", err).Error("update images error")
+				isError = true
+			}
+		}
+
+		err = r.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
 			Force:        ptr.To[bool](true),
 			FieldManager: "keda-manager",
 		})
@@ -43,14 +52,6 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 		if err != nil {
 			r.log.With("err", err).Error("apply error")
 			isError = true
-		}
-
-		if obj.Object["kind"] == "Deployment" {
-			obj.Object, err = updateImagesInDeployments(obj.Object)
-			if err != nil {
-				r.log.With("err", err).Error("update images error")
-				isError = true
-			}
 		}
 
 		s.objs = append(s.objs, obj)
