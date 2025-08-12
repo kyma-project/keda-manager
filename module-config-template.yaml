@@ -2,7 +2,7 @@ name: kyma-project.io/module/keda
 version:
 defaultCR:
 manifest:
-documentation: "https://kyma-project.io/#/keda-manager/user/README"
+documentation: "https://help.sap.com/docs/btp/sap-business-technology-platform/keda-module"
 repository: https://github.com/kyma-project/keda-manager.git
 security: sec-scanners-config.yaml
 manager:
