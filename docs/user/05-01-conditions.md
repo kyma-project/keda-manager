@@ -1,6 +1,11 @@
 # Keda Custom Resource Conditions
 
-This document describes the possible states of the Keda CR. Two condition types, `Installed` and `Deleted`, are used.
+This document describes the possible conditions of the Keda CR. The conditions make it easier to observe the current state of the Keda module.
+
+The following condition types are used:
+
+- `Installed`
+- `Deleted`
 
 | No | CR State   | Condition type | Condition status | Condition reason    | Remark                               |
 |----|------------|----------------|------------------|---------------------|--------------------------------------|

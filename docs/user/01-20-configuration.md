@@ -1,11 +1,18 @@
-# Keda Module Configuration
+# Configuring Keda Module
 
-Learn how to configure the Keda module using the Keda CustomResourceDefinition (CRD).
-See how to configure the **logging.level** attribute or the resource consumption.
+By default, the Keda module comes with the default configuration. You can change the configuration using the Keda CustomResourceDefinition (CRD). See how to configure the logging.level attribute, enable the Istio sidecar injection, change resource consumption, define custom annotations, or override the minimum TLS version.
+
+## Prerequisites
+
+You have added the Keda module.
 
 ## Procedure
 
-- You can change the logging level of the KEDA workloads. To change **logging.level**, choose one of the accepted values:
+1. Go to Kyma dashboard.
+2. Choose **Modify Modules**, and in the **View** tab, choose `keda`.
+3. Go to **Edit**, and provide your configuration changes. You can use the **Form** or **YAML** tab.
+
+- To define the level of detail of your logs, set the `logging.level` attribute to one of the following values:
    - `debug` - is the most detailed option. Useful for a developer during debugging.
    - `info` - provides standard log level indicating operations within the Keda module. For example, it can show whether the workload scaling operation was successful or not.
    - `error` - shows error logs only. This means only log messages corresponding to errors and misconfigurations are visible in logs.
@@ -57,7 +64,7 @@ See how to configure the **logging.level** attribute or the resource consumption
    
    ```
 
-- To define custom annotations for Keda workloads, enter your preferred values for **operator**, **metricServer** and **admissionWebhook**. For example:
+- To define custom annotations for KEDA workloads, enter your preferred values for **operator**, **metricServer** and **admissionWebhook**. For example:
 
    ```yaml
    spec:
@@ -74,7 +81,7 @@ See how to configure the **logging.level** attribute or the resource consumption
    
    ```
 
-- To override the minimum TLS version used by Keda (default is `TLS12`), set the `KEDA_HTTP_MIN_TLS_VERSION` environment variable. For example:
+- To override the minimum TLS version used by KEDA (default is `TLS12`), set the `KEDA_HTTP_MIN_TLS_VERSION` environment variable. For example:
 
    ```yaml
    spec:
