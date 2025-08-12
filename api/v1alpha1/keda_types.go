@@ -216,12 +216,19 @@ type Resources struct {
 	AdmissionWebhook *corev1.ResourceRequirements `json:"admissionWebhook,omitempty"`
 }
 
+type PodAnnotations struct {
+	Operator         map[string]string `json:"operator,omitempty"`
+	MetricsServer    map[string]string `json:"metricServer,omitempty"`
+	AdmissionWebhook map[string]string `json:"admissionWebhook,omitempty"`
+}
+
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
-	Istio     *Istio      `json:"istio,omitempty"`
-	Logging   *LoggingCfg `json:"logging,omitempty"`
-	Resources *Resources  `json:"resources,omitempty"`
-	Env       EnvVars     `json:"env,omitempty"`
+	Istio          *Istio          `json:"istio,omitempty"`
+	Logging        *LoggingCfg     `json:"logging,omitempty"`
+	Resources      *Resources      `json:"resources,omitempty"`
+	Env            EnvVars         `json:"env,omitempty"`
+	PodAnnotations *PodAnnotations `json:"podAnnotations,omitempty"`
 }
 
 type EnvVars []corev1.EnvVar
@@ -393,9 +400,10 @@ func (k *Keda) IsServedEmpty() bool {
 }
 
 type Status struct {
-	State      string             `json:"state"`
-	Served     string             `json:"served"`
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	State       string             `json:"state"`
+	Served      string             `json:"served"`
+	KedaVersion string             `json:"kedaVersion,omitempty"`
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

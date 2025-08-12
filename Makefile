@@ -1,6 +1,6 @@
 # incoming variables
 
-KEDA_VERSION ?= 2.16.1
+KEDA_VERSION ?= 2.17.2
 
 MODULE_VERSION ?= 0.0.0
 
@@ -134,7 +134,7 @@ $(KUSTOMIZE): $(LOCALBIN)
 
 ########## Controller-Gen ###########
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-CONTROLLER_TOOLS_VERSION ?= v0.16.5
+CONTROLLER_TOOLS_VERSION ?= v0.18.0
 
 .PHONY: controller-gen $(CONTROLLER_GEN)
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -175,5 +175,5 @@ grafana-dashboard: ## Generating Grafana manifests to visualize controller statu
 ##@ Actions
 .PHONY: module-config
 module-config:
-	yq ".channel = \"${CHANNEL}\" | .version = \"${MODULE_VERSION}\""\
-    	module-config-template.yaml > module-config.yaml
+	yq ".version = \"${MODULE_VERSION}\" | .defaultCR = \"https://github.com/kyma-project/keda-manager/releases/download/${MODULE_VERSION}/keda-default-cr.yaml\" | .manifest = \"https://github.com/kyma-project/keda-manager/releases/download/${MODULE_VERSION}/keda-manager.yaml\"  "\
+    module-config-template.yaml > module-config.yaml

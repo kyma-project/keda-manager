@@ -12,3 +12,9 @@ prometheus:
     enabled: true
   webhooks:
     enabled: true
+
+http:
+  minTlsVersion: TLS12
+
+image:
+  pullPolicy: IfNotPresent

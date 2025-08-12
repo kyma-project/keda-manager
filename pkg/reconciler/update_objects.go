@@ -38,6 +38,27 @@ func istioOperatorCfg(k *v1alpha1.Keda) *v1alpha1.IstioCfg {
 	return disabledIstioSidecar(k)
 }
 
+func podAnnotationsOperatorCfg(k *v1alpha1.Keda) *map[string]string {
+	if k != nil && k.Spec.PodAnnotations != nil {
+		return &k.Spec.PodAnnotations.Operator
+	}
+	return nil
+}
+
+func podAnnotationsMetricsServerCfg(k *v1alpha1.Keda) *map[string]string {
+	if k != nil && k.Spec.PodAnnotations != nil {
+		return &k.Spec.PodAnnotations.MetricsServer
+	}
+	return nil
+}
+
+func podAnnotationsAdmissionWebhookCfg(k *v1alpha1.Keda) *map[string]string {
+	if k != nil && k.Spec.PodAnnotations != nil {
+		return &k.Spec.PodAnnotations.AdmissionWebhook
+	}
+	return nil
+}
+
 // buildSfnUpdateOperatorLogging - builds state function to update operator's logging properties
 func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
 	next := buildSfnUpdateOperatorLabels(u)
@@ -45,8 +66,13 @@ func buildSfnUpdateOperatorLogging(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateOperatorLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateOperatorPriorityClass(u)
+	next := buildSfnUpdateOperatorAnnotations(u)
 	return buildSfnUpdateObject(u, updateDeploymentLabels, istioOperatorCfg, next)
+}
+
+func buildSfnUpdateOperatorAnnotations(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateOperatorPriorityClass(u)
+	return buildSfnUpdateObject(u, updateDeploymentAnnotations, podAnnotationsOperatorCfg, next)
 }
 
 func buildSfnUpdateOperatorPriorityClass(u *unstructured.Unstructured) stateFn {
@@ -83,8 +109,13 @@ func buildSfnUpdateMetricsSvrLogging(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateMetricsSvrLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateMetricsSvrPriorityClass(u)
+	next := buildSfnUpdateMetricsSvrAnnotations(u)
 	return buildSfnUpdateObject(u, updateDeploymentLabels, istioMetricServerCfg, next)
+}
+
+func buildSfnUpdateMetricsSvrAnnotations(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateMetricsSvrPriorityClass(u)
+	return buildSfnUpdateObject(u, updateDeploymentAnnotations, podAnnotationsMetricsServerCfg, next)
 }
 
 func buildSfnUpdateMetricsSvrPriorityClass(u *unstructured.Unstructured) stateFn {
@@ -116,8 +147,13 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
-	next := buildSfnUpdateAdmissionWebhooksResources(u)
+	next := buildSfnUpdateAdmissionWebhooksAnnotations(u)
 	return buildSfnUpdateObject(u, updateDeploymentLabels, disabledIstioSidecar, next)
+}
+
+func buildSfnUpdateAdmissionWebhooksAnnotations(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateAdmissionWebhooksResources(u)
+	return buildSfnUpdateObject(u, updateDeploymentAnnotations, podAnnotationsAdmissionWebhookCfg, next)
 }
 
 func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stateFn {

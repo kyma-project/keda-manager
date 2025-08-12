@@ -99,7 +99,6 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 			"app.kubernetes.io/managed-by": "keda-manager",
 			"kyma-project.io/module":       "keda",
 			"app.kubernetes.io/part-of":    "keda-manager",
-			"app.kubernetes.io/version":    "test",
 		}
 
 		err := updateDeploymentLabels(&deployment, config)
@@ -133,7 +132,6 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 			"app.kubernetes.io/managed-by": "keda-manager",
 			"kyma-project.io/module":       "keda",
 			"app.kubernetes.io/part-of":    "keda-manager",
-			"app.kubernetes.io/version":    "test",
 		}
 
 		err := updateDeploymentLabels(&deployment, config)

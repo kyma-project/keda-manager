@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -91,11 +90,15 @@ func updateDeploymentLabels(deployment *appsv1.Deployment, config v1alpha1.Istio
 	return nil
 }
 
+func updateDeploymentAnnotations(deployment *appsv1.Deployment, annotations map[string]string) error {
+	deployment.Spec.Template.SetAnnotations(annotations)
+	return nil
+}
+
 func setCommonLabels(labels map[string]string) map[string]string {
 	labels["kyma-project.io/module"] = "keda"
 	labels["app.kubernetes.io/part-of"] = "keda-manager"
 	labels["app.kubernetes.io/managed-by"] = "keda-manager"
-	labels["app.kubernetes.io/version"] = os.Getenv("KEDA_MODULE_VERSION")
 	return labels
 }
 
