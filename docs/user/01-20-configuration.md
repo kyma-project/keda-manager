@@ -1,6 +1,6 @@
 # Configuring Keda Module
 
-By default, the Keda module comes with the default configuration. You can change the configuration using the Keda CustomResourceDefinition (CRD). See how to configure the logging.level attribute, enable the Istio sidecar injection, change resource consumption, define custom annotations, or override the minimum TLS version.
+By default, the Keda module comes with the default configuration. You can change the configuration using the Keda CustomResourceDefinition (CRD). See how to configure the **logging.level** attribute, enable the Istio sidecar injection, change resource consumption, define custom annotations, or override the minimum TLS version.
 
 ## Prerequisites
 
