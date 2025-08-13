@@ -12,7 +12,7 @@ By default, the Keda module comes with the default configuration. You can change
 2. Choose **Modify Modules**, and in the **View** tab, choose `keda`.
 3. Go to **Edit**, and provide your configuration changes. You can use the **Form** or **YAML** tab.
 
-- To define the level of detail of your logs, set the `logging.level` attribute to one of the following values:
+- To define the level of detail of your logs, set the **logging.level** attribute to one of the following values:
    - `debug` - is the most detailed option. Useful for a developer during debugging.
    - `info` - provides standard log level indicating operations within the Keda module. For example, it can show whether the workload scaling operation was successful or not.
    - `error` - shows error logs only. This means only log messages corresponding to errors and misconfigurations are visible in logs.
