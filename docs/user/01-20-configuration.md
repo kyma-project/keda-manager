@@ -4,7 +4,7 @@ By default, the Keda module comes with the default configuration. You can change
 
 ## Prerequisites
 
-You have added the Keda module.
+[You have added the Keda module](https://kyma-project.io/#/02-get-started/01-quick-install).
 
 ## Procedure
 
