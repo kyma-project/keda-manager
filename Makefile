@@ -149,23 +149,6 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-########## Kyma CLI ###########
-KYMA_STABILITY ?= unstable
-
-# $(call os_error, os-type, os-architecture)
-define os_error
-$(error Error: unsuported platform OS_TYPE:$1, OS_ARCH:$2; to mitigate this problem set variable KYMA with absolute path to kyma-cli binary compatible with your operating system and architecture)
-endef
-
-KYMA_FILE_NAME ?= $(shell ./hack/get_kyma_file_name.sh ${OS_TYPE} ${OS_ARCH})
-
-KYMA ?= $(LOCALBIN)/kyma-$(KYMA_STABILITY)
-kyma: $(LOCALBIN) $(KYMA) ## Download kyma locally if necessary.
-$(KYMA):
-	## Detect if operating system 
-	$(if $(KYMA_FILE_NAME),,$(call os_error, ${OS_TYPE}, ${OS_ARCH}))
-	test -f $@ || curl -s -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/$(KYMA_FILE_NAME)
-	chmod 0100 $(KYMA)
 
 ########## Grafana Dashboard ###########
 .PHONY: grafana-dashboard
