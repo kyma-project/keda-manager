@@ -55,14 +55,9 @@ apply-keda: ## Apply the k3d serverless CR
 	kubectl apply -n kyma-system \
 		-f ${PROJECT_ROOT}/config/samples/keda-default-cr.yaml
 
-### Internal Dependencies
 .PHONY: create-kyma-system-ns
 create-kyma-system-ns: ## Create kyma-system namespace.
 	kubectl create ns kyma-system || true
-
-.PHONY: kyma
-kyma:
-	@make -C ${PROJECT_ROOT} kyma
 
 .PHONY: module-image
 module-image: 
