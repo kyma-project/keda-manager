@@ -12,10 +12,6 @@ on:
         type: boolean
         default: false
 
-permissions: # used by build images steps
-  id-token: write # This is required for requesting the JWT token
-  contents: write # This is required for actions/checkout
-
 jobs:
   upgrade-images:
     name: Upgrade main images
@@ -63,76 +59,3 @@ jobs:
         run: |
           git tag ${{ github.event.inputs.name }}
           git push origin ${{ github.event.inputs.name }}
-
-  builds:
-    needs: create-tag
-    uses: ./.github/workflows/_build.yaml
-    with:
-      tag: "${{ github.event.inputs.name }}"
-
-  create-draft:
-    name: Create draft release
-    needs: create-tag
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref_name }} # checkout to latest branch changes ( by default this action checkouts to the SHA that triggers action )
-
-      - uses: ./.github/actions/setup-go
-
-      - name: Create changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.github/scripts/create-changelog.sh ${{ github.event.inputs.name }}
-
-      - name: Create draft release
-        id: create-draft
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_ID=$(./.github/scripts/create-draft-release.sh ${{ github.event.inputs.name }})
-          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
-
-      - name: Create release assets
-        id: create-assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_ID: ${{ steps.create-draft.outputs.release_id }}
-        run: ./.github/scripts/release.sh
-
-    outputs:
-      release_id: ${{ steps.create-draft.outputs.release_id }}
-
-  run-integration-test:
-    needs: create-draft
-    secrets: inherit
-    uses: ./.github/workflows/_integration-tests.yaml
-    with:
-      image: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.event.inputs.name }}
-
-  devOps-Insights:
-    name: DevOps Insights
-    needs: [publish-release]
-    uses: "./.github/workflows/_metrics.yaml"
-    secrets: inherit
-
-  publish-release:
-    name: Publish release
-    needs: [run-integration-test, create-draft]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref_name }} # checkout to latest branch changes ( by default this action checkouts to the SHA that triggers action )
-
-      - name: Publish release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.github/scripts/publish-release.sh ${{ needs.create-draft.outputs.release_id }} ${{ github.event.inputs.latest_release }}
