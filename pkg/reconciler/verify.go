@@ -13,6 +13,7 @@ import (
 func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var count int
 	var kedaVersion string
+
 	for _, obj := range s.objs {
 		if !isDeployment(obj) {
 			continue
@@ -33,7 +34,7 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		}
 
 		for _, cond := range deployment.Status.Conditions {
-			if cond.Type == appsv1.DeploymentAvailable && cond.Status == v1.ConditionTrue {
+			if cond.Type == appsv1.DeploymentProgressing && cond.Reason == "NewReplicaSetAvailable" && cond.Status == v1.ConditionTrue {
 				r.log.Debugf("successfully verified keda deployment %s/%s", obj.GetNamespace(), obj.GetName())
 				count++
 			}
