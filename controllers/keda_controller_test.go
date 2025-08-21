@@ -278,9 +278,9 @@ func (h *testHelper) updateDeploymentStatus(deploymentName string) {
 		Should(BeTrue())
 
 	deployment.Status.Conditions = append(deployment.Status.Conditions, appsv1.DeploymentCondition{
-		Type:    appsv1.DeploymentAvailable,
+		Type:    appsv1.DeploymentProgressing,
 		Status:  corev1.ConditionTrue,
-		Reason:  "test-reason",
+		Reason:  "NewReplicaSetAvailable",
 		Message: "test-message",
 	})
 	deployment.Status.Replicas = 1
