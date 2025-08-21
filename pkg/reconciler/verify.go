@@ -13,6 +13,13 @@ import (
 func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var count int
 	var kedaVersion string
+
+	s.instance.UpdateStateProcessing(
+		v1alpha1.ConditionTypeInstalled,
+		v1alpha1.ConditionReasonVerification,
+		"verification in progress",
+	)
+
 	for _, obj := range s.objs {
 		if !isDeployment(obj) {
 			continue
@@ -42,11 +49,6 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 
 	if count != 3 {
 		r.log.Debugf("%d deployments in ready state found ( 3 are expected ) ", count)
-		s.instance.UpdateStateProcessing(
-			v1alpha1.ConditionTypeInstalled,
-			v1alpha1.ConditionReasonVerification,
-			"verification in progress",
-		)
 		return stopWithRequeueAfter(time.Second * 10)
 	}
 
