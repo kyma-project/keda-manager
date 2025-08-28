@@ -11,7 +11,7 @@ runs:
         k3d-version: "v5.8.3"
         args: >-
           --agents 1
-          --image rancher/k3s:v1.32.3-k3s1
+          --image rancher/k3s:v1.33.4-k3s1
           --port 80:80@loadbalancer
           --port 443:443@loadbalancer
           --wait
