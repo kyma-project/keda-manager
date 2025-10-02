@@ -17,6 +17,8 @@ limitations under the License.
 package main
 
 import (
+	"crypto/fips140"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -59,6 +61,11 @@ func init() {
 }
 
 func main() {
+	if !isFIPS140Only() {
+		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	}
+
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
@@ -161,4 +168,9 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// isFIPS140Only checks if the application is running in FIPS 140 exclusive mode.
+func isFIPS140Only() bool {
+	return fips140.Enabled() && os.Getenv("GODEBUG") == "fips140=only,tlsmlkem=0"
 }
