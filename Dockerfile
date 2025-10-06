@@ -16,11 +16,14 @@ RUN go mod download
 COPY . ./
 
 # Build
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GOFIPS140=v1.0.0 go build -a -o manager main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+# FROM gcr.io/distroless/static:nonroot
+FROM scratch
+
+ENV GODEBUG=fips140=only,tlsmlkem=0
 
 WORKDIR /
 COPY --chown=65532:65532 --from=builder /app/manager .
