@@ -3,14 +3,14 @@ package reconciler
 import (
 	"context"
 	"fmt"
+
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func sFnServedFilter(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	if s.instance.IsServedEmpty() {
-
+	if s.instance.IsServedEmpty() || s.instance.Status.Served == v1alpha1.ServedFalse {
 		// keda CRs check
 		servedKeda, err := findServedKeda(ctx, r.Client)
 		if err != nil {
@@ -26,10 +26,6 @@ func sFnServedFilter(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctr
 		}
 
 		return stopWithRequeue()
-	}
-
-	if s.instance.Status.Served == v1alpha1.ServedFalse {
-		return nil, nil, nil
 	}
 
 	return switchState(sFnTakeSnapshot)

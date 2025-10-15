@@ -20,7 +20,7 @@ import (
 )
 
 func Test_sFnServedFilter(t *testing.T) {
-	t.Run("skip processing when served is false", func(t *testing.T) {
+	t.Run("re-processing when served is false", func(t *testing.T) {
 		s := &systemState{
 			instance: v1alpha1.Keda{
 				Status: v1alpha1.Status{
@@ -29,11 +29,19 @@ func Test_sFnServedFilter(t *testing.T) {
 			},
 		}
 
-		nextFn, result, err := sFnServedFilter(context.TODO(), nil, s)
+		r := &fsm{
+			K8s: K8s{
+				Client: fixClient(t),
+			},
+		}
+
+		nextFn, result, err := sFnServedFilter(context.TODO(), r, s)
 
 		require.Nil(t, err)
-		require.Nil(t, nextFn)
+		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil), nextFn)
 		require.Nil(t, result)
+
+		require.Equal(t, v1alpha1.ServedTrue, s.instance.Status.Served)
 	})
 
 	t.Run("do next step when served is true", func(t *testing.T) {
@@ -61,19 +69,12 @@ func Test_sFnServedFilter(t *testing.T) {
 
 		r := &fsm{
 			K8s: K8s{
-				Client: func() client.Client {
-					scheme := apiruntime.NewScheme()
-					require.NoError(t, v1alpha1.AddToScheme(scheme))
-
-					return fake.NewClientBuilder().
-						WithScheme(scheme).
-						WithRuntimeObjects(
-							fixServedKeda("test-1", "default", ""),
-							fixServedKeda("test-2", "keda-test", v1alpha1.ServedFalse),
-							fixServedKeda("test-3", "keda-test-2", ""),
-							fixServedKeda("test-4", "default", v1alpha1.ServedFalse),
-						).Build()
-				}(),
+				Client: fixClient(t,
+					fixServedKeda("test-1", "default", ""),
+					fixServedKeda("test-2", "keda-test", ""),
+					fixServedKeda("test-3", "keda-test-2", ""),
+					fixServedKeda("test-4", "default", ""),
+				),
 			},
 		}
 
@@ -95,19 +96,12 @@ func Test_sFnServedFilter(t *testing.T) {
 
 		r := &fsm{
 			K8s: K8s{
-				Client: func() client.Client {
-					scheme := apiruntime.NewScheme()
-					require.NoError(t, v1alpha1.AddToScheme(scheme))
-
-					return fake.NewClientBuilder().
-						WithScheme(scheme).
-						WithRuntimeObjects(
-							fixServedKeda("test-1", "default", v1alpha1.ServedFalse),
-							fixServedKeda("test-2", "keda-test", v1alpha1.ServedTrue),
-							fixServedKeda("test-3", "keda-test-2", ""),
-							fixServedKeda("test-4", "default", v1alpha1.ServedFalse),
-						).Build()
-				}(),
+				Client: fixClient(t,
+					fixServedKeda("test-1", "default", v1alpha1.ServedFalse),
+					fixServedKeda("test-2", "keda-test", v1alpha1.ServedTrue),
+					fixServedKeda("test-3", "keda-test-2", ""),
+					fixServedKeda("test-4", "default", v1alpha1.ServedFalse),
+				),
 			},
 		}
 
@@ -184,4 +178,13 @@ func getDirectFnName(nameSuffix string) string {
 
 func getFnName(fn stateFn) string {
 	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+}
+
+func fixClient(t *testing.T, objs ...apiruntime.Object) client.Client {
+	scheme := apiruntime.NewScheme()
+	require.NoError(t, v1alpha1.AddToScheme(scheme))
+
+	return fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(objs...).Build()
 }
