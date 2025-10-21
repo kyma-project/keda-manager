@@ -32,7 +32,7 @@ Keda Manager helps you to install and manage KEDA in your cluster. It manages th
 
 For the Keda CR conditions, check [Keda Custom Resource Conditions](05-01-conditions.md).
 
-To learn more about the KEDA CR, see [KEDA Custom Resources](https://keda.sh/docs/2.17/concepts/#keda-custom-resources-crds).
+To learn more about the KEDA CR, see [KEDA Custom Resources](https://keda.sh/docs/latest/concepts/#keda-custom-resources-crds).
 
 ## Resource Consumption
 
