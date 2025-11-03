@@ -202,7 +202,7 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 
 func buildSfnAddNetworkPolicy(u *unstructured.Unstructured, next stateFn) stateFn {
 	return func(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-		if s.instance.Spec.NetworkPoliciesEnabled == nil || !*s.instance.Spec.NetworkPoliciesEnabled {
+		if !s.instance.Spec.EnableNetworkPolicies {
 			// skip if network policies are disabled
 			return switchState(next)
 		}

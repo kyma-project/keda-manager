@@ -225,12 +225,12 @@ type PodAnnotations struct {
 
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
-	NetworkPoliciesEnabled *bool           `json:"networkPoliciesEnabled,omitempty"`
-	Istio                  *Istio          `json:"istio,omitempty"`
-	Logging                *LoggingCfg     `json:"logging,omitempty"`
-	Resources              *Resources      `json:"resources,omitempty"`
-	Env                    EnvVars         `json:"env,omitempty"`
-	PodAnnotations         *PodAnnotations `json:"podAnnotations,omitempty"`
+	EnableNetworkPolicies bool            `json:"enableNetworkPolicies,omitempty"`
+	Istio                 *Istio          `json:"istio,omitempty"`
+	Logging               *LoggingCfg     `json:"logging,omitempty"`
+	Resources             *Resources      `json:"resources,omitempty"`
+	Env                   EnvVars         `json:"env,omitempty"`
+	PodAnnotations        *PodAnnotations `json:"podAnnotations,omitempty"`
 }
 
 type EnvVars []corev1.EnvVar
