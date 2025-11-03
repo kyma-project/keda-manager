@@ -53,7 +53,7 @@ print-keda-details: ## Print all pods, deploys and serverless CRs in the kyma-sy
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
 	kubectl apply -n kyma-system \
-		-f ${PROJECT_ROOT}/config/samples/keda-default-cr.yaml
+		-f ${PROJECT_ROOT}/config/samples/keda-with-networkpolicies-enabled.yaml
 
 .PHONY: create-kyma-system-ns
 create-kyma-system-ns: ## Create kyma-system namespace.

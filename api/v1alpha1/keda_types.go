@@ -41,16 +41,17 @@ const (
 	ServedTrue  = "True"
 	ServedFalse = "False"
 
-	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
-	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
-	ConditionReasonVerified            = ConditionReason("Verified")
-	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
-	ConditionReasonVerification        = ConditionReason("Verification")
-	ConditionReasonInitialized         = ConditionReason("Initialized")
-	ConditionReasonKedaDuplicated      = ConditionReason("KedaDuplicated")
-	ConditionReasonDeletion            = ConditionReason("Deletion")
-	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
-	ConditionReasonDeleted             = ConditionReason("Deleted")
+	ConditionReasonNetworkPolicyComposeErr = ConditionReason("NetworkPolicyComposeErr")
+	ConditionReasonDeploymentUpdateErr     = ConditionReason("KedaDeploymentUpdateErr")
+	ConditionReasonVerificationErr         = ConditionReason("VerificationErr")
+	ConditionReasonVerified                = ConditionReason("Verified")
+	ConditionReasonApplyObjError           = ConditionReason("ApplyObjError")
+	ConditionReasonVerification            = ConditionReason("Verification")
+	ConditionReasonInitialized             = ConditionReason("Initialized")
+	ConditionReasonKedaDuplicated          = ConditionReason("KedaDuplicated")
+	ConditionReasonDeletion                = ConditionReason("Deletion")
+	ConditionReasonDeletionErr             = ConditionReason("DeletionErr")
+	ConditionReasonDeleted                 = ConditionReason("Deleted")
 
 	ConditionTypeInstalled = ConditionType("Installed")
 	ConditionTypeDeleted   = ConditionType("Deleted")
@@ -224,11 +225,12 @@ type PodAnnotations struct {
 
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
-	Istio          *Istio          `json:"istio,omitempty"`
-	Logging        *LoggingCfg     `json:"logging,omitempty"`
-	Resources      *Resources      `json:"resources,omitempty"`
-	Env            EnvVars         `json:"env,omitempty"`
-	PodAnnotations *PodAnnotations `json:"podAnnotations,omitempty"`
+	NetworkPoliciesEnabled *bool           `json:"networkPoliciesEnabled,omitempty"`
+	Istio                  *Istio          `json:"istio,omitempty"`
+	Logging                *LoggingCfg     `json:"logging,omitempty"`
+	Resources              *Resources      `json:"resources,omitempty"`
+	Env                    EnvVars         `json:"env,omitempty"`
+	PodAnnotations         *PodAnnotations `json:"podAnnotations,omitempty"`
 }
 
 type EnvVars []corev1.EnvVar
