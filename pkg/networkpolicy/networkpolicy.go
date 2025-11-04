@@ -32,7 +32,11 @@ func NewForEveryDeploy(u []unstructured.Unstructured) ([]unstructured.Unstructur
 			return nil, err
 		}
 
-		np, err := toUnstructured(New(deploy.GetName(), deploy.GetNamespace(), deploy.Spec.Selector.MatchLabels))
+		np, err := toUnstructured(New(metav1.ObjectMeta{
+			Name:      deploy.GetName(),
+			Namespace: deploy.GetNamespace(),
+			Labels:    deploy.GetLabels(),
+		}, deploy.Spec.Selector.MatchLabels))
 		if err != nil {
 			return nil, err
 		}
@@ -42,16 +46,13 @@ func NewForEveryDeploy(u []unstructured.Unstructured) ([]unstructured.Unstructur
 	return nps, nil
 }
 
-func New(name, namespace string, podSelector map[string]string) *v1.NetworkPolicy {
+func New(meta metav1.ObjectMeta, podSelector map[string]string) *v1.NetworkPolicy {
 	return &v1.NetworkPolicy{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "networking.k8s.io/v1",
 			Kind:       "NetworkPolicy",
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
+		ObjectMeta: meta,
 		Spec: v1.NetworkPolicySpec{
 			PodSelector: metav1.LabelSelector{
 				MatchLabels: podSelector,
