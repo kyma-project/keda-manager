@@ -65,7 +65,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 	}
 	// no errors
 	if !isError {
-		return switchState(buildSfnDeleteOrphanResources(sFnVerify))
+		return switchState(sfnDeleteOrphanResources)
 	}
 
 	s.instance.UpdateStateFromErr(

@@ -7,17 +7,15 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func buildSfnDeleteOrphanResources(next stateFn) stateFn {
-	return func(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-		err := deleteResources(ctx, r, s.orphanedObjs, nil)
-		if err != nil {
-			s.instance.UpdateStateFromErr(
-				v1alpha1.ConditionTypeInstalled,
-				v1alpha1.ConditionReasonOrphanDeletionErr,
-				err,
-			)
-			return stopWithErrorAndNoRequeue(err)
-		}
-		return switchState(next)
+func sfnDeleteOrphanResources(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+	err := deleteResources(ctx, r, s.orphanedObjs, nil)
+	if err != nil {
+		s.instance.UpdateStateFromErr(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonOrphanDeletionErr,
+			err,
+		)
+		return stopWithErrorAndNoRequeue(err)
 	}
+	return switchState(sFnVerify)
 }
