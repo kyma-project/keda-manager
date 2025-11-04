@@ -44,6 +44,10 @@ func NewForEveryDeploy(u []unstructured.Unstructured) ([]unstructured.Unstructur
 
 func New(name, namespace string, podSelector map[string]string) *v1.NetworkPolicy {
 	return &v1.NetworkPolicy{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "networking.k8s.io/v1",
+			Kind:       "NetworkPolicy",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
