@@ -3,12 +3,35 @@
 package networkpolicy
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
+
+// NewForEveryDeploy creates NetworkPolicy objects for each provided deployment unstructured object.
+func NewForEveryDeploy(u []unstructured.Unstructured) ([]unstructured.Unstructured, error) {
+	var nps []unstructured.Unstructured
+	for _, deployUnstructured := range u {
+		var deploy appsv1.Deployment
+		err := runtime.DefaultUnstructuredConverter.FromUnstructured(deployUnstructured.Object, &deploy)
+		if err != nil {
+			return nil, err
+		}
+
+		np, err := runtime.DefaultUnstructuredConverter.ToUnstructured(New(deploy.GetName(), deploy.GetNamespace(), deploy.Spec.Selector.MatchLabels))
+		if err != nil {
+			return nil, err
+		}
+
+		nps = append(nps, unstructured.Unstructured{Object: np})
+	}
+	return nps, nil
+}
 
 func New(name, namespace string, podSelector map[string]string) *v1.NetworkPolicy {
 	return &v1.NetworkPolicy{

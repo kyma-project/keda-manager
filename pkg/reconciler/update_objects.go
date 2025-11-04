@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
-	"github.com/kyma-project/keda-manager/pkg/reconciler/networkpolicy"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -88,12 +86,7 @@ func buildSfnUpdateOperatorResources(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateOperatorEnvs(u *unstructured.Unstructured) stateFn {
-	next := buildSfnAppendOperatorNetworkPolicy(u)
-	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, next)
-}
-
-func buildSfnAppendOperatorNetworkPolicy(u *unstructured.Unstructured) stateFn {
-	return buildSfnAddNetworkPolicy(u, sFnUpdateMetricsServerDeployment)
+	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, sFnUpdateMetricsServerDeployment)
 }
 
 func sFnUpdateMetricsServerDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
@@ -136,12 +129,7 @@ func buildSfnUpdateMetricsSvrResources(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateMetricsSvrEnvVars(u *unstructured.Unstructured) stateFn {
-	next := buildSfnAppendMetricsSvrNetworkPolicy(u)
-	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, next)
-}
-
-func buildSfnAppendMetricsSvrNetworkPolicy(u *unstructured.Unstructured) stateFn {
-	return buildSfnAddNetworkPolicy(u, sFnUpdateAdmissionWebhooksDeployment)
+	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, sFnUpdateAdmissionWebhooksDeployment)
 }
 
 func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
@@ -174,12 +162,7 @@ func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stat
 }
 
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
-	next := buildSfnAppendAdmissionWebhooksNetworkPolicy(u)
-	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, next)
-}
-
-func buildSfnAppendAdmissionWebhooksNetworkPolicy(u *unstructured.Unstructured) stateFn {
-	return buildSfnAddNetworkPolicy(u, sFnApply)
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
 }
 
 func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update func(T, R) error, getData func(*v1alpha1.Keda) *R, next stateFn) stateFn {
@@ -196,40 +179,6 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 			)
 			return stopWithErrorAndNoRequeue(err)
 		}
-		return switchState(next)
-	}
-}
-
-func buildSfnAddNetworkPolicy(u *unstructured.Unstructured, next stateFn) stateFn {
-	return func(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-		if !s.instance.Spec.EnableNetworkPolicies {
-			// skip if network policies are disabled
-			return switchState(next)
-		}
-
-		var deploy appsv1.Deployment
-		if err := fromUnstructured(u.Object, &deploy); err != nil {
-			s.instance.UpdateStateFromErr(
-				v1alpha1.ConditionTypeInstalled,
-				v1alpha1.ConditionReasonNetworkPolicyComposeErr,
-				err,
-			)
-			return stopWithErrorAndNoRequeue(err)
-		}
-
-		networkPolicy := networkpolicy.New(deploy.GetName(), deploy.GetNamespace(), deploy.Spec.Selector.MatchLabels)
-
-		networkPolicyObj, err := toUnstructed(networkPolicy)
-		if err != nil {
-			s.instance.UpdateStateFromErr(
-				v1alpha1.ConditionTypeInstalled,
-				v1alpha1.ConditionReasonNetworkPolicyComposeErr,
-				err,
-			)
-			return stopWithErrorAndNoRequeue(err)
-		}
-
-		s.objs = append(s.objs, unstructured.Unstructured{Object: networkPolicyObj})
 		return switchState(next)
 	}
 }

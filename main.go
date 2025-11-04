@@ -44,6 +44,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/pkg/networkpolicy"
 	"github.com/kyma-project/keda-manager/pkg/yaml"
 	//+kubebuilder:scaffold:imports
 )
@@ -129,6 +130,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	networkpolicies, err := networkpolicy.NewForEveryDeploy(data)
+	if err != nil {
+		setupLog.Error(err, "unable to build network policies for given resources list")
+		os.Exit(1)
+	}
+
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.Encoding = "json"
@@ -146,7 +153,7 @@ func main() {
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
 		kedaLogger.Sugar(),
-		data,
+		append(data, networkpolicies...),
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Keda")

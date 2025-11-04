@@ -27,34 +27,42 @@ var (
 func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var isError bool
 	var err error
-	for _, obj := range r.Objs {
-		r.log.
+	// go through all objects and apply them
+	// the objects from s.objs are the ones added by previous state functions
+	// the object from r.Objs are the ones from the keda.yaml file
+	s.objs = append(r.Objs, s.objs...)
+	for _, obj := range s.objs {
+		log := r.log.
 			With("gvk", obj.GetObjectKind().GroupVersionKind()).
 			With("name", obj.GetName()).
-			With("ns", obj.GetNamespace()).
-			Debug("applying")
+			With("ns", obj.GetNamespace())
+
+		if obj.GetKind() == "NetworkPolicy" && !s.instance.Spec.EnableNetworkPolicies {
+			log.Debug("skipping")
+			continue
+		}
+
+		log.Debug("applying")
 
 		obj = annotation.AddDoNotEditDisclaimer(obj)
 		obj.SetLabels(setCommonLabels(obj.GetLabels()))
 		if obj.Object["kind"] == "Deployment" {
 			obj.Object, err = updateImagesInDeployments(obj.Object)
 			if err != nil {
-				r.log.With("err", err).Error("update images error")
+				log.With("err", err).Error("update images error")
 				isError = true
 			}
 		}
 
 		err = r.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
-			Force:        ptr.To[bool](true),
+			Force:        ptr.To(true),
 			FieldManager: "keda-manager",
 		})
 
 		if err != nil {
-			r.log.With("err", err).Error("apply error")
+			log.With("err", err).Error("apply error")
 			isError = true
 		}
-
-		s.objs = append(s.objs, obj)
 	}
 	// no errors
 	if !isError {
