@@ -13,17 +13,26 @@ import (
 	"k8s.io/utils/ptr"
 )
 
+var (
+	fromUnstructured = runtime.DefaultUnstructuredConverter.FromUnstructured
+	toUnstructured   = runtime.DefaultUnstructuredConverter.ToUnstructured
+)
+
 // NewForEveryDeploy creates NetworkPolicy objects for each provided deployment unstructured object.
 func NewForEveryDeploy(u []unstructured.Unstructured) ([]unstructured.Unstructured, error) {
 	var nps []unstructured.Unstructured
-	for _, deployUnstructured := range u {
+	for _, obj := range u {
+		if obj.Object["kind"] != "Deployment" {
+			continue
+		}
+
 		var deploy appsv1.Deployment
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(deployUnstructured.Object, &deploy)
+		err := fromUnstructured(obj.Object, &deploy)
 		if err != nil {
 			return nil, err
 		}
 
-		np, err := runtime.DefaultUnstructuredConverter.ToUnstructured(New(deploy.GetName(), deploy.GetNamespace(), deploy.Spec.Selector.MatchLabels))
+		np, err := toUnstructured(New(deploy.GetName(), deploy.GetNamespace(), deploy.Spec.Selector.MatchLabels))
 		if err != nil {
 			return nil, err
 		}
