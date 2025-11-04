@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
@@ -149,6 +150,7 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	stateFSM := reconciler.NewFsm(r.log, r.Cfg, reconciler.K8s{
+		APIServerIP:   r.APIServerIP,
 		Client:        r.Client,
 		EventRecorder: r.EventRecorder,
 	})
@@ -175,6 +177,7 @@ func (r *kedaReconciler) retriggerAllKedaCRs(ctx context.Context, e event.Delete
 }
 
 func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {
+
 	return &kedaReconciler{
 		log: log,
 		Cfg: reconciler.Cfg{
@@ -182,6 +185,7 @@ func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.Sugared
 			Objs:      o,
 		},
 		K8s: reconciler.K8s{
+			APIServerIP:   os.Getenv("KUBERNETES_SERVICE_HOST"),
 			Client:        c,
 			EventRecorder: r,
 		},

@@ -52,7 +52,9 @@ spec:
         matchLabels:
           k8s-app: kube-dns
   ingress:
-  # support webhook on port 9443
+  - from: []
+    ports:
+    - port: 9443
   - from:
     - namespaceSelector:
         matchLabels:

@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apirt "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -102,6 +103,25 @@ func setCommonLabels(labels map[string]string) map[string]string {
 	return labels
 }
 
+func updateAdmissionWebhooksNetworkPolicy(np *networkingv1.NetworkPolicy, apiServerAddress string) error {
+	for i := range np.Spec.Ingress {
+		in := np.Spec.Ingress[i]
+		for _, p := range in.Ports {
+			if p.Port.IntVal == 9443 && len(in.From) == 0 {
+				// append api server address to call admission webhook endpoint
+				in.From = []networkingv1.NetworkPolicyPeer{
+					{
+						IPBlock: &networkingv1.IPBlock{
+							CIDR: apiServerAddress,
+						},
+					},
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassName string) error {
 	deployment.Spec.Template.Spec.PriorityClassName = priorityClassName
 	return nil
@@ -132,7 +152,7 @@ type systemState struct {
 	// the state of module component parts on cluster used detect
 	// module readiness
 	objs []unstructured.Unstructured
-	
+
 	// resources that are not applied by current reconciliation but may still exist on cluster
 	orphanedObjs []unstructured.Unstructured
 
@@ -165,6 +185,10 @@ var (
 		return u.GetKind() == "Deployment" &&
 			u.GetAPIVersion() == "apps/v1"
 	}
+	isNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
+		return u.GetKind() == "NetworkPolicy" &&
+			u.GetAPIVersion() == "networking.k8s.io/v1"
+	}
 	isKedaOperatorDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasOperatorName(u) && isDeployment(u)
 	}
@@ -180,9 +204,13 @@ var (
 	isAdmissionWebhooksDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasAdmissionWebhooksName(u) && isDeployment(u)
 	}
+	isAddmissionWebhookNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
+		return hasAdmissionWebhooksName(u) && isNetworkPolicy(u)
+	}
 )
 
 type K8s struct {
+	APIServerIP string
 	client.Client
 	record.EventRecorder
 }
