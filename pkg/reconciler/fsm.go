@@ -132,6 +132,9 @@ type systemState struct {
 	// the state of module component parts on cluster used detect
 	// module readiness
 	objs []unstructured.Unstructured
+	
+	// resources that are not applied by current reconciliation but may still exist on cluster
+	orphanedObjs []unstructured.Unstructured
 
 	snapshot v1alpha1.Status
 }

@@ -35,6 +35,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 
 		if obj.GetKind() == "NetworkPolicy" && !s.instance.Spec.EnableNetworkPolicies {
 			log.Debug("skipping")
+			s.orphanedObjs = append(s.orphanedObjs, obj)
 			continue
 		}
 
@@ -64,7 +65,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 	}
 	// no errors
 	if !isError {
-		return switchState(sFnVerify)
+		return switchState(buildSfnDeleteOrphanResources(sFnVerify))
 	}
 
 	s.instance.UpdateStateFromErr(
