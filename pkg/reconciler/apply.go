@@ -27,11 +27,7 @@ var (
 func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	var isError bool
 	var err error
-	// go through all objects and apply them
-	// the objects from s.objs are the ones added by previous state functions
-	// the object from r.Objs are the ones from the keda.yaml file
-	s.objs = append(r.Objs, s.objs...)
-	for _, obj := range s.objs {
+	for _, obj := range r.Objs {
 		log := r.log.
 			With("gvk", obj.GetObjectKind().GroupVersionKind()).
 			With("name", obj.GetName()).
@@ -63,6 +59,8 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 			log.With("err", err).Error("apply error")
 			isError = true
 		}
+
+		s.objs = append(s.objs, obj)
 	}
 	// no errors
 	if !isError {
