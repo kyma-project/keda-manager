@@ -14,7 +14,6 @@ import (
 	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apirt "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -101,25 +100,6 @@ func setCommonLabels(labels map[string]string) map[string]string {
 	labels["app.kubernetes.io/part-of"] = "keda-manager"
 	labels["app.kubernetes.io/managed-by"] = "keda-manager"
 	return labels
-}
-
-func updateAdmissionWebhooksNetworkPolicy(np *networkingv1.NetworkPolicy, apiServerAddress string) error {
-	for i := range np.Spec.Ingress {
-		in := np.Spec.Ingress[i]
-		for _, p := range in.Ports {
-			if p.Port.IntVal == 9443 && len(in.From) == 0 {
-				// append api server address to call admission webhook endpoint
-				in.From = []networkingv1.NetworkPolicyPeer{
-					{
-						IPBlock: &networkingv1.IPBlock{
-							CIDR: apiServerAddress,
-						},
-					},
-				}
-			}
-		}
-	}
-	return nil
 }
 
 func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassName string) error {

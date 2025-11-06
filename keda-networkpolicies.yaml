@@ -1,4 +1,3 @@
-
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -12,49 +11,68 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-  name: keda-admission-webhooks
+    purpose: allow-egress
+  name: kyma-project.io--keda-admission-webhooks-allow-egress
   namespace: kyma-system
 spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Egress
   egress:
-  - ports:
-    - port: 443
-      protocol: TCP
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - ipBlock:
-        cidr: 0.0.0.0/0
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - namespaceSelector:
-        matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: node-local-dns
-  - ports:
-    - port: 8053
-      protocol: TCP
-    - port: 8053
-      protocol: UDP
-    to:
-    - namespaceSelector:
-        matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
+  - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: metrics
+  name: kyma-project.io--keda-admission-webhooks-metrics
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Ingress
   ingress:
   - from: []
     ports:
     - port: 9443
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: webhook
+  name: kyma-project.io--keda-admission-webhooks
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Ingress
+  ingress:
   - from:
     - namespaceSelector:
         matchLabels:
@@ -65,12 +83,32 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-egress
+  name: kyma-project.io--keda-operator-allow-egress
+  namespace: kyma-system
+spec:
   podSelector:
     matchLabels:
-      app: keda-admission-webhooks
+      app: keda-operator
   policyTypes:
-  - Ingress
   - Egress
+  egress:
+  - {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -85,45 +123,43 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-  name: keda-operator
+    purpose: allow-metrics-apiserver
+  name: kyma-project.io--keda-operator-allow-metrics-apiserver
   namespace: kyma-system
 spec:
-  egress:
-  - ports:
-    - port: 443
-      protocol: TCP
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - ipBlock:
-        cidr: 0.0.0.0/0
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - namespaceSelector:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
         matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: node-local-dns
-  - ports:
-    - port: 8053
-      protocol: TCP
-    - port: 8053
-      protocol: UDP
-    to:
-    - namespaceSelector:
-        matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
+          app: keda-operator-metrics-apiserver
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: metrics
+  name: kyma-project.io--keda-operator-metrics
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Ingress
   ingress:
   - from:
     - namespaceSelector:
@@ -135,12 +171,31 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-egress
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-egress
+  namespace: kyma-system
+spec:
   podSelector:
     matchLabels:
       app: keda-operator
   policyTypes:
-  - Ingress
   - Egress
+  egress:
+  - {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -154,45 +209,15 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-  name: keda-operator-metrics-apiserver
+    purpose: metrics
+  name: kyma-project.io--keda-operator-metrics-apiserver-metrics
   namespace: kyma-system
 spec:
-  egress:
-  - ports:
-    - port: 443
-      protocol: TCP
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - ipBlock:
-        cidr: 0.0.0.0/0
-  - ports:
-    - port: 53
-      protocol: TCP
-    - port: 53
-      protocol: UDP
-    to:
-    - namespaceSelector:
-        matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: node-local-dns
-  - ports:
-    - port: 8053
-      protocol: TCP
-    - port: 8053
-      protocol: UDP
-    to:
-    - namespaceSelector:
-        matchLabels:
-          gardener.cloud/purpose: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Ingress
   ingress:
   - from:
     - namespaceSelector:
@@ -204,9 +229,68 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-operator
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-operator
+  namespace: kyma-system
+spec:
   podSelector:
     matchLabels:
       app: keda-operator-metrics-apiserver
   policyTypes:
   - Ingress
-  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: keda-operator
+
+
+  # egress:
+  # - ports:
+  #   - port: 443
+  #     protocol: TCP
+  # - ports:
+  #   - port: 53
+  #     protocol: TCP
+  #   - port: 53
+  #     protocol: UDP
+  #   to:
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         kubernetes.io/metadata.name: kube-system
+  #     podSelector:
+  #       matchLabels:
+  #         k8s-app: node-local-dns
+  #   - ipBlock:
+  #       cidr: 0.0.0.0/0
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         gardener.cloud/purpose: kube-system
+  #     podSelector:
+  #       matchLabels:
+  #         k8s-app: node-local-dns
+  # - ports:
+  #   - port: 8053
+  #     protocol: TCP
+  #   - port: 8053
+  #     protocol: UDP
+  #   to:
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         gardener.cloud/purpose: kube-system
+  #     podSelector:
+  #       matchLabels:
+  #         k8s-app: kube-dns
