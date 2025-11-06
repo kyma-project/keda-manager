@@ -41,11 +41,11 @@ spec:
             - name: KEDA_MODULE_VERSION
               value: main
             - name: IMAGE_KEDA_OPERATOR
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.0
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.1
             - name: IMAGE_KEDA_METRICS_APISERVER
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.0
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.1
             - name: IMAGE_KEDA_ADMISSION_WEBHOOKS
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.0
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.1
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
