@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    control-plane: manager
+    purpose: allow-egress
+  name: kyma-project.io--keda-manager-allow-egress
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: keda-manager.kyma-project.io
+      control-plane: manager
+  policyTypes:
+  - Egress
+  egress:
+  - {}
