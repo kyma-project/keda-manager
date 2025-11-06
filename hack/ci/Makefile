@@ -30,6 +30,7 @@ remove-keda: ## Remove Keda CR
 
 .PHONY: run-on-cluster
 run-on-cluster:
+	@make -C ${PROJECT_COMMON} create-kyma-system-ns
 	@kubectl apply -f ${PROJECT_ROOT}/hack/deny-all-networkpolicy.yaml
 	@make -C ${PROJECT_COMMON} run-on-cluster
 
