@@ -220,12 +220,6 @@ func envVars(k *v1alpha1.Keda) *v1alpha1.EnvVars {
 	return nil
 }
 
-func networkPolicyAPIServerAddress(address string) func(*v1alpha1.Keda) *string {
-	return func(k *v1alpha1.Keda) *string {
-		return &address
-	}
-}
-
 func disabledIstioSidecar(_ *v1alpha1.Keda) *v1alpha1.IstioCfg {
 	return &v1alpha1.IstioCfg{
 		EnabledSidecarInjection: false,

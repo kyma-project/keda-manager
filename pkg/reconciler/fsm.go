@@ -165,10 +165,6 @@ var (
 		return u.GetKind() == "Deployment" &&
 			u.GetAPIVersion() == "apps/v1"
 	}
-	isNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
-		return u.GetKind() == "NetworkPolicy" &&
-			u.GetAPIVersion() == "networking.k8s.io/v1"
-	}
 	isKedaOperatorDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasOperatorName(u) && isDeployment(u)
 	}
@@ -183,9 +179,6 @@ var (
 	}
 	isAdmissionWebhooksDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasAdmissionWebhooksName(u) && isDeployment(u)
-	}
-	isAddmissionWebhookNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
-		return hasAdmissionWebhooksName(u) && isNetworkPolicy(u)
 	}
 )
 
