@@ -4,13 +4,6 @@ kind: Kustomization
 # Adds namespace to all resources.
 namespace: kyma-system
 
-# Value of this field is prepended to the
-# names of all resources, e.g. a deployment named
-# "wordpress" becomes "alices-wordpress".
-# Note that it should also match with the prefix (text before '-') of the namespace
-# field above.
-namePrefix: keda-
-
 # Labels to add to all resources.
 labels:
 - includeTemplates: true
@@ -23,8 +16,5 @@ labels:
     kyma-project.io/module: keda
 
 resources:
-- ../crd
-- ../rbac
-- ../priority-class
-- ../manager
-- ../ui-extensions
+- ../prefixed
+- ../network-policy
