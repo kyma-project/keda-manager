@@ -183,7 +183,6 @@ var (
 )
 
 type K8s struct {
-	APIServerIP string
 	client.Client
 	record.EventRecorder
 }
