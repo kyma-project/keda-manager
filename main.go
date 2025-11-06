@@ -44,7 +44,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/yaml"
+	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -118,12 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	file, err := os.Open("keda.yaml")
-	if err != nil {
-		setupLog.Error(err, "unable to open k8s data")
-	}
-
-	data, err := yaml.LoadData(file)
+	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
 		setupLog.Error(err, "unable to load k8s data")
 		os.Exit(1)
