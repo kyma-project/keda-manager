@@ -1,3 +1,4 @@
+# NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,6 +24,7 @@ spec:
   egress:
   - {}
 ---
+# NetworkPolicy to allow API server to communicate with keda-admission-webhooks
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -50,6 +52,7 @@ spec:
     ports:
     - port: 9443
 ---
+# NetworkPolicy to allow scraping metrics from keda-admission-webhooks
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -84,7 +87,7 @@ spec:
     - port: 8080
       protocol: TCP
 ---
-
+# NetworkPolicy to allow egress traffic from keda-operator to k8s API server and to keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -110,6 +113,7 @@ spec:
   egress:
   - {}
 ---
+# NetworkPolicy to allow keda-operator-metrics-apiserver to communicate with keda-operator
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -138,6 +142,7 @@ spec:
         matchLabels:
           app: keda-operator-metrics-apiserver
 ---
+# NetworkPolicy to allow scraping metrics from keda-operator
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -172,7 +177,7 @@ spec:
     - port: 8080
       protocol: TCP
 ---
-
+# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to keda-operator, k8s API server and to external endpoints
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -197,6 +202,7 @@ spec:
   egress:
   - {}
 ---
+# NetworkPolicy to allow scraping metrics from keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -230,6 +236,7 @@ spec:
     - port: 8080
       protocol: TCP
 ---
+# NetworkPolicy to allow keda-operator to communicate with keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
