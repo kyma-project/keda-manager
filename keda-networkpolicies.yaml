@@ -1,4 +1,29 @@
-# NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
+# # NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   labels:
+#     app: keda-admission-webhooks
+#     name: keda-admission-webhooks
+#     app.kubernetes.io/name: keda-admission-webhooks    
+#     helm.sh/chart: keda-2.18.0
+#     app.kubernetes.io/component: operator
+#     app.kubernetes.io/managed-by: Helm
+#     app.kubernetes.io/part-of: keda-operator
+#     app.kubernetes.io/version: 2.18.0
+#     app.kubernetes.io/instance: keda
+#     purpose: allow-egress
+#   name: kyma-project.io--keda-admission-webhooks-allow-egress
+#   namespace: kyma-system
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: keda-admission-webhooks
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - {}
+# ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -12,8 +37,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: allow-egress
-  name: kyma-project.io--keda-admission-webhooks-allow-egress
+    purpose: allow-to-apiserver
+  name: kyma-project.io--keda-admission-webhooks-allow-to-apiserver
   namespace: kyma-system
 spec:
   podSelector:
@@ -22,7 +47,70 @@ spec:
   policyTypes:
   - Egress
   egress:
-  - {}
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-dns
+  name: kyma-project.io--keda-admission-webhooks-allow-to-dns
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+    - ports:
+        - port: 8053
+          protocol: UDP
+        - port: 8053
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: node-local-dns
+
+
+
 ---
 # NetworkPolicy to allow API server to communicate with keda-admission-webhooks
 apiVersion: networking.k8s.io/v1
@@ -38,8 +126,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: metrics
-  name: kyma-project.io--keda-admission-webhooks-metrics
+    purpose: webhook
+  name: kyma-project.io--keda-admission-webhooks-from-apiserver
   namespace: kyma-system
 spec:
   podSelector:
@@ -66,8 +154,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: webhook
-  name: kyma-project.io--keda-admission-webhooks
+    purpose: metrics
+  name: kyma-project.io--keda-admission-webhooks-metrics
   namespace: kyma-system
 spec:
   podSelector:
@@ -86,23 +174,48 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+# ---
+# # NetworkPolicy to allow egress traffic from keda-operator to k8s API server and to keda-operator-metrics-apiserver
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   labels:
+#     app: keda-operator
+#     name: keda-operator
+#     app.kubernetes.io/name: keda-operator    
+#     helm.sh/chart: keda-2.18.0
+#     app.kubernetes.io/component: operator
+#     app.kubernetes.io/managed-by: Helm
+#     app.kubernetes.io/part-of: keda-operator
+#     app.kubernetes.io/version: 2.18.0
+#     app.kubernetes.io/instance: keda
+#     purpose: allow-egress
+#   name: kyma-project.io--keda-operator-allow-egress
+#   namespace: kyma-system
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: keda-operator
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - {}
 ---
-# NetworkPolicy to allow egress traffic from keda-operator to k8s API server and to keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-operator
-    name: keda-operator
-    app.kubernetes.io/name: keda-operator    
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
     helm.sh/chart: keda-2.18.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: allow-egress
-  name: kyma-project.io--keda-operator-allow-egress
+    purpose: allow-to-apiserver
+  name: kyma-project.io--keda-operator-allow-to-apiserver
   namespace: kyma-system
 spec:
   podSelector:
@@ -111,7 +224,76 @@ spec:
   policyTypes:
   - Egress
   egress:
-  - {}
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-dns
+  name: kyma-project.io--keda-operator-allow-to-dns
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+    - ports:
+        - port: 8053
+          protocol: UDP
+        - port: 8053
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: node-local-dns
+
+
+
+
+
+
+
+
+
 ---
 # NetworkPolicy to allow keda-operator-metrics-apiserver to communicate with keda-operator
 apiVersion: networking.k8s.io/v1
@@ -127,8 +309,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: allow-metrics-apiserver
-  name: kyma-project.io--keda-operator-allow-metrics-apiserver
+    purpose: allow-from-metrics-apiserver
+  name: kyma-project.io--keda-operator-allow-from-metrics-apiserver
   namespace: kyma-system
 spec:
   podSelector:
@@ -176,22 +358,47 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+# ---
+# # NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to keda-operator, k8s API server and to external endpoints
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   labels:
+#     app: keda-operator-metrics-apiserver
+#     app.kubernetes.io/name: keda-operator-metrics-apiserver    
+#     helm.sh/chart: keda-2.18.0
+#     app.kubernetes.io/component: operator
+#     app.kubernetes.io/managed-by: Helm
+#     app.kubernetes.io/part-of: keda-operator
+#     app.kubernetes.io/version: 2.18.0
+#     app.kubernetes.io/instance: keda
+#     purpose: allow-egress
+#   name: kyma-project.io--keda-operator-metrics-apiserver-allow-egress
+#   namespace: kyma-system
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: keda-operator
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - {}
 ---
-# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to keda-operator, k8s API server and to external endpoints
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-operator-metrics-apiserver
-    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
     helm.sh/chart: keda-2.18.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: allow-egress
-  name: kyma-project.io--keda-operator-metrics-apiserver-allow-egress
+    purpose: allow-to-apiserver
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-apiserver
   namespace: kyma-system
 spec:
   podSelector:
@@ -200,7 +407,74 @@ spec:
   policyTypes:
   - Egress
   egress:
-  - {}
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.0
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-dns
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-dns
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+    - ports:
+        - port: 8053
+          protocol: UDP
+        - port: 8053
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: node-local-dns
+
+
+
+
+
+
+
 ---
 # NetworkPolicy to allow scraping metrics from keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
@@ -249,8 +523,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.0
     app.kubernetes.io/instance: keda
-    purpose: allow-operator
-  name: kyma-project.io--keda-operator-metrics-apiserver-allow-operator
+    purpose: allow-from-operator
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator
   namespace: kyma-system
 spec:
   podSelector:
