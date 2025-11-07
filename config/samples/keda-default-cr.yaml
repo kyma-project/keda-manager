@@ -3,6 +3,7 @@ kind: Keda
 metadata:
   name: default
 spec:
+  enableNetworkPolicies: false
   logging:
     operator:
       level: "info"

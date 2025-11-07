@@ -51,16 +51,17 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		return stopWithRequeueAfter(time.Second * 10)
 	}
 
-	if s.instance.Status.State == "Ready" {
-		return nil, nil, nil
-	}
-
 	s.instance.Status.KedaVersion = kedaVersion
 	s.instance.Status.EnabledNetworkPolicies = s.instance.Spec.EnableNetworkPolicies
-	s.instance.UpdateStateReady(
-		v1alpha1.ConditionTypeInstalled,
-		v1alpha1.ConditionReasonVerified,
-		"keda-operator and keda-operator-metrics-server ready",
-	)
+
+	if s.instance.Status.State != "Ready" {
+		// set status to ready only if it is not already set
+		s.instance.UpdateStateReady(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonVerified,
+			"keda-operator and keda-operator-metrics-server ready",
+		)
+	}
+
 	return stopWithNoRequeue()
 }

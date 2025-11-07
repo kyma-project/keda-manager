@@ -455,6 +455,8 @@ spec:
                         type: object
                     type: object
                 type: object
+            required:
+            - enableNetworkPolicies
             type: object
           status:
             properties:
@@ -523,6 +525,7 @@ spec:
               state:
                 type: string
             required:
+            - enabledNetworkPolicies
             - served
             - state
             type: object

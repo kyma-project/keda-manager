@@ -224,7 +224,8 @@ type PodAnnotations struct {
 
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
-	EnableNetworkPolicies bool            `json:"enableNetworkPolicies,omitempty"`
+	// +kubebuilder:validation:Required
+	EnableNetworkPolicies bool            `json:"enableNetworkPolicies"`
 	Istio                 *Istio          `json:"istio,omitempty"`
 	Logging               *LoggingCfg     `json:"logging,omitempty"`
 	Resources             *Resources      `json:"resources,omitempty"`
@@ -403,7 +404,7 @@ func (k *Keda) IsServedEmpty() bool {
 type Status struct {
 	State                  string             `json:"state"`
 	Served                 string             `json:"served"`
-	EnabledNetworkPolicies bool               `json:"enabledNetworkPolicies,omitempty"`
+	EnabledNetworkPolicies bool               `json:"enabledNetworkPolicies"`
 	KedaVersion            string             `json:"kedaVersion,omitempty"`
 	Conditions             []metav1.Condition `json:"conditions,omitempty"`
 }
