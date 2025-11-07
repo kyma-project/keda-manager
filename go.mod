@@ -6,7 +6,7 @@ require (
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kedacore/keda/v2 v2.18.0
+	github.com/kedacore/keda/v2 v2.18.1
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
 	github.com/stretchr/testify v1.11.1
