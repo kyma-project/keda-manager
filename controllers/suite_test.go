@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -40,7 +39,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
-	"github.com/kyma-project/keda-manager/pkg/yaml"
+	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -98,15 +97,13 @@ var _ = BeforeSuite(func() {
 	kedaLogger, err := config.Build()
 	Expect(err).NotTo(HaveOccurred())
 
-	file, err := os.Open("../keda.yaml")
-	Expect(err).ShouldNot(HaveOccurred())
-
-	data, err := yaml.LoadData(file)
+	data, err := resources.LoadFromPaths("../keda-networkpolicies.yaml", "../keda.yaml")
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = (&kedaReconciler{
 		log: kedaLogger.Sugar(),
 		K8s: reconciler.K8s{
+			APIServerIP:   "0.0.0.0",
 			Client:        k8sManager.GetClient(),
 			EventRecorder: record.NewFakeRecorder(100),
 		},
