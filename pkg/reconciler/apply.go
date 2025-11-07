@@ -28,9 +28,6 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 	var isError bool
 	var err error
 	for _, obj := range r.Objs {
-		// TODO: in next PR check if user set enableNetworkPolicies field to true
-		// if not, skip applying them and add them to orphanedObjs to remove them from cluster if existing
-
 		r.log.
 			With("gvk", obj.GetObjectKind().GroupVersionKind()).
 			With("name", obj.GetName()).
@@ -61,7 +58,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 	}
 	// no errors
 	if !isError {
-		return switchState(sfnDeleteOrphanResources)
+		return switchState(sFnVerify)
 	}
 
 	s.instance.UpdateStateFromErr(
