@@ -56,6 +56,7 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 	}
 
 	s.instance.Status.KedaVersion = kedaVersion
+	s.instance.Status.EnabledNetworkPolicies = s.instance.Spec.EnableNetworkPolicies
 	s.instance.UpdateStateReady(
 		v1alpha1.ConditionTypeInstalled,
 		v1alpha1.ConditionReasonVerified,

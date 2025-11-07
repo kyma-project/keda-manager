@@ -52,6 +52,8 @@ spec:
           spec:
             description: KedaSpec defines the desired state of Keda
             properties:
+              enableNetworkPolicies:
+                type: boolean
               env:
                 items:
                   description: EnvVar represents an environment variable present in
@@ -512,6 +514,8 @@ spec:
                   - type
                   type: object
                 type: array
+              enabledNetworkPolicies:
+                type: boolean
               kedaVersion:
                 type: string
               served:
