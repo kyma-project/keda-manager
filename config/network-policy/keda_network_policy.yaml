@@ -1,20 +1,3 @@
-# NetworkPolicy to block any ingress traffic to keda-manager pods
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  labels:
-    control-plane: manager
-    purpose: block-ingress
-  name: kyma-project.io--keda-manager-block-ingress
-  namespace: kyma-system
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/component: keda-manager.kyma-project.io
-      control-plane: manager
-  policyTypes:
-  - Ingress
----
 # NetworkPolicy to allow egress traffic to the Kubernetes API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
