@@ -28,6 +28,7 @@
 #   egress:
 #   - {}
 # ---
+# NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -35,11 +36,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-apiserver
   name: kyma-project.io--keda-admission-webhooks-allow-to-apiserver
@@ -57,6 +58,7 @@ spec:
     - port: 6443
       protocol: TCP
 ---
+# NetworkPolicy to allow egress traffic from keda-admission-webhooks to DNS
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -64,11 +66,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-dns
   name: kyma-project.io--keda-admission-webhooks-allow-to-dns
@@ -121,11 +123,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: webhook
   name: kyma-project.io--keda-admission-webhooks-from-apiserver
@@ -149,11 +151,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-admission-webhooks-metrics
@@ -206,18 +208,19 @@ spec:
 #   egress:
 #   - {}
 ---
+# NetworkPolicy to allow egress traffic from keda-operator to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-admission-webhooks
-    name: keda-admission-webhooks
-    app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-apiserver
   name: kyma-project.io--keda-operator-allow-to-apiserver
@@ -235,18 +238,19 @@ spec:
     - port: 6443
       protocol: TCP
 ---
+# NetworkPolicy to allow egress traffic from keda-operator to DNS
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-admission-webhooks
-    name: keda-admission-webhooks
-    app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-dns
   name: kyma-project.io--keda-operator-allow-to-dns
@@ -290,15 +294,6 @@ spec:
           podSelector:
             matchLabels:
               k8s-app: node-local-dns
-
-
-
-
-
-
-
-
-
 ---
 # NetworkPolicy to allow keda-operator-metrics-apiserver to communicate with keda-operator
 apiVersion: networking.k8s.io/v1
@@ -308,11 +303,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-from-metrics-apiserver
   name: kyma-project.io--keda-operator-allow-from-metrics-apiserver
@@ -337,11 +332,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-operator-metrics
@@ -393,18 +388,18 @@ spec:
 #   egress:
 #   - {}
 ---
+# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-admission-webhooks
-    name: keda-admission-webhooks
-    app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-apiserver
   name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-apiserver
@@ -412,7 +407,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: keda-operator
+      app: keda-operator-metrics-apiserver
   policyTypes:
   - Egress
   egress:
@@ -422,18 +417,18 @@ spec:
     - port: 6443
       protocol: TCP
 ---
+# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to DNS
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   labels:
-    app: keda-admission-webhooks
-    name: keda-admission-webhooks
-    app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.0
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-to-dns
   name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-dns
@@ -441,7 +436,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: keda-operator
+      app: keda-operator-metrics-apiserver
   policyTypes:
   - Egress
   egress:
@@ -485,11 +480,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-operator-metrics-apiserver-metrics
@@ -519,11 +514,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.0
+    helm.sh/chart: keda-2.18.1
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.0
+    app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
     purpose: allow-from-operator
   name: kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator
