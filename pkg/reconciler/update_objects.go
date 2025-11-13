@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -162,7 +163,25 @@ func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stat
 }
 
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sfnUpdateAdmissionWebhooksNetworkPolicy)
+}
+
+func sfnUpdateAdmissionWebhooksNetworkPolicy(ctx context.Context, f *fsm, ss *systemState) (stateFn, *ctrl.Result, error) {
+	np, err := f.firstUnstructed(isAddmissionWebhookNetworkPolicy)
+	if err != nil {
+		ss.instance.UpdateStateFromErr(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonNetworkPolicyUpdateErr,
+			err,
+		)
+		return stopWithErrorAndNoRequeue(err)
+	}
+
+	ipBlock := fmt.Sprintf("%s/32", f.APIServerIP)
+
+	return switchState(
+		buildSfnUpdateObject(np, updateAdmissionWebhooksNetworkPolicy, networkPolicyAPIServerAddress(ipBlock), sFnApply),
+	)
 }
 
 func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update func(T, R) error, getData func(*v1alpha1.Keda) *R, next stateFn) stateFn {
@@ -218,6 +237,12 @@ func envVars(k *v1alpha1.Keda) *v1alpha1.EnvVars {
 		return &k.Spec.Env
 	}
 	return nil
+}
+
+func networkPolicyAPIServerAddress(address string) func(*v1alpha1.Keda) *string {
+	return func(k *v1alpha1.Keda) *string {
+		return &address
+	}
 }
 
 func disabledIstioSidecar(_ *v1alpha1.Keda) *v1alpha1.IstioCfg {
