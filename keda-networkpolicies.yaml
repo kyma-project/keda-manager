@@ -1,33 +1,7 @@
 ##
 # NetworkPolicies for the KEDA admission webhooks
 ##
-# TODO: support this case in next PRs
-# # NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   labels:
-#     app: keda-admission-webhooks
-#     name: keda-admission-webhooks
-#     app.kubernetes.io/name: keda-admission-webhooks    
-#     helm.sh/chart: keda-2.18.0
-#     app.kubernetes.io/component: operator
-#     app.kubernetes.io/managed-by: Helm
-#     app.kubernetes.io/part-of: keda-operator
-#     app.kubernetes.io/version: 2.18.0
-#     app.kubernetes.io/instance: keda
-#     purpose: allow-egress
-#   name: kyma-project.io--keda-admission-webhooks-allow-egress
-#   namespace: kyma-system
-# spec:
-#   podSelector:
-#     matchLabels:
-#       app: keda-admission-webhooks
-#   policyTypes:
-#   - Egress
-#   egress:
-#   - {}
-# ---
+
 # NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -177,37 +151,12 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+---
+
 ##
 # NetworkPolicies for the KEDA operator
 ##
-# TODO: support this case in next PRs
-# ---
-# # NetworkPolicy to allow egress traffic from keda-operator to k8s API server and to keda-operator-metrics-apiserver
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   labels:
-#     app: keda-operator
-#     name: keda-operator
-#     app.kubernetes.io/name: keda-operator    
-#     helm.sh/chart: keda-2.18.0
-#     app.kubernetes.io/component: operator
-#     app.kubernetes.io/managed-by: Helm
-#     app.kubernetes.io/part-of: keda-operator
-#     app.kubernetes.io/version: 2.18.0
-#     app.kubernetes.io/instance: keda
-#     purpose: allow-egress
-#   name: kyma-project.io--keda-operator-allow-egress
-#   namespace: kyma-system
-# spec:
-#   podSelector:
-#     matchLabels:
-#       app: keda-operator
-#   policyTypes:
-#   - Egress
-#   egress:
-#   - {}
----
+
 # NetworkPolicy to allow egress traffic from keda-operator to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -358,36 +307,12 @@ spec:
     ports:
     - port: 8080
       protocol: TCP
+---
+
 ##
 # NetworkPolicies for the KEDA metrics apiserver
 ##
-# TODO: support this case in next PRs
-# ---
-# # NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to keda-operator, k8s API server and to external endpoints
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   labels:
-#     app: keda-operator-metrics-apiserver
-#     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-#     helm.sh/chart: keda-2.18.0
-#     app.kubernetes.io/component: operator
-#     app.kubernetes.io/managed-by: Helm
-#     app.kubernetes.io/part-of: keda-operator
-#     app.kubernetes.io/version: 2.18.0
-#     app.kubernetes.io/instance: keda
-#     purpose: allow-egress
-#   name: kyma-project.io--keda-operator-metrics-apiserver-allow-egress
-#   namespace: kyma-system
-# spec:
-#   podSelector:
-#     matchLabels:
-#       app: keda-operator
-#   policyTypes:
-#   - Egress
-#   egress:
-#   - {}
----
+
 # NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to k8s API server
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
