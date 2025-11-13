@@ -28,6 +28,7 @@ ENV GODEBUG=fips140=only,tlsmlkem=0
 WORKDIR /
 COPY --chown=65532:65532 --from=builder /app/manager .
 COPY --chown=65532:65532 --from=builder /app/keda.yaml .
+COPY --chown=65532:65532 --from=builder /app/keda-networkpolicies.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

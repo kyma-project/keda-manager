@@ -42,15 +42,18 @@ const (
 	ServedFalse = "False"
 
 	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
-	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
-	ConditionReasonVerified            = ConditionReason("Verified")
-	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
-	ConditionReasonVerification        = ConditionReason("Verification")
-	ConditionReasonInitialized         = ConditionReason("Initialized")
-	ConditionReasonKedaDuplicated      = ConditionReason("KedaDuplicated")
-	ConditionReasonDeletion            = ConditionReason("Deletion")
-	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
-	ConditionReasonDeleted             = ConditionReason("Deleted")
+	// TODO: implement in next PRs
+	// ConditionReasonNetworkPolicyUpdateErr = ConditionReason("NetworkPolicyUpdateErr")
+	ConditionReasonVerificationErr   = ConditionReason("VerificationErr")
+	ConditionReasonVerified          = ConditionReason("Verified")
+	ConditionReasonApplyObjError     = ConditionReason("ApplyObjError")
+	ConditionReasonOrphanDeletionErr = ConditionReason("OrphanDeletionErr")
+	ConditionReasonVerification      = ConditionReason("Verification")
+	ConditionReasonInitialized       = ConditionReason("Initialized")
+	ConditionReasonKedaDuplicated    = ConditionReason("KedaDuplicated")
+	ConditionReasonDeletion          = ConditionReason("Deletion")
+	ConditionReasonDeletionErr       = ConditionReason("DeletionErr")
+	ConditionReasonDeleted           = ConditionReason("Deleted")
 
 	ConditionTypeInstalled = ConditionType("Installed")
 	ConditionTypeDeleted   = ConditionType("Deleted")

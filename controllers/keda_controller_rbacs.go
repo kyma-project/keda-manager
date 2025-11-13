@@ -26,3 +26,5 @@ package controllers
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas,verbs=list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas/status,verbs=update;patch
 //+kubebuilder:rbac:groups=operator.kyma-project.io,resources=kedas/finalizers,verbs=update;patch
+
+//+kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=create;delete;list;patch;update;watch
