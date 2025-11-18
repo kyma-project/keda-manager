@@ -14,6 +14,9 @@ labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/version: main
     kyma-project.io/module: keda
+- includeTemplates: true
+  pairs:
+    app.kubernetes.io/version: 1.9.0
 
 resources:
 - ../prefixed
