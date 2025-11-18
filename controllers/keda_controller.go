@@ -180,7 +180,7 @@ func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.Sugared
 			Objs:      o,
 		},
 		K8s: reconciler.K8s{
-			APIServerIP:   os.Getenv("KUBERNETES_SERVICE_HOST"),
+			APIServerIP:   os.Getenv("KUBERNETES_PORT_443_TCP_ADDR"),
 			Client:        c,
 			EventRecorder: r,
 		},
