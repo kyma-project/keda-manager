@@ -157,7 +157,8 @@ spec:
 # NetworkPolicies for the KEDA operator
 ##
 
-# NetworkPolicy to allow egress traffic from keda-operator to k8s API server
+# NetworkPolicy to allow whole egress traffic
+# this is needed to allow the operator to communicate with any service to scrape metrics for scaling purposes
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -171,8 +172,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
-    purpose: allow-to-apiserver
-  name: kyma-project.io--keda-operator-allow-to-apiserver
+    purpose: allow-to-all
+  name: kyma-project.io--keda-operator-allow-to-all
   namespace: kyma-system
 spec:
   podSelector:
@@ -181,68 +182,7 @@ spec:
   policyTypes:
   - Egress
   egress:
-  - ports:
-    - port: 443
-      protocol: TCP
-    - port: 6443
-      protocol: TCP
----
-# NetworkPolicy to allow egress traffic from keda-operator to DNS
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  labels:
-    app: keda-operator
-    name: keda-operator
-    app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.1
-    app.kubernetes.io/component: operator
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.1
-    app.kubernetes.io/instance: keda
-    purpose: allow-to-dns
-  name: kyma-project.io--keda-operator-allow-to-dns
-  namespace: kyma-system
-spec:
-  podSelector:
-    matchLabels:
-      app: keda-operator
-  policyTypes:
-  - Egress
-  egress:
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
-      to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-    - ports:
-        - port: 8053
-          protocol: UDP
-        - port: 8053
-          protocol: TCP
-      to:
-        - namespaceSelector:
-            matchLabels:
-              gardener.cloud/purpose: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
-      to:
-        - namespaceSelector:
-            matchLabels:
-              gardener.cloud/purpose: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: node-local-dns
+  - {}
 ---
 # NetworkPolicy to allow keda-operator-metrics-apiserver to communicate with keda-operator
 apiVersion: networking.k8s.io/v1
@@ -313,7 +253,8 @@ spec:
 # NetworkPolicies for the KEDA metrics apiserver
 ##
 
-# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to k8s API server
+# NetworkPolicy to allow whole egress traffic
+# this is needed to allow the operator to communicate with any service to scrape metrics for scaling purposes
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -326,8 +267,8 @@ metadata:
     app.kubernetes.io/part-of: keda-operator
     app.kubernetes.io/version: 2.18.1
     app.kubernetes.io/instance: keda
-    purpose: allow-to-apiserver
-  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-apiserver
+    purpose: allow-to-all
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-all
   namespace: kyma-system
 spec:
   podSelector:
@@ -336,67 +277,7 @@ spec:
   policyTypes:
   - Egress
   egress:
-  - ports:
-    - port: 443
-      protocol: TCP
-    - port: 6443
-      protocol: TCP
----
-# NetworkPolicy to allow egress traffic from keda-operator-metrics-apiserver to DNS
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  labels:
-    app: keda-operator-metrics-apiserver
-    app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.1
-    app.kubernetes.io/component: operator
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.1
-    app.kubernetes.io/instance: keda
-    purpose: allow-to-dns
-  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-dns
-  namespace: kyma-system
-spec:
-  podSelector:
-    matchLabels:
-      app: keda-operator-metrics-apiserver
-  policyTypes:
-  - Egress
-  egress:
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
-      to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-    - ports:
-        - port: 8053
-          protocol: UDP
-        - port: 8053
-          protocol: TCP
-      to:
-        - namespaceSelector:
-            matchLabels:
-              gardener.cloud/purpose: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
-      to:
-        - namespaceSelector:
-            matchLabels:
-              gardener.cloud/purpose: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: node-local-dns
+  - {}
 ---
 # NetworkPolicy to allow scraping metrics from keda-operator-metrics-apiserver
 apiVersion: networking.k8s.io/v1
