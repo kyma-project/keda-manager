@@ -124,7 +124,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config := zap.NewDevelopmentConfig()
+	config := zap.NewProductionConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.Encoding = "json"
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
