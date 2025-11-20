@@ -315,9 +315,9 @@ func (v *EnvVars) Sanitize() {
 // Keda is the Schema for the kedas API
 type Keda struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   KedaSpec `json:"spec,omitempty"`
+	Spec   KedaSpec `json:"spec"`
 	Status Status   `json:"status,omitempty"`
 }
 
@@ -413,7 +413,7 @@ type Status struct {
 // KedaList contains a list of Keda
 type KedaList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.ListMeta `json:"metadata"`
 	Items           []Keda `json:"items"`
 }
 
