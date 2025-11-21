@@ -24,38 +24,37 @@ jobs:
         env:
           IMG: ${{ inputs.image }}
 
-  # TODO: enable BTP integration tests when https://github.com/SAP/terraform-provider-btp/issues/1234 is resolved        
-  # btp-integration-tests:
-  #   if: ${{ !startsWith(github.event_name, 'pull_request') }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: compute github commit sha
-  #       id: vars
-  #       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-  #     - uses: kyma-project/terraform-module/.github/actions/create-sap-btp-kyma@1.0.0
-  #       id: create-btp-resources
-  #       with:
-  #         btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
-  #         btp_backend_url: '${{ secrets.BTP_BACKEND_URL}}'
-  #         btp_user: '${{ secrets.BTP_BOT_USER}}'
-  #         btp_password: '${{ secrets.BTP_BOT_PASSWORD}}'
-  #         btp_global_account: '${{ secrets.BTP_GLOBAL_ACCOUNT }}'
-  #         btp_idp_tenant: '${{ secrets.BTP_CUSTOM_IAS_TENANT }}'
-  #         btp_subaccount_region: '${{ secrets.BTP_SUBACCOUNT_REGION }}'
-  #         btp_kyma_region: '${{ secrets.BTP_KYMA_REGION }}'
-  #         btp_kyma_plan: '${{ secrets.BTP_KYMA_PLAN }}'
+  btp-integration-tests:
+    if: ${{ !startsWith(github.event_name, 'pull_request') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: compute github commit sha
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - uses: kyma-project/terraform-module/.github/actions/create-sap-btp-kyma@1.0.0
+        id: create-btp-resources
+        with:
+          btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
+          btp_backend_url: '${{ secrets.BTP_BACKEND_URL}}'
+          btp_user: '${{ secrets.BTP_BOT_USER}}'
+          btp_password: '${{ secrets.BTP_BOT_PASSWORD}}'
+          btp_global_account: '${{ secrets.BTP_GLOBAL_ACCOUNT }}'
+          btp_idp_tenant: '${{ secrets.BTP_CUSTOM_IAS_TENANT }}'
+          btp_subaccount_region: '${{ secrets.BTP_SUBACCOUNT_REGION }}'
+          btp_kyma_region: '${{ secrets.BTP_KYMA_REGION }}'
+          btp_kyma_plan: '${{ secrets.BTP_KYMA_PLAN }}'
 
-  #     - name: Run Keda Manager's integration test
-  #       run: |
-  #         KUBECONFIG=${KUBECONFIG} make -C hack/ci integration-test-on-cluster
+      - name: Run Keda Manager's integration test
+        run: |
+          KUBECONFIG=${KUBECONFIG} make -C hack/ci integration-test-on-cluster
 
-  #     - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@1.0.0
-  #       if: always()
-  #       with:
-  #         btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
-  #         btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
-  #         btp_user: ${{ secrets.BTP_BOT_USER}}
-  #         btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
-  #         btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
-  #         btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+      - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@1.0.0
+        if: always()
+        with:
+          btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
+          btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
+          btp_user: ${{ secrets.BTP_BOT_USER}}
+          btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
+          btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
+          btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
