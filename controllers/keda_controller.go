@@ -119,7 +119,7 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			DeleteFunc: r.retriggerAllKedaCRs,
 		})
 
-	// create function to register wached objects
+	// create function to register watched objects
 	watchFn := func(u unstructured.Unstructured) {
 		r.log.With("gvk", u.GroupVersionKind().String()).Infoln("adding watcher")
 		b = b.Watches(
