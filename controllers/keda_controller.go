@@ -77,8 +77,8 @@ func (r *kedaReconciler) mapFunction(ctx context.Context, object client.Object) 
 		With("name", object.GetName()).
 		With("ns", object.GetNamespace()).
 		With("gvk", object.GetObjectKind().GroupVersionKind()).
-		With("rscVer", object.GetResourceVersion()).
-		With("kedaRscVer", kedas.Items[0].ResourceVersion).
+		With("gen", object.GetGeneration()).
+		With("kedaGen", kedas.Items[0].GetGeneration()).
 		Debug("redirecting")
 
 	// make sure only 1 controller will handle change
@@ -119,7 +119,7 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			DeleteFunc: r.retriggerAllKedaCRs,
 		})
 
-	// create functtion to register wached objects
+	// create function to register watched objects
 	watchFn := func(u unstructured.Unstructured) {
 		r.log.With("gvk", u.GroupVersionKind().String()).Infoln("adding watcher")
 		b = b.Watches(
@@ -127,7 +127,7 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.mapFunction),
 			builder.WithPredicates(
 				predicate.And(
-					predicate.ResourceVersionChangedPredicate{},
+					predicate.GenerationChangedPredicate{},
 					labelSelectorPredicate,
 				),
 			),
