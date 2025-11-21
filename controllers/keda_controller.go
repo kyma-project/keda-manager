@@ -77,8 +77,8 @@ func (r *kedaReconciler) mapFunction(ctx context.Context, object client.Object) 
 		With("name", object.GetName()).
 		With("ns", object.GetNamespace()).
 		With("gvk", object.GetObjectKind().GroupVersionKind()).
-		With("rscVer", object.GetResourceVersion()).
-		With("kedaRscVer", kedas.Items[0].ResourceVersion).
+		With("gen", object.GetGeneration()).
+		With("kedaGen", kedas.Items[0].GetGeneration()).
 		Debug("redirecting")
 
 	// make sure only 1 controller will handle change
