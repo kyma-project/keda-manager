@@ -48,6 +48,8 @@ jobs:
       - name: Run Keda Manager's integration test
         run: |
           KUBECONFIG=${KUBECONFIG} make -C hack/ci integration-test-on-cluster
+        env:
+          IMG: ${{ inputs.image }}
 
       - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@1.0.0
         if: always()
