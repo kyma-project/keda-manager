@@ -1,4 +1,4 @@
-# Lifecycle Management Of Keda Manager in Kyma
+# Lifecycle Management of Keda Manager in Kyma
 
 When you add the Keda module using your Kyma custom resource (CR), Kyma Lifecycle Manager (KLM) downloads the bundled package of Keda Manager and installs it. Additionally, it applies a sample Keda CR, which triggers Keda Manager to install the Keda module.
 
