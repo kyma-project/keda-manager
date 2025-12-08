@@ -112,7 +112,6 @@ func runScenario(testutil *utils.TestUtils) error {
 	}
 
 	// cleanup
-	// testutil.Logger.Infof("Deleting namespace '%s'", testutil.Namespace)
-	// return namespace.Delete(testutil)
-	return nil
+	testutil.Logger.Infof("Deleting namespace '%s'", testutil.Namespace)
+	return namespace.Delete(testutil)
 }

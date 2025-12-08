@@ -76,9 +76,6 @@ func createMetricsServerDeployment(testutil *utils.TestUtils) *v1.Deployment {
 						{
 							Image: "nginx:1.25-alpine",
 							Name:  testutil.MetricsServerName,
-							Command: []string{
-								"tail", "-f", "/dev/null",
-							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "nginx-conf",

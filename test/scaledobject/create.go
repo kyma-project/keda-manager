@@ -36,7 +36,7 @@ func fixScaledObject(utils *utils.TestUtils) *v1alpha1.ScaledObject {
 					Metadata: map[string]string{
 						"format":        "json",
 						"targetValue":   "1",
-						"url":           fmt.Sprintf("http://%s.%s.svc.cluster.local:%d/%s", utils.MetricsServerName, utils.Namespace, utils.MetricsServerPort, utils.MetricsServerEndpoint),
+						"url":           fmt.Sprintf("http://%s.%s.svc.cluster.local:%d%s", utils.MetricsServerName, utils.Namespace, utils.MetricsServerPort, utils.MetricsServerEndpoint),
 						"valueLocation": "value",
 					},
 				},
