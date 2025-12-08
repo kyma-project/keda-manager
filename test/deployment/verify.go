@@ -29,6 +29,6 @@ func verifyDeploymentReplicas(testutil *utils.TestUtils) error {
 	if deploy.Status.Replicas != testutil.ScaleDeploymentTo {
 		return fmt.Errorf("deployment '%s' has replicas == '%d', expected '%d'", testutil.DeploymentName, deploy.Status.Replicas, testutil.ScaleDeploymentTo)
 	}
-	
+
 	return nil
 }
