@@ -103,20 +103,6 @@ func setCommonLabels(labels map[string]string) map[string]string {
 	return labels
 }
 
-// update NetworkPolicy to allow scraping metrics from k8s apiserver IP
-func updateMetricsServerIngressNetworkPolicy(np *networkingv1.NetworkPolicy, apiServerAddress string) error {
-	for i := range np.Spec.Ingress {
-		np.Spec.Ingress[i].From = []networkingv1.NetworkPolicyPeer{
-			{
-				IPBlock: &networkingv1.IPBlock{
-					CIDR: apiServerAddress,
-				},
-			},
-		}
-	}
-	return nil
-}
-
 func updateAdmissionWebhooksNetworkPolicy(np *networkingv1.NetworkPolicy, apiServerAddress string) error {
 	for i := range np.Spec.Ingress {
 		in := &np.Spec.Ingress[i]
@@ -201,11 +187,6 @@ var (
 			u.GetAPIVersion() == "networking.k8s.io/v1" &&
 			u.GetLabels()["purpose"] == "webhook"
 	}
-	ifMetricServerNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
-		return u.GetKind() == "NetworkPolicy" &&
-			u.GetAPIVersion() == "networking.k8s.io/v1" &&
-			u.GetLabels()["purpose"] == "ingress-all-from-apiserver"
-	}
 	isKedaOperatorDeployment predicate = func(u unstructured.Unstructured) bool {
 		return hasOperatorName(u) && isDeployment(u)
 	}
@@ -223,9 +204,6 @@ var (
 	}
 	isAddmissionWebhookNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
 		return isWebhookNetworkPolicy(u)
-	}
-	isMetricServerIngressNetworkPolicy predicate = func(u unstructured.Unstructured) bool {
-		return ifMetricServerNetworkPolicy(u)
 	}
 )
 
