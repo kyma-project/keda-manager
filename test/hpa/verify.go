@@ -3,7 +3,6 @@ package hpa
 import (
 	"fmt"
 
-	"github.com/kyma-project/keda-manager/test/scaledobject"
 	"github.com/kyma-project/keda-manager/test/utils"
 	v2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -41,13 +40,17 @@ func Verify(utils *utils.TestUtils) error {
 	return verify(utils, &hpa.Items[0])
 }
 
-func verify(_ *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
-	if *hpa.Spec.MinReplicas != *scaledobject.MinReplicaCount {
-		return fmt.Errorf("hpa '%s' has minReplicas == '%d', expected '%d'", hpa.Name, *hpa.Spec.MinReplicas, *scaledobject.MinReplicaCount)
+func verify(utils *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
+	if *hpa.Spec.MinReplicas != 1 {
+		return fmt.Errorf("hpa '%s' has minReplicas == '%d', expected 1", hpa.Name, *hpa.Spec.MinReplicas)
 	}
 
-	if hpa.Spec.MaxReplicas != *scaledobject.MaxReplicaCount {
-		return fmt.Errorf("hpa '%s' has maxReplicas == '%d', expected '%d'", hpa.Name, hpa.Spec.MaxReplicas, *scaledobject.MaxReplicaCount)
+	if hpa.Spec.MaxReplicas != 5 {
+		return fmt.Errorf("hpa '%s' has maxReplicas == '%d', expected 5", hpa.Name, hpa.Spec.MaxReplicas)
+	}
+
+	if hpa.Status.CurrentReplicas != utils.ScaleDeploymentTo {
+		return fmt.Errorf("hpa '%s' has currentReplicas == '%d', expected '%d'", hpa.Name, hpa.Status.CurrentReplicas, utils.ScaleDeploymentTo)
 	}
 
 	return verifyHpaCondition(hpa)

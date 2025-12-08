@@ -16,6 +16,9 @@ func fixNamespace(utils *utils.TestUtils) *v1.Namespace {
 	return &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: utils.Namespace,
+			Labels: map[string]string{
+				"istio-injection": "enabled",
+			},
 		},
 	}
 }
