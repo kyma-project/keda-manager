@@ -66,10 +66,6 @@ func createMetricsServerDeployment(testutil *utils.TestUtils) *v1.Deployment {
 					Labels: map[string]string{
 						"app": testutil.MetricsServerName,
 					},
-					Annotations: map[string]string{
-						// besides health check port, excude also the server port to be accessible from keda outside the mesh
-						"traffic.sidecar.istio.io/excludeInboundPorts": fmt.Sprintf("%d, 15020", testutil.MetricsServerPort),
-					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
