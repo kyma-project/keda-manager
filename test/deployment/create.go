@@ -8,10 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	DeploymentName = "test-deployment"
-)
-
 func Create(testutil *utils.TestUtils) error {
 	deploy := createTestDeployment(testutil)
 
