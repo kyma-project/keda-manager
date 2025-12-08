@@ -130,7 +130,25 @@ func buildSfnUpdateMetricsSvrResources(u *unstructured.Unstructured) stateFn {
 }
 
 func buildSfnUpdateMetricsSvrEnvVars(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, sFnUpdateAdmissionWebhooksDeployment)
+	return buildSfnUpdateObject(u, updateKedaContanierEnvs, envVars, buildSfnUpdateMetricsSvrNetworkPolicy)
+}
+
+func buildSfnUpdateMetricsSvrNetworkPolicy(ctx context.Context, f *fsm, ss *systemState) (stateFn, *ctrl.Result, error) {
+	np, err := f.firstUnstructed(isMetricServerIngressNetworkPolicy)
+	if err != nil {
+		ss.instance.UpdateStateFromErr(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonNetworkPolicyUpdateErr,
+			err,
+		)
+		return stopWithErrorAndNoRequeue(err)
+	}
+
+	ipBlock := fmt.Sprintf("%s/32", f.APIServerIP)
+
+	return switchState(
+		buildSfnUpdateObject(np, updateMetricsServerIngressNetworkPolicy, networkPolicyAPIServerAddress(ipBlock), sFnUpdateAdmissionWebhooksDeployment),
+	)
 }
 
 func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {

@@ -340,3 +340,29 @@ spec:
     - podSelector:
         matchLabels:
           app: keda-operator
+---
+# NetworkPolicy to allow scraping hpa oriented metrics from keda-operator-metrics-apiserver
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.1
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.1
+    app.kubernetes.io/instance: keda
+    purpose: ingress-all-from-apiserver
+  name: kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Ingress
+  ingress:
+  - ports:
+      - port: 6443
