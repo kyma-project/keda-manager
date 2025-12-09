@@ -2,7 +2,7 @@
 
 This example demonstrates scaling a Kubernetes workload using KEDA with a simple custom metric API. The custom metric API serves a static JSON value of 3, which KEDA reads and uses to set the replica count of the scale target to 3 via a managed HPA.
 
-## How it works
+## How It Works
 
 - A lightweight NGINX-based server exposes an HTTP endpoint `/metrics` that returns:
   ```
@@ -19,7 +19,7 @@ This example demonstrates scaling a Kubernetes workload using KEDA with a simple
 
 ## Deploy
 
-Apply the manifests in the k8s folder:
+Apply the manifests in the `k8s` folder:
 
 ```
 kubectl apply -f k8s/
