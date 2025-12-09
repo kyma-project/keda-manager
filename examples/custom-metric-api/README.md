@@ -15,7 +15,6 @@ This example demonstrates scaling a Kubernetes workload using KEDA with a simple
 ## Prerequisites
 
 - KEDA installed and running in the cluster.
-- Kyma/Istio optional; example includes an annotation to avoid mesh interception of port 80.
 
 ## Deploy
 
