@@ -47,10 +47,18 @@ func podAnnotationsOperatorCfg(k *v1alpha1.Keda) *map[string]string {
 }
 
 func podAnnotationsMetricsServerCfg(k *v1alpha1.Keda) *map[string]string {
-	if k != nil && k.Spec.PodAnnotations != nil {
-		return &k.Spec.PodAnnotations.MetricsServer
+	annotations := make(map[string]string)
+	if k.Spec.Istio != nil && k.Spec.Istio.MetricServer != nil && k.Spec.Istio.MetricServer.EnabledSidecarInjection {
+		// Add metric server port to istio excluded inbound ports
+		annotations["traffic.sidecar.istio.io/excludeInboundPorts"] = "6443"
 	}
-	return nil
+	if k != nil && k.Spec.PodAnnotations != nil {
+		// Add user defined annotations
+		for key, value := range k.Spec.PodAnnotations.MetricsServer {
+			annotations[key] = value
+		}
+	}
+	return &annotations
 }
 
 func podAnnotationsAdmissionWebhookCfg(k *v1alpha1.Keda) *map[string]string {
