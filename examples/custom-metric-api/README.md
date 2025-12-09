@@ -24,7 +24,6 @@ Apply the manifests in the `k8s` folder:
 kubectl apply -f k8s/
 ```
 
-
 Check replicas of the scale target (after KEDA reconciles):
 
 ```
