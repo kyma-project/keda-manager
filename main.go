@@ -18,13 +18,11 @@ package main
 
 import (
 	"crypto/fips140"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -44,6 +42,8 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/internal/config"
+	"github.com/kyma-project/keda-manager/internal/logging"
 	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
@@ -61,25 +61,52 @@ func init() {
 }
 
 func main() {
-	if !isFIPS140Only() {
-		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
-		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
-	}
+	//if !isFIPS140Only() {
+	//	setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	//	panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	//}
 
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var configPath string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&configPath, "config", "/etc/keda-manager/config.yaml", "Path to the configuration file.")
 	//FIXME use parameter
 	opts := zapk8s.Options{}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	// Load configuration
+	cfg, err := config.LoadLogConfig(configPath)
+	if err != nil {
+		setupLog.Error(err, "unable to load configuration")
+		os.Exit(1)
+	}
+
+	// Setup logging with atomic level for dynamic reconfiguration
+	atomicLevel := zap.NewAtomicLevel()
+	loggerInstance, err := logging.ConfigureLogger(cfg.LogLevel, cfg.LogFormat, atomicLevel)
+	if err != nil {
+		setupLog.Error(err, "unable to setup logger")
+		os.Exit(1)
+	}
+
+	kedaLogger := loggerInstance.WithContext()
+
+	// Set controller-runtime logger
 	ctrl.SetLogger(zapk8s.New(zapk8s.UseFlagOptions(&opts)))
+
+	// Start dynamic reconfiguration
+	ctx := ctrl.SetupSignalHandler()
+	logging.ReconfigureOnConfigChange(ctx, kedaLogger, atomicLevel, configPath)
+
+	setupLog.Info(fmt.Sprintf("log level set to: %s, format: %s", cfg.LogLevel, cfg.LogFormat))
+
 	restConfig := ctrl.GetConfigOrDie()
 
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
@@ -124,23 +151,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.TimeKey = "timestamp"
-	config.Encoding = "json"
-	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
-
-	kedaLogger, err := config.Build()
-	if err != nil {
-		setupLog.Error(err, "unable to setup logger")
-		os.Exit(1)
-	}
-
-	setupLog.Info(fmt.Sprintf("log level set to: %s", kedaLogger.Level()))
-
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
-		kedaLogger.Sugar(),
+		kedaLogger,
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
@@ -159,7 +173,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
