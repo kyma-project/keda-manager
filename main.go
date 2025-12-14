@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"errors"
 
 	"go.uber.org/zap"
 	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
