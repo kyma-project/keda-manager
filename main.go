@@ -18,10 +18,10 @@ package main
 
 import (
 	"crypto/fips140"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"errors"
 
 	"go.uber.org/zap"
 	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
