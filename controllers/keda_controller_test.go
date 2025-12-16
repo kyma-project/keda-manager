@@ -201,7 +201,7 @@ func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metric
 	// assert
 	firstContainer := metricsDeployment.Spec.Template.Spec.Containers[0]
 	Expect(firstContainer.Args).
-		To(ContainElement(fmt.Sprintf("--v=%s", *kedaSpec.Logging.MetricsServer.Level)))
+		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.MetricsServer.Level)))
 
 	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.MetricsServer))
 
