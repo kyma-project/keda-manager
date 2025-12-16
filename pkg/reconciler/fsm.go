@@ -127,7 +127,7 @@ func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassN
 	return nil
 }
 
-func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingOperatorCfg) error {
+func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }
 
@@ -142,7 +142,7 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 	return nil
 }
 
-func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingMetricsSrvCfg) error {
+func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }
 

@@ -26,19 +26,19 @@ type zero interface {
 }
 
 var (
-	testNilOperatorLogLevel      *OperatorLogLevel
+	testNilOperatorLogLevel      *LogLevel
 	testNilLogFormat             *LogFormat
 	testNilLogTimeEncoding       *LogTimeEncoding
-	testNilMetricsServerLogLevel *MetricsServerLogLevel
+	testNilMetricsServerLogLevel *LogLevel
 
-	testZeroOperatorLogLevel      OperatorLogLevel
+	testZeroOperatorLogLevel      LogLevel
 	testZeroLogFormat             LogFormat
 	testZeroLogTimeEncoding       LogTimeEncoding
-	testZeroMetricsServerLogLevel MetricsServerLogLevel
+	testZeroMetricsServerLogLevel LogLevel
 
-	testOperatorLogLevelDebug   = OperatorLogLevelDebug
-	testOperatorLogLevelInfo    = OperatorLogLevelInfo
-	testOperatorLogLevelError   = OperatorLogLevelError
+	testOperatorLogLevelDebug   = CommonLogLevelDebug
+	testOperatorLogLevelInfo    = CommonLogLevelInfo
+	testOperatorLogLevelError   = CommonLogLevelError
 	testLogFormatJSON           = LogFormatJSON
 	testLogFormatConsole        = LogFormatConsole
 	testTimeEncodingEpoch       = TimeEncodingEpoch
@@ -69,12 +69,12 @@ func Test_zero(t *testing.T) {
 		},
 		{
 			name: "LogFormat zero value",
-			want: "console",
+			want: "json",
 			f:    &testZeroLogFormat,
 		},
 		{
 			name: "LogFormat nil",
-			want: "console",
+			want: "json",
 			f:    testNilLogFormat,
 		},
 		{
@@ -89,12 +89,12 @@ func Test_zero(t *testing.T) {
 		},
 		{
 			name: "MetricsServerLogLevel zero value",
-			want: "0",
+			want: "info",
 			f:    &testZeroMetricsServerLogLevel,
 		},
 		{
 			name: "MetricsServerLogLevel nil",
-			want: "0",
+			want: "info",
 			f:    testNilMetricsServerLogLevel,
 		},
 	}

@@ -57,7 +57,9 @@ const (
 	ConditionTypeInstalled = ConditionType("Installed")
 	ConditionTypeDeleted   = ConditionType("Deleted")
 
-	CommonLogLevelInfo = LogLevel("info")
+	CommonLogLevelDebug = LogLevel("debug")
+	CommonLogLevelInfo  = LogLevel("info")
+	CommonLogLevelError = LogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")

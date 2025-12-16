@@ -29,18 +29,18 @@ var _ = Describe("Keda controller", func() {
 			metricsDeploymentName              = fmt.Sprintf("%s-metrics-apiserver", operatorName)
 			kedaDeploymentName                 = operatorName
 			kedaAdmissionWebhookDeploymentName = admissionWebhookName
-			notDefaultOperatorLogLevel         = v1alpha1.OperatorLogLevelDebug
+			notDefaultOperatorLogLevel         = v1alpha1.CommonLogLevelDebug
 			notDefaultLogFormat                = v1alpha1.LogFormatJSON
 			notDefaultLogTimeEncoding          = v1alpha1.TimeEncodingEpoch
-			notDefaultMetricsServerLogLevel    = v1alpha1.MetricsServerLogLevelDebug
+			notDefaultMetricsServerLogLevel    = v1alpha1.CommonLogLevelDebug
 			kedaSpec                           = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
-					Operator: &v1alpha1.LoggingOperatorCfg{
+					Operator: &v1alpha1.LoggingCommonCfg{
 						Level:        &notDefaultOperatorLogLevel,
 						Format:       &notDefaultLogFormat,
 						TimeEncoding: &notDefaultLogTimeEncoding,
 					},
-					MetricsServer: &v1alpha1.LoggingMetricsSrvCfg{
+					MetricsServer: &v1alpha1.LoggingCommonCfg{
 						Level: &notDefaultMetricsServerLogLevel,
 					},
 				},
