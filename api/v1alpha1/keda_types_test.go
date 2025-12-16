@@ -40,6 +40,7 @@ var (
 	testOperatorLogLevelInfo    = CommonLogLevelInfo
 	testOperatorLogLevelError   = CommonLogLevelError
 	testLogFormatJSON           = LogFormatJSON
+	testLogFormatText           = LogFormatText
 	testLogFormatConsole        = LogFormatConsole
 	testTimeEncodingEpoch       = TimeEncodingEpoch
 	testTimeEncodingMillis      = TimeEncodingMillis
@@ -69,12 +70,12 @@ func Test_zero(t *testing.T) {
 		},
 		{
 			name: "LogFormat zero value",
-			want: "json",
+			want: "text",
 			f:    &testZeroLogFormat,
 		},
 		{
 			name: "LogFormat nil",
-			want: "json",
+			want: "text",
 			f:    testNilLogFormat,
 		},
 		{
@@ -134,6 +135,11 @@ func Test_string(t *testing.T) {
 			name:     "LogFormatJSON",
 			stringer: &testLogFormatJSON,
 			want:     "--zap-encoder=json",
+		},
+		{
+			name:     "LogFormatText",
+			stringer: &testLogFormatText,
+			want:     "--zap-encoder=text",
 		},
 		{
 			name:     "LogFormatConsole",

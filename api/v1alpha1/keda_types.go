@@ -62,7 +62,8 @@ const (
 	CommonLogLevelError = LogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
-	LogFormatConsole = LogFormat("console")
+	LogFormatText    = LogFormat("text")
+	LogFormatConsole = LogFormat("console") // alias for text
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")
@@ -97,11 +98,11 @@ func (l *LogLevel) Match(s *string) bool {
 	return strings.HasPrefix(*s, zapLogLevel)
 }
 
-// +kubebuilder:validation:Enum=json;console
+// +kubebuilder:validation:Enum=json;text;console
 type LogFormat string
 
 func (f *LogFormat) zero() string {
-	return string(LogFormatJSON)
+	return string(LogFormatText)
 }
 
 func (f *LogFormat) String() string {

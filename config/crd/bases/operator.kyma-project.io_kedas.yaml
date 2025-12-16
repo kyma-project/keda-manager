@@ -228,6 +228,7 @@ spec:
                       format:
                         enum:
                         - json
+                        - text
                         - console
                         type: string
                       level:
@@ -251,6 +252,7 @@ spec:
                       format:
                         enum:
                         - json
+                        - text
                         - console
                         type: string
                       level:
@@ -274,6 +276,7 @@ spec:
                       format:
                         enum:
                         - json
+                        - text
                         - console
                         type: string
                       level:
