@@ -57,9 +57,7 @@ const (
 	ConditionTypeInstalled = ConditionType("Installed")
 	ConditionTypeDeleted   = ConditionType("Deleted")
 
-	OperatorLogLevelDebug = OperatorLogLevel("debug")
-	OperatorLogLevelInfo  = OperatorLogLevel("info")
-	OperatorLogLevelError = OperatorLogLevel("error")
+	CommonLogLevelInfo = LogLevel("info")
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console")
@@ -71,25 +69,21 @@ const (
 	TimeEncodingRFC3339     = LogTimeEncoding("rfc3339")
 	TimeEncodingRFC3339Nano = LogTimeEncoding("rfc3339nano")
 
-	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
-	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
-
 	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
 
-	zapLogLevel           = "--zap-log-level"
-	zapEncoder            = "--zap-encoder"
-	zapTimeEncoding       = "--zap-time-encoding"
-	vMetricServerLogLevel = "--v"
+	zapLogLevel     = "--zap-log-level"
+	zapEncoder      = "--zap-encoder"
+	zapTimeEncoding = "--zap-time-encoding"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
-type OperatorLogLevel string
+type LogLevel string
 
-func (l *OperatorLogLevel) zero() string {
-	return string(OperatorLogLevelInfo)
+func (l *LogLevel) zero() string {
+	return string(CommonLogLevelInfo)
 }
 
-func (l *OperatorLogLevel) String() string {
+func (l *LogLevel) String() string {
 	value := l.zero()
 	if l != nil {
 		value = string(*l)
@@ -97,7 +91,7 @@ func (l *OperatorLogLevel) String() string {
 	return fmt.Sprintf("%s=%s", zapLogLevel, value)
 }
 
-func (l *OperatorLogLevel) Match(s *string) bool {
+func (l *LogLevel) Match(s *string) bool {
 	return strings.HasPrefix(*s, zapLogLevel)
 }
 
@@ -105,7 +99,7 @@ func (l *OperatorLogLevel) Match(s *string) bool {
 type LogFormat string
 
 func (f *LogFormat) zero() string {
-	return string(LogFormatConsole)
+	return string(LogFormatJSON)
 }
 
 func (f *LogFormat) String() string {
@@ -139,13 +133,13 @@ func (e *LogTimeEncoding) Match(s *string) bool {
 	return strings.HasPrefix(*s, zapTimeEncoding)
 }
 
-type LoggingOperatorCfg struct {
-	Level        *OperatorLogLevel `json:"level,omitempty"`
-	Format       *LogFormat        `json:"format,omitempty"`
-	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
+type LoggingCommonCfg struct {
+	Level        *LogLevel        `json:"level,omitempty"`
+	Format       *LogFormat       `json:"format,omitempty"`
+	TimeEncoding *LogTimeEncoding `json:"timeEncoding,omitempty"`
 }
 
-func (o *LoggingOperatorCfg) list() []api.MatchStringer {
+func (o *LoggingCommonCfg) list() []api.MatchStringer {
 	return []api.MatchStringer{
 		o.Level,
 		o.Format,
@@ -153,43 +147,7 @@ func (o *LoggingOperatorCfg) list() []api.MatchStringer {
 	}
 }
 
-func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
-	for _, cfgProp := range o.list() {
-		if !cfgProp.Match(arg) {
-			continue
-		}
-		*arg = cfgProp.String()
-	}
-}
-
-// +kubebuilder:validation:Enum="0";"4"
-type MetricsServerLogLevel string
-
-func (l *MetricsServerLogLevel) zero() string {
-	return string(MetricsServerLogLevelInfo)
-}
-
-func (l *MetricsServerLogLevel) String() string {
-	value := l.zero()
-	if l != nil {
-		value = string(*l)
-	}
-	return fmt.Sprintf("%s=%s", vMetricServerLogLevel, value)
-}
-
-func (l *MetricsServerLogLevel) Match(s *string) bool {
-	return strings.HasPrefix(*s, vMetricServerLogLevel)
-}
-
-type LoggingMetricsSrvCfg struct {
-	Level *MetricsServerLogLevel `json:"level,omitempty"`
-}
-
-func (o *LoggingMetricsSrvCfg) list() []api.MatchStringer {
-	return []api.MatchStringer{o.Level}
-}
-
-func (o *LoggingMetricsSrvCfg) UpdateArg(arg *string) {
+func (o *LoggingCommonCfg) UpdateArg(arg *string) {
 	for _, cfgProp := range o.list() {
 		if !cfgProp.Match(arg) {
 			continue
@@ -208,8 +166,9 @@ type Istio struct {
 }
 
 type LoggingCfg struct {
-	Operator      *LoggingOperatorCfg   `json:"operator,omitempty"`
-	MetricsServer *LoggingMetricsSrvCfg `json:"metricServer,omitempty"`
+	Operator      *LoggingCommonCfg `json:"operator,omitempty"`
+	MetricsServer *LoggingCommonCfg `json:"metricServer,omitempty"`
+	Webhook       *LoggingCommonCfg `json:"webhook,omitempty"`
 }
 
 type Resources struct {
