@@ -1,4 +1,4 @@
 images:
-  - source: "ghcr.io/kedacore/keda:2.18.1"
-  - source: "ghcr.io/kedacore/keda-admission-webhooks:2.18.1"
-  - source: "ghcr.io/kedacore/keda-metrics-apiserver:2.18.1"
+  - source: "ghcr.io/kedacore/keda:2.18.2"
+  - source: "ghcr.io/kedacore/keda-admission-webhooks:2.18.2"
+  - source: "ghcr.io/kedacore/keda-metrics-apiserver:2.18.2"
