@@ -128,6 +128,7 @@ func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassN
 }
 
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
+	logCfg.Sanitize()
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }
 

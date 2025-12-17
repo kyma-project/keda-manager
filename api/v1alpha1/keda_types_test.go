@@ -40,7 +40,6 @@ var (
 	testOperatorLogLevelInfo    = CommonLogLevelInfo
 	testOperatorLogLevelError   = CommonLogLevelError
 	testLogFormatJSON           = LogFormatJSON
-	testLogFormatText           = LogFormatText
 	testLogFormatConsole        = LogFormatConsole
 	testTimeEncodingEpoch       = TimeEncodingEpoch
 	testTimeEncodingMillis      = TimeEncodingMillis
@@ -70,12 +69,12 @@ func Test_zero(t *testing.T) {
 		},
 		{
 			name: "LogFormat zero value",
-			want: "text",
+			want: "console",
 			f:    &testZeroLogFormat,
 		},
 		{
 			name: "LogFormat nil",
-			want: "text",
+			want: "console",
 			f:    testNilLogFormat,
 		},
 		{
@@ -137,11 +136,6 @@ func Test_string(t *testing.T) {
 			want:     "--zap-encoder=json",
 		},
 		{
-			name:     "LogFormatText",
-			stringer: &testLogFormatText,
-			want:     "--zap-encoder=text",
-		},
-		{
 			name:     "LogFormatConsole",
 			stringer: &testLogFormatConsole,
 			want:     "--zap-encoder=console",
@@ -185,4 +179,24 @@ func Test_string(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_LoggingCommonCfg_Sanitize(t *testing.T) {
+	t.Run("should sanitize text format to console", func(t *testing.T) {
+		format := LogFormat("text")
+		cfg := LoggingCommonCfg{
+			Format: &format,
+		}
+		cfg.Sanitize()
+		if *cfg.Format != LogFormatConsole {
+			t.Errorf("Sanitize() format = %s, want %s", *cfg.Format, LogFormatConsole)
+		}
+	})
+
+	t.Run("should handle nil format", func(t *testing.T) {
+		cfg := LoggingCommonCfg{
+			Format: nil,
+		}
+		cfg.Sanitize() // should not panic
+	})
 }

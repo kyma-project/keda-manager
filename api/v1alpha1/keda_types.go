@@ -62,7 +62,6 @@ const (
 	CommonLogLevelError = LogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
-	LogFormatText    = LogFormat("text")
 	LogFormatConsole = LogFormat("console") // alias for text
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
@@ -102,7 +101,7 @@ func (l *LogLevel) Match(s *string) bool {
 type LogFormat string
 
 func (f *LogFormat) zero() string {
-	return string(LogFormatText)
+	return string(LogFormatConsole)
 }
 
 func (f *LogFormat) String() string {
@@ -156,6 +155,13 @@ func (o *LoggingCommonCfg) UpdateArg(arg *string) {
 			continue
 		}
 		*arg = cfgProp.String()
+	}
+}
+
+// Sanitize converts "text" to "console" for the Format field since zap only accepts "console" or "json"
+func (o *LoggingCommonCfg) Sanitize() {
+	if o.Format != nil && *o.Format == "text" {
+		*o.Format = LogFormatConsole
 	}
 }
 
