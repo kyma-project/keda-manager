@@ -29,18 +29,18 @@ var _ = Describe("Keda controller", func() {
 			metricsDeploymentName              = fmt.Sprintf("%s-metrics-apiserver", operatorName)
 			kedaDeploymentName                 = operatorName
 			kedaAdmissionWebhookDeploymentName = admissionWebhookName
-			notDefaultOperatorLogLevel         = v1alpha1.OperatorLogLevelDebug
+			notDefaultOperatorLogLevel         = v1alpha1.CommonLogLevelDebug
 			notDefaultLogFormat                = v1alpha1.LogFormatJSON
 			notDefaultLogTimeEncoding          = v1alpha1.TimeEncodingEpoch
-			notDefaultMetricsServerLogLevel    = v1alpha1.MetricsServerLogLevelDebug
+			notDefaultMetricsServerLogLevel    = v1alpha1.CommonLogLevelDebug
 			kedaSpec                           = v1alpha1.KedaSpec{
 				Logging: &v1alpha1.LoggingCfg{
-					Operator: &v1alpha1.LoggingOperatorCfg{
+					Operator: &v1alpha1.LoggingCommonCfg{
 						Level:        &notDefaultOperatorLogLevel,
 						Format:       &notDefaultLogFormat,
 						TimeEncoding: &notDefaultLogTimeEncoding,
 					},
-					MetricsServer: &v1alpha1.LoggingMetricsSrvCfg{
+					MetricsServer: &v1alpha1.LoggingCommonCfg{
 						Level: &notDefaultMetricsServerLogLevel,
 					},
 				},
@@ -201,7 +201,7 @@ func checkKedaCrdSpecPropertyPropagationToMetricsDeployment(h testHelper, metric
 	// assert
 	firstContainer := metricsDeployment.Spec.Template.Spec.Containers[0]
 	Expect(firstContainer.Args).
-		To(ContainElement(fmt.Sprintf("--v=%s", *kedaSpec.Logging.MetricsServer.Level)))
+		To(ContainElement(fmt.Sprintf("--zap-log-level=%s", *kedaSpec.Logging.MetricsServer.Level)))
 
 	Expect(firstContainer.Resources).To(Equal(*kedaSpec.Resources.MetricsServer))
 

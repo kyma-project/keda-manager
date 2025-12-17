@@ -24,7 +24,7 @@ func sFnUpdateKedaDeployment(_ context.Context, r *fsm, s *systemState) (stateFn
 	return switchState(next)
 }
 
-func loggingOperatorCfg(k *v1alpha1.Keda) *v1alpha1.LoggingOperatorCfg {
+func loggingOperatorCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
 	if k != nil && k.Spec.Logging != nil {
 		return k.Spec.Logging.Operator
 	}
@@ -210,7 +210,7 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 	}
 }
 
-func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingMetricsSrvCfg {
+func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
 	if k != nil && k.Spec.Logging != nil {
 		return k.Spec.Logging.MetricsServer
 	}

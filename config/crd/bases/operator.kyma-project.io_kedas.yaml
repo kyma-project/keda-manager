@@ -225,10 +225,26 @@ spec:
                 properties:
                   metricServer:
                     properties:
+                      format:
+                        enum:
+                        - json
+                        - text
+                        - console
+                        type: string
                       level:
                         enum:
-                        - "0"
-                        - "4"
+                        - debug
+                        - info
+                        - error
+                        type: string
+                      timeEncoding:
+                        enum:
+                        - epoch
+                        - millis
+                        - nano
+                        - iso8601
+                        - rfc3339
+                        - rfc3339nano
                         type: string
                     type: object
                   operator:
@@ -236,6 +252,31 @@ spec:
                       format:
                         enum:
                         - json
+                        - text
+                        - console
+                        type: string
+                      level:
+                        enum:
+                        - debug
+                        - info
+                        - error
+                        type: string
+                      timeEncoding:
+                        enum:
+                        - epoch
+                        - millis
+                        - nano
+                        - iso8601
+                        - rfc3339
+                        - rfc3339nano
+                        type: string
+                    type: object
+                  webhook:
+                    properties:
+                      format:
+                        enum:
+                        - json
+                        - text
                         - console
                         type: string
                       level:

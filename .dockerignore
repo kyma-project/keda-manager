@@ -3,6 +3,7 @@
 # Allow
 !./main.go
 !api
+!internal
 !pkg
 !controllers
 !keda.yaml

@@ -11337,7 +11337,7 @@ spec:
           - "--leader-elect"
           - "--disable-compression=true"
           - "--zap-log-level=info"
-          - "--zap-encoder=console"
+          - "--zap-encoder=json"
           - "--zap-time-encoding=rfc3339"
           - "--enable-webhook-patching=true"
           - "--cert-dir=/certs"
@@ -11514,7 +11514,7 @@ spec:
           - --cert-dir=/certs
           - --v=0
           - --zap-log-level=info
-          - --zap-encoder=console
+          - --zap-encoder=json
           - --zap-time-encoding=rfc3339
           ports:
             - containerPort: 6443
@@ -11599,7 +11599,7 @@ spec:
           - /keda-admission-webhooks
           args:
           - "--zap-log-level=info"
-          - "--zap-encoder=console"
+          - "--zap-encoder=json"
           - "--zap-time-encoding=rfc3339"
           - "--cert-dir=/certs"
           - "--health-probe-bind-address=:8081"

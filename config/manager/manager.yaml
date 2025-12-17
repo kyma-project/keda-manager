@@ -35,9 +35,14 @@ spec:
             - /manager
           args:
             - --leader-elect
+            - --config-path=/etc/keda-manager/config.yaml
           image: controller:latest
           imagePullPolicy: Always
           name: manager
+          volumeMounts:
+            - name: config
+              mountPath: /etc/keda-manager
+              readOnly: true
           env:
             - name: KEDA_MODULE_VERSION
               value: main
@@ -71,5 +76,10 @@ spec:
             limits:
               memory: 128Mi
               cpu: 200m
+      volumes:
+        - name: config
+          configMap:
+            name: keda-manager-config
+            optional: true
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
