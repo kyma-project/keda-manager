@@ -10,11 +10,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-to-apiserver
   name: kyma-project.io--keda-admission-webhooks-allow-to-apiserver
@@ -40,11 +40,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-to-dns
   name: kyma-project.io--keda-admission-webhooks-allow-to-dns
@@ -97,11 +97,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: webhook
   name: kyma-project.io--keda-admission-webhooks-from-apiserver
@@ -125,11 +125,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-admission-webhooks-metrics
@@ -166,11 +166,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-to-all
   name: kyma-project.io--keda-operator-allow-to-all
@@ -192,11 +192,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-from-metrics-apiserver
   name: kyma-project.io--keda-operator-allow-from-metrics-apiserver
@@ -221,11 +221,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-operator-metrics
@@ -261,11 +261,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-to-all
   name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-all
@@ -286,11 +286,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: metrics
   name: kyma-project.io--keda-operator-metrics-apiserver-metrics
@@ -320,11 +320,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: allow-from-operator
   name: kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator
@@ -348,11 +348,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.18.2
+    helm.sh/chart: keda-2.18.3
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.18.2
+    app.kubernetes.io/version: 2.18.3
     app.kubernetes.io/instance: keda
     purpose: ingress-all-from-apiserver
   name: kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver
