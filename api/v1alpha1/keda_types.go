@@ -41,21 +41,23 @@ const (
 	ServedTrue  = "True"
 	ServedFalse = "False"
 
-	ConditionReasonDeploymentUpdateErr    = ConditionReason("KedaDeploymentUpdateErr")
-	ConditionReasonNetworkPolicyUpdateErr = ConditionReason("NetworkPolicyUpdateErr")
-	ConditionReasonVerificationErr        = ConditionReason("VerificationErr")
-	ConditionReasonVerified               = ConditionReason("Verified")
-	ConditionReasonApplyObjError          = ConditionReason("ApplyObjError")
-	ConditionReasonOrphanDeletionErr      = ConditionReason("OrphanDeletionErr")
-	ConditionReasonVerification           = ConditionReason("Verification")
-	ConditionReasonInitialized            = ConditionReason("Initialized")
-	ConditionReasonKedaDuplicated         = ConditionReason("KedaDuplicated")
-	ConditionReasonDeletion               = ConditionReason("Deletion")
-	ConditionReasonDeletionErr            = ConditionReason("DeletionErr")
-	ConditionReasonDeleted                = ConditionReason("Deleted")
+	ConditionReasonDeploymentUpdateErr      = ConditionReason("KedaDeploymentUpdateErr")
+	ConditionReasonNetworkPolicyUpdateErr   = ConditionReason("NetworkPolicyUpdateErr")
+	ConditionReasonVerificationErr          = ConditionReason("VerificationErr")
+	ConditionReasonVerified                 = ConditionReason("Verified")
+	ConditionReasonDeploymentReplicaFailure = ConditionReason("DeploymentReplicaFailure")
+	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
+	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
+	ConditionReasonVerification             = ConditionReason("Verification")
+	ConditionReasonInitialized              = ConditionReason("Initialized")
+	ConditionReasonKedaDuplicated           = ConditionReason("KedaDuplicated")
+	ConditionReasonDeletion                 = ConditionReason("Deletion")
+	ConditionReasonDeletionErr              = ConditionReason("DeletionErr")
+	ConditionReasonDeleted                  = ConditionReason("Deleted")
 
-	ConditionTypeInstalled = ConditionType("Installed")
-	ConditionTypeDeleted   = ConditionType("Deleted")
+	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
+	ConditionTypeInstalled         = ConditionType("Installed")
+	ConditionTypeDeleted           = ConditionType("Deleted")
 
 	CommonLogLevelDebug = LogLevel("debug")
 	CommonLogLevelInfo  = LogLevel("info")
@@ -287,6 +289,22 @@ type Keda struct {
 
 	Spec   KedaSpec `json:"spec"`
 	Status Status   `json:"status,omitempty"`
+}
+
+func (k *Keda) RemoveCondition(c ConditionType) {
+	_ = meta.RemoveStatusCondition(&k.Status.Conditions, string(c))
+}
+
+func (k *Keda) UpdateStateReplicaFailure(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = StateError
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "True",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
 }
 
 func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error) {
