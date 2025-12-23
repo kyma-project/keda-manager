@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	baseresource "github.com/kyma-project/manager-toolkit/installation/base/resource"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -277,12 +278,20 @@ func (h *testHelper) updateDeploymentStatus(deploymentName string) {
 		WithTimeout(time.Second * 10).
 		Should(BeTrue())
 
-	deployment.Status.Conditions = append(deployment.Status.Conditions, appsv1.DeploymentCondition{
-		Type:    appsv1.DeploymentProgressing,
-		Status:  corev1.ConditionTrue,
-		Reason:  "NewReplicaSetAvailable",
-		Message: "test-message",
-	})
+	deployment.Status.Conditions = []appsv1.DeploymentCondition{
+		{
+			Type:    appsv1.DeploymentAvailable,
+			Status:  corev1.ConditionTrue,
+			Reason:  baseresource.MinimumReplicasAvailableReason,
+			Message: "test-message",
+		},
+		{
+			Type:    appsv1.DeploymentProgressing,
+			Status:  corev1.ConditionTrue,
+			Reason:  baseresource.NewRSAvailableReason,
+			Message: "test-message",
+		},
+	}
 	deployment.Status.Replicas = 1
 	Expect(k8sClient.Status().Update(h.ctx, &deployment)).To(Succeed())
 
