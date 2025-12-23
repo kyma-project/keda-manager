@@ -8,7 +8,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kedacore/keda/v2 v2.18.2
+	github.com/kedacore/keda/v2 v2.18.3
 	github.com/kyma-project/manager-toolkit v0.0.0-20251216125323-f8a16cda801a
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.3
