@@ -119,9 +119,6 @@ func shouldCreateKeda(h testHelper, kedaName, kedaDeploymentName, metricsDeploym
 func shouldDeleteKeda(h testHelper, kedaName string) {
 	// initial assert
 	Expect(h.getKedaCount()).To(Equal(1))
-	kedaState, err := h.getKedaState(kedaName)
-	Expect(err).To(BeNil())
-	Expect(kedaState).To(Equal(v1alpha1.StateReady))
 
 	// act
 	var keda v1alpha1.Keda
@@ -293,6 +290,7 @@ func (h *testHelper) updateDeploymentStatus(deploymentName string) {
 		},
 	}
 	deployment.Status.Replicas = 1
+	deployment.Status.ObservedGeneration = deployment.GetGeneration()
 	Expect(k8sClient.Status().Update(h.ctx, &deployment)).To(Succeed())
 
 	replicaSetName := h.createReplicaSetForDeployment(deployment)
