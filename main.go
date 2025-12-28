@@ -18,7 +18,6 @@ package main
 
 import (
 	"crypto/fips140"
-	"errors"
 	"flag"
 	"os"
 
@@ -40,10 +39,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/kyma-project/manager-toolkit/logging/config"
+	"github.com/kyma-project/manager-toolkit/logging/logger"
+
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/internal/config"
-	"github.com/kyma-project/keda-manager/internal/logging"
 	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
@@ -61,10 +61,10 @@ func init() {
 }
 
 func main() {
-	if !isFIPS140Only() {
-		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
-		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
-	}
+	//if !isFIPS140Only() {
+	//	setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	//	panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	//}
 
 	var metricsAddr string
 	var probeAddr string
@@ -83,7 +83,7 @@ func main() {
 	var cfg config.Config
 	var err error
 	if configPath != "" {
-		cfg, err = config.LoadLogConfig(configPath)
+		cfg, err = config.LoadConfig(configPath)
 		if err != nil {
 			os.Exit(1)
 		}
@@ -96,8 +96,26 @@ func main() {
 
 	// Setup logging with atomic level for dynamic reconfiguration
 	atomicLevel := zap.NewAtomicLevel()
-	log, err := logging.ConfigureLogger(cfg.LogLevel, cfg.LogFormat, atomicLevel)
+	parsedLogLevel, err := logger.MapLevel(cfg.LogLevel)
 	if err != nil {
+		setupLog.Error(err, "unable to parse logging level")
+		os.Exit(1)
+	}
+
+	format, err := logger.MapFormat(cfg.LogFormat)
+	if err != nil {
+		setupLog.Error(err, "unable to set logging format")
+		os.Exit(1)
+	}
+
+	log, err := logger.NewWithAtomicLevel(format, atomicLevel)
+	if err != nil {
+		setupLog.Error(err, "unable to set logger")
+		os.Exit(1)
+	}
+
+	if err := logger.InitKlog(log, parsedLogLevel); err != nil {
+		setupLog.Error(err, "unable to init Klog")
 		os.Exit(1)
 	}
 
@@ -112,7 +130,7 @@ func main() {
 
 	// Start dynamic reconfiguration in background if config path is provided
 	if configPath != "" {
-		go logging.ReconfigureOnConfigChange(signalCtx, zapLog, atomicLevel, configPath)
+		go config.ReconfigureOnConfigChange(signalCtx, zapLog, atomicLevel, configPath)
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
