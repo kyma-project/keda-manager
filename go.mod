@@ -10,7 +10,7 @@ require (
 	github.com/kedacore/keda/v2 v2.18.3
 	github.com/kyma-project/manager-toolkit/installation/base v0.0.0-20251223101702-0ba88f82e1d0
 	github.com/kyma-project/manager-toolkit/logging v0.0.0-20251228124903-71c93d767d90
-	github.com/onsi/ginkgo/v2 v2.27.3
+	github.com/onsi/ginkgo/v2 v2.27.4
 	github.com/onsi/gomega v1.38.3
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.1
