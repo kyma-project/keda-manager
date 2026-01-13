@@ -19,6 +19,9 @@ updates:
       - dependency-name: "sigs.k8s.io/*"
         update-types: ["version-update:semver-minor"]
     groups:
+      manager-toolkit:
+        patterns:
+          - "github.com/kyma-project/manager-toolkit*"
       k8s-io:
         patterns:
           - "k8s.io/*"
