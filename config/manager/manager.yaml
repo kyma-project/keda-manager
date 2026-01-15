@@ -35,7 +35,6 @@ spec:
             - /manager
           args:
             - --leader-elect
-            - --config-path=/etc/keda-manager/config.yaml
           image: controller:latest
           imagePullPolicy: Always
           name: manager

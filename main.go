@@ -73,18 +73,16 @@ func main() {
 	var metricsAddr string
 	var probeAddr string
 	var enableLeaderElection bool
-	var configPath string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&configPath, "config-path", "", "The path to the configuration file.")
 	flag.Parse()
 
 	// Load operator configuration from environment variables
-	opCfg, err := loadConfig("", configPath)
+	opCfg, err := loadConfig("")
 	if err != nil {
 		setupLog.Error(err, "unable to load config")
 		os.Exit(1)
@@ -194,22 +192,8 @@ type operatorConfig struct {
 	LogConfigPath string `envconfig:"default=hack/keda-log-config.yaml"`
 }
 
-func loadConfig(prefix string, configPath string) (operatorConfig, error) {
+func loadConfig(prefix string) (operatorConfig, error) {
 	cfg := operatorConfig{}
-
-	// If config file path is provided, load log config path from it
-	if configPath != "" {
-		fileCfg, err := logconfig.LoadConfig(configPath)
-		if err != nil {
-			return cfg, err
-		}
-		// Use the config file path as the log config path if it exists
-		cfg.LogConfigPath = configPath
-		// If the file has explicit log config settings, we'll use them via the file
-		_ = fileCfg // File config is loaded and will be used by logconfig.LoadConfig later
-	}
-
-	// Load from environment variables (can override file config)
 	err := envconfig.InitWithPrefix(&cfg, prefix)
 	if err != nil {
 		return cfg, err
