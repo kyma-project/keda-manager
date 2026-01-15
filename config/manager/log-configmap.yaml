@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keda-manager-log-config
+  namespace: kyma-system
+data:
+  log-config.yaml: |
+    logLevel: info
+    logFormat: json
+

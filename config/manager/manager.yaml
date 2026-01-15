@@ -43,7 +43,11 @@ spec:
             - name: config
               mountPath: /etc/keda-manager
               readOnly: true
+            - name: log-configuration
+              mountPath: /logconfig
           env:
+            - name: LOG_CONFIG_PATH
+              value: /logconfig/log-config.yaml
             - name: KEDA_MODULE_VERSION
               value: main
             - name: IMAGE_KEDA_OPERATOR
@@ -81,5 +85,8 @@ spec:
           configMap:
             name: keda-manager-config
             optional: true
+        - name: log-configuration
+          configMap:
+            name: keda-manager-log-config
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10

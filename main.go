@@ -17,13 +17,16 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/fips140"
 	"errors"
 	"flag"
 	"os"
 
 	"github.com/go-logr/zapr"
+	"github.com/vrischmann/envconfig"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -40,11 +43,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/kyma-project/manager-toolkit/logging/config"
-	"github.com/kyma-project/manager-toolkit/logging/logger"
+	logconfig "github.com/kyma-project/manager-toolkit/logging/config"
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/internal/logging"
 	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
@@ -69,70 +72,57 @@ func main() {
 
 	var metricsAddr string
 	var probeAddr string
-	var configPath string
 	var enableLeaderElection bool
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.StringVar(&configPath, "config-path", "", "Path to config file for dynamic reconfiguration.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
 
-	// Load configuration - from file if provided, otherwise from environment
-	var cfg config.Config
-	var err error
-	if configPath != "" {
-		cfg, err = config.LoadConfig(configPath)
-		if err != nil {
-			os.Exit(1)
-		}
-	} else {
-		cfg, err = config.GetConfig("")
-		if err != nil {
-			os.Exit(1)
-		}
+	// Load operator configuration from environment variables
+	opCfg, err := loadConfig("")
+	if err != nil {
+		setupLog.Error(err, "unable to load config")
+		os.Exit(1)
 	}
 
-	// Setup logging with atomic level for dynamic reconfiguration
+	// Load log configuration from file
+	logCfg, err := logconfig.LoadConfig(opCfg.LogConfigPath)
+	if err != nil {
+		setupLog.Error(err, "unable to load log configuration file")
+		os.Exit(1)
+	}
+
+	logLevel := logCfg.LogLevel
+	logFormat := logCfg.LogFormat
+
 	atomicLevel := zap.NewAtomicLevel()
-	parsedLogLevel, err := logger.MapLevel(cfg.LogLevel)
+	parsedLevel, err := zapcore.ParseLevel(logLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to parse logging level")
+		setupLog.Error(err, "unable to parse logger level")
 		os.Exit(1)
 	}
+	atomicLevel.SetLevel(parsedLevel)
 
-	format, err := logger.MapFormat(cfg.LogFormat)
+	// Configure logger using internal logging package
+	log, err := logging.ConfigureLogger(logLevel, logFormat, atomicLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to set logging format")
+		setupLog.Error(err, "unable to configure logger")
 		os.Exit(1)
 	}
 
-	log, err := logger.NewWithAtomicLevel(format, atomicLevel)
-	if err != nil {
-		setupLog.Error(err, "unable to set logger")
-		os.Exit(1)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := logger.InitKlog(log, parsedLogLevel); err != nil {
-		setupLog.Error(err, "unable to init Klog")
-		os.Exit(1)
-	}
+	logWithCtx := log.WithContext()
+	go logging.ReconfigureOnConfigChange(ctx, logWithCtx.Named("notifier"), atomicLevel, opCfg.LogConfigPath)
 
-	zapLog := log.WithContext()
-	zapLog.Infof("loaded config: logLevel=%s, logFormat=%s", cfg.LogLevel, cfg.LogFormat)
+	ctrl.SetLogger(zapr.NewLogger(logWithCtx.Desugar()))
 
-	// Set controller-runtime logger to use our zap logger (respects format from config)
-	ctrl.SetLogger(zapr.NewLogger(zapLog.Desugar()))
-
-	// Setup signal handler once - used for both manager and dynamic config
+	// Setup signal handler - used for manager
 	signalCtx := ctrl.SetupSignalHandler()
-
-	// Start dynamic reconfiguration in background if config path is provided
-	if configPath != "" {
-		go config.ReconfigureOnConfigChange(signalCtx, zapLog, atomicLevel, configPath)
-	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -155,40 +145,40 @@ func main() {
 		},
 	})
 	if err != nil {
-		zapLog.Error("unable to start manager", "error", err)
+		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
 	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
-		zapLog.Error("unable to load k8s data", "error", err)
+		setupLog.Error(err, "unable to load k8s data")
 		os.Exit(1)
 	}
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
-		zapLog,
+		logWithCtx.Desugar().Sugar(),
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
-		zapLog.Error("unable to create controller", "controller", "Keda", "error", err)
+		setupLog.Error(err, "unable to create controller", "controller", "Keda")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		zapLog.Error("unable to set up health check", "error", err)
+		setupLog.Error(err, "unable to set up health check")
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		zapLog.Error("unable to set up ready check", "error", err)
+		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
 
-	zapLog.Info("starting manager")
+	setupLog.Info("starting manager")
 	if err := mgr.Start(signalCtx); err != nil {
-		zapLog.Error("problem running manager", "error", err)
+		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
 }
@@ -196,4 +186,17 @@ func main() {
 // isFIPS140Only checks if the application is running in FIPS 140 exclusive mode.
 func isFIPS140Only() bool {
 	return fips140.Enabled() && os.Getenv("GODEBUG") == "fips140=only,tlsmlkem=0"
+}
+
+type operatorConfig struct {
+	LogConfigPath string `envconfig:"default=hack/keda-log-config.yaml"`
+}
+
+func loadConfig(prefix string) (operatorConfig, error) {
+	cfg := operatorConfig{}
+	err := envconfig.InitWithPrefix(&cfg, prefix)
+	if err != nil {
+		return cfg, err
+	}
+	return cfg, nil
 }
