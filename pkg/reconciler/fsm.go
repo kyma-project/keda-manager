@@ -143,8 +143,15 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 	return nil
 }
 
+func updateDeploymentContainerLogsArgs(deployment appsv1.Deployment, updater *v1alpha1.LoggingCommonCfg) error {
+	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
+		updater.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
+	}
+	return nil
+}
+
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	return updateDeploymentContainerLogsArgs(*deployment, &logCfg)
 }
 
 // the state of controlled system (k8s cluster)

@@ -41,7 +41,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/keda-manager
-              readOnly: true
             - name: log-configuration
               mountPath: /logconfig
           env:
