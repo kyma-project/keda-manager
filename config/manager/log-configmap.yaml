@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: keda-manager-log-config
+  name: manager-log-config
   namespace: kyma-system
 data:
   log-config.yaml: |
