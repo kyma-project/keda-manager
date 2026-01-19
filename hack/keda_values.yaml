@@ -13,6 +13,21 @@ prometheus:
   webhooks:
     enabled: true
 
+logging:
+  operator:
+    level: "info"
+    format: "json"
+    timeEncoding: "rfc3339"
+  metricServer:
+    zapLevel: "info"
+    zapEncoder: "json"
+    zapTimeEncoding: "rfc3339"
+  webhooks:
+    level: "info"
+    format: "json"
+    timeEncoding: "rfc3339"
+
+
 http:
   minTlsVersion: TLS12
 

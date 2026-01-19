@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
@@ -27,9 +28,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -74,8 +77,8 @@ func (r *kedaReconciler) mapFunction(ctx context.Context, object client.Object) 
 		With("name", object.GetName()).
 		With("ns", object.GetNamespace()).
 		With("gvk", object.GetObjectKind().GroupVersionKind()).
-		With("rscVer", object.GetResourceVersion()).
-		With("kedaRscVer", kedas.Items[0].ResourceVersion).
+		With("gen", object.GetGeneration()).
+		With("kedaGen", kedas.Items[0].GetGeneration()).
 		Debug("redirecting")
 
 	// make sure only 1 controller will handle change
@@ -109,9 +112,14 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	b := ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Keda{}, builder.WithPredicates(ommitStatusChanged))
+		For(&v1alpha1.Keda{}, builder.WithPredicates(ommitStatusChanged)).
+		Watches(&v1alpha1.Keda{}, &handler.Funcs{
+			// retrigger all Keda CRs reconciliations when one is deleted
+			// this should ensure at least one Keda CR is served
+			DeleteFunc: r.retriggerAllKedaCRs,
+		})
 
-	// create functtion to register wached objects
+	// create function to register watched objects
 	watchFn := func(u unstructured.Unstructured) {
 		r.log.With("gvk", u.GroupVersionKind().String()).Infoln("adding watcher")
 		b = b.Watches(
@@ -119,7 +127,7 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.mapFunction),
 			builder.WithPredicates(
 				predicate.And(
-					predicate.ResourceVersionChangedPredicate{},
+					predicate.GenerationChangedPredicate{},
 					labelSelectorPredicate,
 				),
 			),
@@ -141,11 +149,27 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}, client.IgnoreNotFound(err)
 	}
 
-	stateFSM := reconciler.NewFsm(r.log, r.Cfg, reconciler.K8s{
-		Client:        r.Client,
-		EventRecorder: r.EventRecorder,
-	})
+	stateFSM := reconciler.NewFsm(r.log, r.Cfg, r.K8s)
 	return stateFSM.Run(ctx, instance)
+}
+
+func (r *kedaReconciler) retriggerAllKedaCRs(ctx context.Context, e event.DeleteEvent, q workqueue.TypedRateLimitingInterface[ctrl.Request]) {
+	log := r.log.With("deletion_watcher")
+
+	list := &v1alpha1.KedaList{}
+	err := r.List(ctx, list, &client.ListOptions{})
+	if err != nil {
+		log.Errorf("error listing keda objects: %s", err.Error())
+		return
+	}
+
+	for _, s := range list.Items {
+		log.Debugf("retriggering reconciliation for Keda %s/%s", s.GetNamespace(), s.GetName())
+		q.Add(ctrl.Request{NamespacedName: client.ObjectKey{
+			Namespace: s.GetNamespace(),
+			Name:      s.GetName(),
+		}})
+	}
 }
 
 func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {
@@ -156,6 +180,7 @@ func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.Sugared
 			Objs:      o,
 		},
 		K8s: reconciler.K8s{
+			APIServerIP:   os.Getenv("KUBERNETES_PORT_443_TCP_ADDR"),
 			Client:        c,
 			EventRecorder: r,
 		},

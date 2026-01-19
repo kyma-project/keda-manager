@@ -19,7 +19,7 @@ This example helps you set up the infrastructure needed for request rate-based a
 `/k8s-resources/scaler.yaml` defines the following elements:
  - Secret with the `host` and `token` keys (token must have `metrics.read` permission).
  - `TriggerAuthentication` that references the Secret.
- - `ScaledObject` that defines target workload, references `TriggerAuthentication` object, and configures the [Dynatrace trigger](https://keda.sh/docs/2.15/scalers/dynatrace/).
+ - `ScaledObject` that defines target workload, references `TriggerAuthentication` object, and configures the [Dynatrace trigger](https://keda.sh/docs/latest/scalers/dynatrace/).
 
 ## How It Works
 

@@ -2,11 +2,7 @@
 
 PROJECT_ROOT = ../..
 
-CLUSTER_NAME = kyma
-REGISTRY_PORT = 5001
-REGISTRY_NAME = ${CLUSTER_NAME}-registry
-
-KYMA = ${PROJECT_ROOT}/bin/kyma-unstable
+include ${PROJECT_ROOT}/hack/k3d.mk
 
 ##@ General
 
@@ -18,9 +14,7 @@ help:
 .PHONY: run
 run: ## Create k3d cluster and deploy module.
 run: \
-    kyma \
 	create-k3d \
-	create-kyma-system-ns \
 	module-image \
 	deploy \
 	apply-keda \
@@ -29,29 +23,11 @@ run: \
 .PHONY: run-on-cluster
 run-on-cluster: ## Deploy module on existing cluster.
 run-on-cluster: \
-	kyma \
 	create-kyma-system-ns \
 	deploy-cluster \
 	apply-keda \
 	verify-keda
 
-##@ K3D
-
-.PHONY: create-k3d
-create-k3d: ## Create k3d with kyma CRDs.
-	${KYMA} provision k3d --registry-port ${REGISTRY_PORT} --name ${CLUSTER_NAME} --ci
-
-.PHONY: delete-k3d
-delete-k3d: ## Delete k3d with kyma CRDs.
-delete-k3d: delete-k3d-cluster delete-k3d-registry
-
-.PHONY: delete-k3d-registry
-delete-k3d-registry: ## Delete k3d kyma registry.
-	-k3d registry delete ${REGISTRY_NAME}
-
-.PHONY: delete-k3d-cluster
-delete-k3d-cluster: ## Delete k3d kyma cluster.
-	-k3d cluster delete ${CLUSTER_NAME}
 
 ##@ Module management
 
@@ -82,12 +58,6 @@ apply-keda: ## Apply the k3d serverless CR
 .PHONY: create-kyma-system-ns
 create-kyma-system-ns: ## Create kyma-system namespace.
 	kubectl create ns kyma-system || true
-
-### Internal Dependencies
-
-.PHONY: kyma
-kyma:
-	@make -C ${PROJECT_ROOT} kyma
 
 .PHONY: module-image
 module-image: 

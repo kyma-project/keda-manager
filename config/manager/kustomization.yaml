@@ -1,8 +1,9 @@
 resources:
 - manager.yaml
+- configmap.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: k3d-kyma-registry:5001/keda-manager-dev-local
+  newName: k3d-kyma-registry.localhost:5001/keda-manager-dev-local
   newTag: 0.0.0

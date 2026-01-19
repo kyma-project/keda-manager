@@ -41,26 +41,30 @@ const (
 	ServedTrue  = "True"
 	ServedFalse = "False"
 
-	ConditionReasonDeploymentUpdateErr = ConditionReason("KedaDeploymentUpdateErr")
-	ConditionReasonVerificationErr     = ConditionReason("VerificationErr")
-	ConditionReasonVerified            = ConditionReason("Verified")
-	ConditionReasonApplyObjError       = ConditionReason("ApplyObjError")
-	ConditionReasonVerification        = ConditionReason("Verification")
-	ConditionReasonInitialized         = ConditionReason("Initialized")
-	ConditionReasonKedaDuplicated      = ConditionReason("KedaDuplicated")
-	ConditionReasonDeletion            = ConditionReason("Deletion")
-	ConditionReasonDeletionErr         = ConditionReason("DeletionErr")
-	ConditionReasonDeleted             = ConditionReason("Deleted")
+	ConditionReasonDeploymentUpdateErr      = ConditionReason("KedaDeploymentUpdateErr")
+	ConditionReasonNetworkPolicyUpdateErr   = ConditionReason("NetworkPolicyUpdateErr")
+	ConditionReasonVerificationErr          = ConditionReason("VerificationErr")
+	ConditionReasonVerified                 = ConditionReason("Verified")
+	ConditionReasonDeploymentReplicaFailure = ConditionReason("DeploymentReplicaFailure")
+	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
+	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
+	ConditionReasonVerification             = ConditionReason("Verification")
+	ConditionReasonInitialized              = ConditionReason("Initialized")
+	ConditionReasonKedaDuplicated           = ConditionReason("KedaDuplicated")
+	ConditionReasonDeletion                 = ConditionReason("Deletion")
+	ConditionReasonDeletionErr              = ConditionReason("DeletionErr")
+	ConditionReasonDeleted                  = ConditionReason("Deleted")
 
-	ConditionTypeInstalled = ConditionType("Installed")
-	ConditionTypeDeleted   = ConditionType("Deleted")
+	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
+	ConditionTypeInstalled         = ConditionType("Installed")
+	ConditionTypeDeleted           = ConditionType("Deleted")
 
-	OperatorLogLevelDebug = OperatorLogLevel("debug")
-	OperatorLogLevelInfo  = OperatorLogLevel("info")
-	OperatorLogLevelError = OperatorLogLevel("error")
+	CommonLogLevelDebug = LogLevel("debug")
+	CommonLogLevelInfo  = LogLevel("info")
+	CommonLogLevelError = LogLevel("error")
 
 	LogFormatJSON    = LogFormat("json")
-	LogFormatConsole = LogFormat("console")
+	LogFormatConsole = LogFormat("console") // alias for text
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")
@@ -69,25 +73,21 @@ const (
 	TimeEncodingRFC3339     = LogTimeEncoding("rfc3339")
 	TimeEncodingRFC3339Nano = LogTimeEncoding("rfc3339nano")
 
-	MetricsServerLogLevelInfo  = MetricsServerLogLevel("0")
-	MetricsServerLogLevelDebug = MetricsServerLogLevel("4")
-
 	Finalizer = "keda-manager.kyma-project.io/deletion-hook"
 
-	zapLogLevel           = "--zap-log-level"
-	zapEncoder            = "--zap-encoder"
-	zapTimeEncoding       = "--zap-time-encoding"
-	vMetricServerLogLevel = "--v"
+	zapLogLevel     = "--zap-log-level"
+	zapEncoder      = "--zap-encoder"
+	zapTimeEncoding = "--zap-time-encoding"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
-type OperatorLogLevel string
+type LogLevel string
 
-func (l *OperatorLogLevel) zero() string {
-	return string(OperatorLogLevelInfo)
+func (l *LogLevel) zero() string {
+	return string(CommonLogLevelInfo)
 }
 
-func (l *OperatorLogLevel) String() string {
+func (l *LogLevel) String() string {
 	value := l.zero()
 	if l != nil {
 		value = string(*l)
@@ -95,11 +95,11 @@ func (l *OperatorLogLevel) String() string {
 	return fmt.Sprintf("%s=%s", zapLogLevel, value)
 }
 
-func (l *OperatorLogLevel) Match(s *string) bool {
+func (l *LogLevel) Match(s *string) bool {
 	return strings.HasPrefix(*s, zapLogLevel)
 }
 
-// +kubebuilder:validation:Enum=json;console
+// +kubebuilder:validation:Enum=json;text;console
 type LogFormat string
 
 func (f *LogFormat) zero() string {
@@ -137,13 +137,13 @@ func (e *LogTimeEncoding) Match(s *string) bool {
 	return strings.HasPrefix(*s, zapTimeEncoding)
 }
 
-type LoggingOperatorCfg struct {
-	Level        *OperatorLogLevel `json:"level,omitempty"`
-	Format       *LogFormat        `json:"format,omitempty"`
-	TimeEncoding *LogTimeEncoding  `json:"timeEncoding,omitempty"`
+type LoggingCommonCfg struct {
+	Level        *LogLevel        `json:"level,omitempty"`
+	Format       *LogFormat       `json:"format,omitempty"`
+	TimeEncoding *LogTimeEncoding `json:"timeEncoding,omitempty"`
 }
 
-func (o *LoggingOperatorCfg) list() []api.MatchStringer {
+func (o *LoggingCommonCfg) list() []api.MatchStringer {
 	return []api.MatchStringer{
 		o.Level,
 		o.Format,
@@ -151,7 +151,7 @@ func (o *LoggingOperatorCfg) list() []api.MatchStringer {
 	}
 }
 
-func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
+func (o *LoggingCommonCfg) UpdateArg(arg *string) {
 	for _, cfgProp := range o.list() {
 		if !cfgProp.Match(arg) {
 			continue
@@ -160,39 +160,10 @@ func (o *LoggingOperatorCfg) UpdateArg(arg *string) {
 	}
 }
 
-// +kubebuilder:validation:Enum="0";"4"
-type MetricsServerLogLevel string
-
-func (l *MetricsServerLogLevel) zero() string {
-	return string(MetricsServerLogLevelInfo)
-}
-
-func (l *MetricsServerLogLevel) String() string {
-	value := l.zero()
-	if l != nil {
-		value = string(*l)
-	}
-	return fmt.Sprintf("%s=%s", vMetricServerLogLevel, value)
-}
-
-func (l *MetricsServerLogLevel) Match(s *string) bool {
-	return strings.HasPrefix(*s, vMetricServerLogLevel)
-}
-
-type LoggingMetricsSrvCfg struct {
-	Level *MetricsServerLogLevel `json:"level,omitempty"`
-}
-
-func (o *LoggingMetricsSrvCfg) list() []api.MatchStringer {
-	return []api.MatchStringer{o.Level}
-}
-
-func (o *LoggingMetricsSrvCfg) UpdateArg(arg *string) {
-	for _, cfgProp := range o.list() {
-		if !cfgProp.Match(arg) {
-			continue
-		}
-		*arg = cfgProp.String()
+// Sanitize converts "text" to "console" for the Format field since zap only accepts "console" or "json"
+func (o *LoggingCommonCfg) Sanitize() {
+	if o.Format != nil && *o.Format == "text" {
+		*o.Format = LogFormatConsole
 	}
 }
 
@@ -206,8 +177,9 @@ type Istio struct {
 }
 
 type LoggingCfg struct {
-	Operator      *LoggingOperatorCfg   `json:"operator,omitempty"`
-	MetricsServer *LoggingMetricsSrvCfg `json:"metricServer,omitempty"`
+	Operator      *LoggingCommonCfg `json:"operator,omitempty"`
+	MetricsServer *LoggingCommonCfg `json:"metricServer,omitempty"`
+	Webhook       *LoggingCommonCfg `json:"webhook,omitempty"`
 }
 
 type Resources struct {
@@ -313,10 +285,26 @@ func (v *EnvVars) Sanitize() {
 // Keda is the Schema for the kedas API
 type Keda struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   KedaSpec `json:"spec,omitempty"`
+	Spec   KedaSpec `json:"spec"`
 	Status Status   `json:"status,omitempty"`
+}
+
+func (k *Keda) RemoveCondition(c ConditionType) {
+	_ = meta.RemoveStatusCondition(&k.Status.Conditions, string(c))
+}
+
+func (k *Keda) UpdateStateReplicaFailure(c ConditionType, r ConditionReason, msg string) {
+	k.Status.State = StateError
+	condition := metav1.Condition{
+		Type:               string(c),
+		Status:             "True",
+		LastTransitionTime: metav1.Now(),
+		Reason:             string(r),
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&k.Status.Conditions, condition)
 }
 
 func (k *Keda) UpdateStateFromErr(c ConditionType, r ConditionReason, err error) {
@@ -400,9 +388,10 @@ func (k *Keda) IsServedEmpty() bool {
 }
 
 type Status struct {
-	State      string             `json:"state"`
-	Served     string             `json:"served"`
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	State       string             `json:"state"`
+	Served      string             `json:"served"`
+	KedaVersion string             `json:"kedaVersion,omitempty"`
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -410,7 +399,7 @@ type Status struct {
 // KedaList contains a list of Keda
 type KedaList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.ListMeta `json:"metadata"`
 	Items           []Keda `json:"items"`
 }
 

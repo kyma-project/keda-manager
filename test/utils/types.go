@@ -12,8 +12,11 @@ type TestUtils struct {
 	Logger *zap.SugaredLogger
 	Client client.Client
 
-	Namespace         string
-	DeploymentName    string
-	ScaledObjectName  string
-	ScaleDeploymentTo int32
+	Namespace             string
+	DeploymentName        string
+	MetricsServerName     string
+	MetricsServerPort     int32
+	MetricsServerEndpoint string
+	ScaledObjectName      string
+	ScaleDeploymentTo     int32
 }

@@ -17,13 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"crypto/fips140"
+	"errors"
 	"flag"
-	"fmt"
 	"os"
 
+	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	zapk8s "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -40,9 +40,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/kyma-project/manager-toolkit/logging/config"
+	"github.com/kyma-project/manager-toolkit/logging/logger"
+
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/yaml"
+	"github.com/kyma-project/keda-manager/pkg/resources"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -59,23 +62,79 @@ func init() {
 }
 
 func main() {
+	if !isFIPS140Only() {
+		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+	}
+
 	var metricsAddr string
-	var enableLeaderElection bool
 	var probeAddr string
+	var configPath string
+	var enableLeaderElection bool
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&configPath, "config-path", "", "Path to config file for dynamic reconfiguration.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	//FIXME use parameter
-	opts := zapk8s.Options{}
-	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zapk8s.New(zapk8s.UseFlagOptions(&opts)))
-	restConfig := ctrl.GetConfigOrDie()
+	// Load configuration - from file if provided, otherwise from environment
+	var cfg config.Config
+	var err error
+	if configPath != "" {
+		cfg, err = config.LoadConfig(configPath)
+		if err != nil {
+			os.Exit(1)
+		}
+	} else {
+		cfg, err = config.GetConfig("")
+		if err != nil {
+			os.Exit(1)
+		}
+	}
 
-	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
+	// Setup logging with atomic level for dynamic reconfiguration
+	atomicLevel := zap.NewAtomicLevel()
+	parsedLogLevel, err := logger.MapLevel(cfg.LogLevel)
+	if err != nil {
+		setupLog.Error(err, "unable to parse logging level")
+		os.Exit(1)
+	}
+
+	format, err := logger.MapFormat(cfg.LogFormat)
+	if err != nil {
+		setupLog.Error(err, "unable to set logging format")
+		os.Exit(1)
+	}
+
+	log, err := logger.NewWithAtomicLevel(format, atomicLevel)
+	if err != nil {
+		setupLog.Error(err, "unable to set logger")
+		os.Exit(1)
+	}
+
+	if err := logger.InitKlog(log, parsedLogLevel); err != nil {
+		setupLog.Error(err, "unable to init Klog")
+		os.Exit(1)
+	}
+
+	zapLog := log.WithContext()
+	zapLog.Infof("loaded config: logLevel=%s, logFormat=%s", cfg.LogLevel, cfg.LogFormat)
+
+	// Set controller-runtime logger to use our zap logger (respects format from config)
+	ctrl.SetLogger(zapr.NewLogger(zapLog.Desugar()))
+
+	// Setup signal handler once - used for both manager and dynamic config
+	signalCtx := ctrl.SetupSignalHandler()
+
+	// Start dynamic reconfiguration in background if config path is provided
+	if configPath != "" {
+		go config.ReconfigureOnConfigChange(signalCtx, zapLog, atomicLevel, configPath)
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: server.Options{
 			BindAddress: metricsAddr,
@@ -86,17 +145,6 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "4123c01c.operator.kyma-project.io",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
 		Client: ctrlclient.Options{
 			Cache: &ctrlclient.CacheOptions{
 				DisableFor: []ctrlclient.Object{
@@ -107,58 +155,45 @@ func main() {
 		},
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		zapLog.Error("unable to start manager", "error", err)
 		os.Exit(1)
 	}
 
-	file, err := os.Open("keda.yaml")
+	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
-		setupLog.Error(err, "unable to open k8s data")
-	}
-
-	data, err := yaml.LoadData(file)
-	if err != nil {
-		setupLog.Error(err, "unable to load k8s data")
+		zapLog.Error("unable to load k8s data", "error", err)
 		os.Exit(1)
 	}
-
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.TimeKey = "timestamp"
-	config.Encoding = "json"
-	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000")
-
-	kedaLogger, err := config.Build()
-	if err != nil {
-		setupLog.Error(err, "unable to setup logger")
-		os.Exit(1)
-	}
-
-	setupLog.Info(fmt.Sprintf("log level set to: %s", kedaLogger.Level()))
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
-		kedaLogger.Sugar(),
+		zapLog,
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Keda")
+		zapLog.Error("unable to create controller", "controller", "Keda", "error", err)
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
+		zapLog.Error("unable to set up health check", "error", err)
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
+		zapLog.Error("unable to set up ready check", "error", err)
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+	zapLog.Info("starting manager")
+	if err := mgr.Start(signalCtx); err != nil {
+		zapLog.Error("problem running manager", "error", err)
 		os.Exit(1)
 	}
+}
+
+// isFIPS140Only checks if the application is running in FIPS 140 exclusive mode.
+func isFIPS140Only() bool {
+	return fips140.Enabled() && os.Getenv("GODEBUG") == "fips140=only,tlsmlkem=0"
 }

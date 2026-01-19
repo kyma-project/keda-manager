@@ -1,6 +1,6 @@
 # incoming variables
 
-KEDA_VERSION ?= 2.17.0
+KEDA_VERSION ?= 2.18.3
 
 MODULE_VERSION ?= 0.0.0
 
@@ -17,7 +17,7 @@ OS_TYPE ?= $(shell uname)
 # local variables
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.30.0
+ENVTEST_K8S_VERSION = 1.34.1
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -73,7 +73,7 @@ build: generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+	go run ./main.go --config-path=./config.yaml
 
 .PHONY: docker-build
 docker-build: manifests generate ## Build docker image with the manager.
@@ -130,11 +130,15 @@ KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/k
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
+	@if [ -z ${GITHUB_TOKEN} ]; then \
+		test -s $(LOCALBIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }; \
+	else \
+		test -s $(LOCALBIN)/kustomize || { curl -Ss $(KUSTOMIZE_INSTALL_SCRIPT) --header "Authorization: Bearer ${GITHUB_TOKEN}" | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }; \
+	fi
 
 ########## Controller-Gen ###########
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-CONTROLLER_TOOLS_VERSION ?= v0.16.5
+CONTROLLER_TOOLS_VERSION ?= v0.19.0
 
 .PHONY: controller-gen $(CONTROLLER_GEN)
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -149,23 +153,6 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
-########## Kyma CLI ###########
-KYMA_STABILITY ?= unstable
-
-# $(call os_error, os-type, os-architecture)
-define os_error
-$(error Error: unsuported platform OS_TYPE:$1, OS_ARCH:$2; to mitigate this problem set variable KYMA with absolute path to kyma-cli binary compatible with your operating system and architecture)
-endef
-
-KYMA_FILE_NAME ?= $(shell ./hack/get_kyma_file_name.sh ${OS_TYPE} ${OS_ARCH})
-
-KYMA ?= $(LOCALBIN)/kyma-$(KYMA_STABILITY)
-kyma: $(LOCALBIN) $(KYMA) ## Download kyma locally if necessary.
-$(KYMA):
-	## Detect if operating system 
-	$(if $(KYMA_FILE_NAME),,$(call os_error, ${OS_TYPE}, ${OS_ARCH}))
-	test -f $@ || curl -s -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/$(KYMA_FILE_NAME)
-	chmod 0100 $(KYMA)
 
 ########## Grafana Dashboard ###########
 .PHONY: grafana-dashboard
@@ -175,5 +162,5 @@ grafana-dashboard: ## Generating Grafana manifests to visualize controller statu
 ##@ Actions
 .PHONY: module-config
 module-config:
-	yq ".channel = \"${CHANNEL}\" | .version = \"${MODULE_VERSION}\""\
-    	module-config-template.yaml > module-config.yaml
+	yq ".version = \"${MODULE_VERSION}\" "\
+    module-config-template.yaml > module-config.yaml

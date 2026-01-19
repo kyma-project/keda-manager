@@ -1,6 +1,6 @@
 - [Back to Kyma Home](/)
 - [Keda Module](README.md)
-- [KEDA Module Configuration](01-20-configuration.md)
+- [Configuring Keda Module](01-20-configuration.md)
 - [Keda Module Footprint](04-10-footprint.md)
 - [KEDA Demo Application](04-20-demo-applications.md)
 - [Keda CR Conditions](05-01-conditions.md)

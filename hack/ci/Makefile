@@ -30,6 +30,8 @@ remove-keda: ## Remove Keda CR
 
 .PHONY: run-on-cluster
 run-on-cluster:
+	@make -C ${PROJECT_COMMON} create-kyma-system-ns
+	@kubectl apply -f ${PROJECT_ROOT}/hack/deny-all-networkpolicy.yaml
 	@make -C ${PROJECT_COMMON} run-on-cluster
 
 .PHONY: install-latest
@@ -41,9 +43,7 @@ install-latest:
 
 
 .PHONY: reinstall-keda
-reinstall-keda:
-	@make -C ${PROJECT_COMMON} run-on-cluster
-
+reinstall-keda: run-on-cluster
 	# wait some time to make sure lm starts the reconciliation first
 	sleep 5
 

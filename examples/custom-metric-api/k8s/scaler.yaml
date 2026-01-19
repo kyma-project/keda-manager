@@ -1,0 +1,23 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: custom-metric-api-scaler
+  namespace: keda-custom-metric-api
+spec:
+  maxReplicaCount: 5
+  minReplicaCount: 1
+  pollingInterval: 5
+  scaleTargetRef:
+    apiVersion: apps/v
+    kind: Deployment
+    name: scale-target
+  triggers:
+  - metadata:
+      format: json
+      targetValue: "1"
+      url: http://custom-metric-api.keda-custom-metric-api.svc.cluster.local:80/metrics # this service maps port 80 to function's port 8080, therefore inbound port 8080 is excluded from istio sidecar
+      valueLocation: value
+    metricType: Value
+    name: activeTenantsMax
+    type: metrics-api
+    useCachedMetrics: true

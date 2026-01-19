@@ -10,6 +10,7 @@ import (
 	"github.com/kyma-project/keda-manager/test/deployment"
 	"github.com/kyma-project/keda-manager/test/hpa"
 	"github.com/kyma-project/keda-manager/test/logger"
+	"github.com/kyma-project/keda-manager/test/metricsserver"
 	"github.com/kyma-project/keda-manager/test/namespace"
 	"github.com/kyma-project/keda-manager/test/scaledobject"
 	"github.com/kyma-project/keda-manager/test/utils"
@@ -38,12 +39,16 @@ func main() {
 
 	log.Info("Start scenario")
 	err = runScenario(&utils.TestUtils{
-		Namespace:        fmt.Sprintf("keda-manager-test-%s", uuid.New().String()),
-		DeploymentName:   "test-deployment",
-		ScaledObjectName: "test-scaledobject",
-		Ctx:              ctx,
-		Client:           client,
-		Logger:           log,
+		Namespace:             fmt.Sprintf("keda-manager-test-%s", uuid.New().String()),
+		DeploymentName:        "test-deployment",
+		MetricsServerName:     "metrics-server",
+		MetricsServerPort:     80,
+		MetricsServerEndpoint: "/metrics",
+		ScaledObjectName:      "test-scaledobject",
+		ScaleDeploymentTo:     5,
+		Ctx:                   ctx,
+		Client:                client,
+		Logger:                log,
 	})
 	if err != nil {
 		log.Error(err)
@@ -55,6 +60,12 @@ func runScenario(testutil *utils.TestUtils) error {
 	// create test namespac
 	testutil.Logger.Infof("Creating namespace '%s'", testutil.Namespace)
 	if err := namespace.Create(testutil); err != nil {
+		return err
+	}
+
+	// create test metrics server
+	testutil.Logger.Infof("Creating metrics server")
+	if err := metricsserver.Create(testutil); err != nil {
 		return err
 	}
 
@@ -79,6 +90,12 @@ func runScenario(testutil *utils.TestUtils) error {
 	// verify if the underlying HPA
 	testutil.Logger.Infof("Verifying scaledobjects '%s' hpa", testutil.ScaledObjectName)
 	if err := utils.WithRetry(testutil, hpa.Verify); err != nil {
+		return err
+	}
+
+	// verify if deploy is scaled
+	testutil.Logger.Infof("Verifying deployment '%s' is scaled", testutil.DeploymentName)
+	if err := utils.WithRetry(testutil, deployment.Verify); err != nil {
 		return err
 	}
 

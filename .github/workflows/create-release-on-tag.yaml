@@ -1,0 +1,92 @@
+# This workflow is part of the release process and is automatically run when the .github/workflows/create-release.yaml one 
+# creates a tag because create-release.yaml pushes a new commit to the branch and building jobs can't resolve such a situation.
+# Because of this, we run the second part of the process in a separate workflow that has its own context based on the tag created.
+
+name: create release on tag
+
+on:
+  push:
+    tags:
+      - '[0-9]+\.[0-9]+\.[0-9]+'
+
+permissions: # used by build images steps
+  id-token: write # This is required for requesting the JWT token
+  contents: write # This is required for actions/checkout and builds
+
+jobs:
+
+  builds:
+    uses: ./.github/workflows/_build.yaml
+    with:
+      tag: "${{ github.ref_name }}"
+
+  create-draft:
+    name: Create draft release
+    needs: builds
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-go
+
+      - name: Create changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./.github/scripts/create-changelog.sh ${{ github.ref_name }}
+
+      - name: Create draft release
+        id: create-draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=$(./.github/scripts/create-draft-release.sh ${{ github.ref_name }})
+          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+
+      - name: Create release assets
+        id: create-assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ steps.create-draft.outputs.release_id }}
+        run: ./.github/scripts/release.sh
+
+    outputs:
+      release_id: ${{ steps.create-draft.outputs.release_id }}
+
+  run-integration-test:
+    needs: create-draft
+    secrets: inherit
+    uses: ./.github/workflows/_integration-tests.yaml
+    with:
+      image: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.ref_name }}
+
+  devOps-Insights:
+    name: DevOps Insights
+    needs: [publish-release]
+    uses: "./.github/workflows/_metrics.yaml"
+    secrets: inherit
+
+  publish-release:
+    name: Publish release
+    needs: [run-integration-test, create-draft]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          latest_release="false"
+          if test $(git rev-parse latest) == $(git rev-parse ${{ github.ref_name }} ); then
+            latest_release="true"
+          fi
+          ./.github/scripts/publish-release.sh ${{ needs.create-draft.outputs.release_id }} ${latest_release}
