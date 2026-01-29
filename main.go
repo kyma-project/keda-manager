@@ -119,7 +119,6 @@ func main() {
 	go logging.ReconfigureOnConfigChange(ctx, logWithCtx.Named("notifier"), atomicLevel, configPath)
 
 	ctrl.SetLogger(zapr.NewLogger(logWithCtx.Desugar()))
-	setupLog = ctrl.Log.WithName("setup")
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -142,13 +141,13 @@ func main() {
 		},
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager", "error", err)
+		fmt.Printf("unable to start manager", "error", err)
 		os.Exit(1)
 	}
 
 	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
-		setupLog.Error(err, "unable to load k8s data", "error", err)
+		fmt.Printf("unable to load k8s data", "error", err)
 		os.Exit(1)
 	}
 
@@ -159,23 +158,23 @@ func main() {
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Keda", "error", err)
+		fmt.Printf("unable to create controller", "controller", "Keda", "error", err)
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check", "error", err)
+		fmt.Printf("unable to set up health check", "error", err)
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check", "error", err)
+		fmt.Printf("unable to set up ready check", "error", err)
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
+	fmt.Printf("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager", "error", err)
+		fmt.Printf("problem running manager", "error", err)
 		os.Exit(1)
 	}
 }
