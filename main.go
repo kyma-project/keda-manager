@@ -141,13 +141,13 @@ func main() {
 		},
 	})
 	if err != nil {
-		fmt.Printf("unable to start manager", "error", err)
+		fmt.Printf("unable to start manager: %v\n", err)
 		os.Exit(1)
 	}
 
 	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
-		fmt.Printf("unable to load k8s data", "error", err)
+		fmt.Printf("unable to load k8s data: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -158,23 +158,22 @@ func main() {
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
-		fmt.Printf("unable to create controller", "controller", "Keda", "error", err)
+		fmt.Printf("unable to create controller: %v\n", err)
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		fmt.Printf("unable to set up health check", "error", err)
-		os.Exit(1)
+		fmt.Printf("unable to set up health check: %v\n", err)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		fmt.Printf("unable to set up ready check", "error", err)
+		fmt.Printf("unable to set up ready check: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Printf("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		fmt.Printf("problem running manager", "error", err)
+		fmt.Printf("problem running manager: %v\n", err)
 		os.Exit(1)
 	}
 }
