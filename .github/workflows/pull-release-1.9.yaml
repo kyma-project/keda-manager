@@ -11,16 +11,16 @@ permissions:
 
 jobs:
   unit-tests:
-    uses: kyma-project/serverless/.github/workflows/_unit-tests.yaml@release-1.9
+    uses: kyma-project/keda-manager/.github/workflows/_unit-tests.yaml@release-1.9
 
   gitleaks:
-    uses: kyma-project/serverless/.github/workflows/_gitleaks.yaml@release-1.9
+    uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@release-1.9
 
   builds:
-    uses: kyma-project/serverless/.github/workflows/_build.yaml@release-1.9
+    uses: kyma-project/keda-manager/.github/workflows/_build.yaml@release-1.9
 
   integrations:
     needs: builds
-    uses: kyma-project/serverless/.github/workflows/_integration-tests.yaml@release-1.9
+    uses: kyma-project/keda-manager/.github/workflows/_integration-tests.yaml@release-1.9
     with:
       image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
