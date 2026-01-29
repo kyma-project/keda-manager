@@ -18,8 +18,8 @@ package main
 
 import (
 	"crypto/fips140"
-	"errors"
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/go-logr/zapr"
@@ -50,8 +50,7 @@ import (
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme = runtime.NewScheme()
 )
 
 func init() {
@@ -63,7 +62,7 @@ func init() {
 
 func main() {
 	if !isFIPS140Only() {
-		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+		fmt.Printf("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.\n")
 		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
 	}
 
@@ -86,11 +85,13 @@ func main() {
 	if configPath != "" {
 		cfg, err = config.LoadConfig(configPath)
 		if err != nil {
+			fmt.Printf("unable to load config: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
 		cfg, err = config.GetConfig("")
 		if err != nil {
+			fmt.Printf("unable to get config: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -99,24 +100,24 @@ func main() {
 	atomicLevel := zap.NewAtomicLevel()
 	parsedLogLevel, err := logger.MapLevel(cfg.LogLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to parse logging level")
+		fmt.Printf("unable to parse logger level: %v\n", err)
 		os.Exit(1)
 	}
 
 	format, err := logger.MapFormat(cfg.LogFormat)
 	if err != nil {
-		setupLog.Error(err, "unable to set logging format")
+		fmt.Printf("unable to parse logger format: %v\n", err)
 		os.Exit(1)
 	}
 
 	log, err := logger.NewWithAtomicLevel(format, atomicLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to set logger")
+		fmt.Printf("unable to set logger: %v\n", err)
 		os.Exit(1)
 	}
 
 	if err := logger.InitKlog(log, parsedLogLevel); err != nil {
-		setupLog.Error(err, "unable to init Klog")
+		fmt.Printf("unable to init klog: %v\n", err)
 		os.Exit(1)
 	}
 
