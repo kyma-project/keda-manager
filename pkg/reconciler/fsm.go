@@ -151,7 +151,6 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
 	// The metrics-apiserver has a legacy flag --logtostderr that forces console encoder when true.
-	// We need to set it to false when JSON format is requested to allow zap-encoder to take effect.
 	updateMetricsServerLogToStderr(deployment, logCfg.Format)
 	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
