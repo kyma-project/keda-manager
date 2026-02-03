@@ -78,10 +78,15 @@ func (c *Cfg) kedaAdmissionWebhooksDeployment() (*unstructured.Unstructured, err
 	return c.firstUnstructed(isAdmissionWebhooksDeployment)
 }
 
-func updateDeploymentContainer0Args(deployment appsv1.Deployment, updater api.ArgUpdater) error {
-	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
-		updater.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
+func updateDeploymentContainer0Args(deployment *appsv1.Deployment, updater api.ArgUpdater) error {
+	container := &deployment.Spec.Template.Spec.Containers[0]
+	// Update existing args
+	for i := range container.Args {
+		updater.UpdateArg(&container.Args[i])
 	}
+	// Append missing args
+	missingArgs := updater.AppendMissingArgs(container.Args)
+	container.Args = append(container.Args, missingArgs...)
 	return nil
 }
 
@@ -129,7 +134,7 @@ func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassN
 
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
 
 func updateKedaContanier0Resources(deployment *appsv1.Deployment, resources corev1.ResourceRequirements) error {
@@ -145,12 +150,12 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
 
 func updateKedaAdmissionWebhooksContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
 
 // the state of controlled system (k8s cluster)

@@ -160,6 +160,24 @@ func (o *LoggingCommonCfg) UpdateArg(arg *string) {
 	}
 }
 
+// AppendMissingArgs returns logging args that are not present in the existing args
+func (o *LoggingCommonCfg) AppendMissingArgs(existingArgs []string) []string {
+	var missingArgs []string
+	for _, cfgProp := range o.list() {
+		found := false
+		for _, arg := range existingArgs {
+			if cfgProp.Match(&arg) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missingArgs = append(missingArgs, cfgProp.String())
+		}
+	}
+	return missingArgs
+}
+
 // Sanitize converts "text" to "console" for the Format field since zap only accepts "console" or "json"
 func (o *LoggingCommonCfg) Sanitize() {
 	if o.Format != nil && *o.Format == "text" {
