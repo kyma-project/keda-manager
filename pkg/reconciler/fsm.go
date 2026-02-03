@@ -150,7 +150,26 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
+	// The metrics-apiserver has a legacy flag --logtostderr that forces console encoder when true.
+	// We need to set it to false when JSON format is requested to allow zap-encoder to take effect.
+	updateMetricsServerLogToStderr(deployment, logCfg.Format)
 	return updateDeploymentContainer0Args(deployment, &logCfg)
+}
+
+// updateMetricsServerLogToStderr updates the --logtostderr flag for the metrics server.
+// When format is "json", we set --logtostderr=false to prevent it from overriding zap-encoder.
+func updateMetricsServerLogToStderr(deployment *appsv1.Deployment, format *v1alpha1.LogFormat) {
+	logToStderrValue := strconv.FormatBool(format == nil || *format != v1alpha1.LogFormatJSON)
+	logToStderrArg := "--logtostderr=" + logToStderrValue
+
+	args := &deployment.Spec.Template.Spec.Containers[0].Args
+	for i, arg := range *args {
+		if strings.HasPrefix(arg, "--logtostderr") {
+			(*args)[i] = logToStderrArg
+			return
+		}
+	}
+	*args = append(*args, logToStderrArg)
 }
 
 func updateKedaAdmissionWebhooksContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
