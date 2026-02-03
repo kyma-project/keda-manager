@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/name: keda-custom-metric-api
+    istio-injection: enabled
+    kubernetes.io/metadata.name: keda-custom-metric-api
+  name: keda-custom-metric-api
+spec:

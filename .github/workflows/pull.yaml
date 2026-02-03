@@ -1,7 +1,9 @@
 name: pull
 on:
   pull_request_target:
-    types: [ opened, edited, synchronize, reopened, ready_for_review ]
+    branches:
+      - main
+    types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
   id-token: write # This is required for requesting the JWT token
@@ -9,16 +11,16 @@ permissions:
 
 jobs:
   unit-tests:
-    uses: ./.github/workflows/_unit-tests.yaml
+    uses: kyma-project/keda-manager/.github/workflows/_unit-tests.yaml@main
 
   gitleaks:
-    uses: ./.github/workflows/_gitleaks.yaml
+    uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@main
 
   builds:
-    uses: ./.github/workflows/_build.yaml
+    uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
 
   integrations:
     needs: builds
-    uses: ./.github/workflows/_integration-tests.yaml
+    uses: kyma-project/keda-manager/.github/workflows/_integration-tests.yaml@main
     with:
       image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}

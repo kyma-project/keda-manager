@@ -60,7 +60,6 @@ rules:
   verbs:
   - create
   - delete
-  - get
   - list
   - patch
   - update
@@ -137,6 +136,13 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
+- apiGroups:
   - eventing.keda.sh
   resources:
   - cloudeventsources
@@ -167,13 +173,23 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - operator.kyma-project.io
   resources:
   - kedas
   verbs:
   - create
   - delete
-  - get
   - list
   - patch
   - update
@@ -182,15 +198,8 @@ rules:
   - operator.kyma-project.io
   resources:
   - kedas/finalizers
-  verbs:
-  - patch
-  - update
-- apiGroups:
-  - operator.kyma-project.io
-  resources:
   - kedas/status
   verbs:
-  - get
   - patch
   - update
 - apiGroups:

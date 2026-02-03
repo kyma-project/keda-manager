@@ -3,9 +3,10 @@
 # Allow
 !./main.go
 !api
+!internal
 !pkg
 !controllers
 !keda.yaml
+!keda-networkpolicies.yaml
 !go.sum
 !go.mod
-

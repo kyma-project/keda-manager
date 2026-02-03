@@ -1,0 +1,368 @@
+##
+# NetworkPolicies for the KEDA admission webhooks
+##
+
+# NetworkPolicy to allow egress traffic from keda-admission-webhooks to k8s API server
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-apiserver
+  name: kyma-project.io--keda-admission-webhooks-allow-to-apiserver
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+# NetworkPolicy to allow egress traffic from keda-admission-webhooks to DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-dns
+  name: kyma-project.io--keda-admission-webhooks-allow-to-dns
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+    - ports:
+        - port: 8053
+          protocol: UDP
+        - port: 8053
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              gardener.cloud/purpose: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: node-local-dns
+---
+# NetworkPolicy to allow API server to communicate with keda-admission-webhooks
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: webhook
+  name: kyma-project.io--keda-admission-webhooks-from-apiserver
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Ingress
+  ingress:
+  - from: []
+    ports:
+    - port: 9443
+---
+# NetworkPolicy to allow scraping metrics from keda-admission-webhooks
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-admission-webhooks
+    name: keda-admission-webhooks
+    app.kubernetes.io/name: keda-admission-webhooks    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: metrics
+  name: kyma-project.io--keda-admission-webhooks-metrics
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-admission-webhooks
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kyma-system
+      podSelector:
+        matchLabels:
+          networking.kyma-project.io/metrics-scraping: allowed
+    ports:
+    - port: 8080
+      protocol: TCP
+---
+
+##
+# NetworkPolicies for the KEDA operator
+##
+
+# NetworkPolicy to allow whole egress traffic
+# this is needed to allow the operator to communicate with any service to scrape metrics for scaling purposes
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-all
+  name: kyma-project.io--keda-operator-allow-to-all
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Egress
+  egress:
+  - {}
+---
+# NetworkPolicy to allow keda-operator-metrics-apiserver to communicate with keda-operator
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-from-metrics-apiserver
+  name: kyma-project.io--keda-operator-allow-from-metrics-apiserver
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: keda-operator-metrics-apiserver
+---
+# NetworkPolicy to allow scraping metrics from keda-operator
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator
+    name: keda-operator
+    app.kubernetes.io/name: keda-operator    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: metrics
+  name: kyma-project.io--keda-operator-metrics
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kyma-system
+      podSelector:
+        matchLabels:
+          networking.kyma-project.io/metrics-scraping: allowed
+    ports:
+    - port: 8080
+      protocol: TCP
+---
+
+##
+# NetworkPolicies for the KEDA metrics apiserver
+##
+
+# NetworkPolicy to allow whole egress traffic
+# this is needed to allow the operator to communicate with any service to scrape metrics for scaling purposes
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-to-all
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-to-all
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Egress
+  egress:
+  - {}
+---
+# NetworkPolicy to allow scraping metrics from keda-operator-metrics-apiserver
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: metrics
+  name: kyma-project.io--keda-operator-metrics-apiserver-metrics
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kyma-system
+      podSelector:
+        matchLabels:
+          networking.kyma-project.io/metrics-scraping: allowed
+    ports:
+    - port: 8080
+      protocol: TCP
+---
+# NetworkPolicy to allow keda-operator to communicate with keda-operator-metrics-apiserver
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: allow-from-operator
+  name: kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: keda-operator
+---
+# NetworkPolicy to allow scraping hpa oriented metrics from keda-operator-metrics-apiserver
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app: keda-operator-metrics-apiserver
+    app.kubernetes.io/name: keda-operator-metrics-apiserver    
+    helm.sh/chart: keda-2.18.3
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: keda-operator
+    app.kubernetes.io/version: 2.18.3
+    app.kubernetes.io/instance: keda
+    purpose: ingress-all-from-apiserver
+  name: kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver
+  namespace: kyma-system
+spec:
+  podSelector:
+    matchLabels:
+      app: keda-operator-metrics-apiserver
+  policyTypes:
+  - Ingress
+  ingress:
+  - ports:
+      - port: 6443

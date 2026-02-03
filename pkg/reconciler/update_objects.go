@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -23,7 +24,7 @@ func sFnUpdateKedaDeployment(_ context.Context, r *fsm, s *systemState) (stateFn
 	return switchState(next)
 }
 
-func loggingOperatorCfg(k *v1alpha1.Keda) *v1alpha1.LoggingOperatorCfg {
+func loggingOperatorCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
 	if k != nil && k.Spec.Logging != nil {
 		return k.Spec.Logging.Operator
 	}
@@ -46,10 +47,18 @@ func podAnnotationsOperatorCfg(k *v1alpha1.Keda) *map[string]string {
 }
 
 func podAnnotationsMetricsServerCfg(k *v1alpha1.Keda) *map[string]string {
-	if k != nil && k.Spec.PodAnnotations != nil {
-		return &k.Spec.PodAnnotations.MetricsServer
+	annotations := make(map[string]string)
+	if k.Spec.Istio != nil && k.Spec.Istio.MetricServer != nil && k.Spec.Istio.MetricServer.EnabledSidecarInjection {
+		// Add metric server port to istio excluded inbound ports
+		annotations["traffic.sidecar.istio.io/excludeInboundPorts"] = "6443"
 	}
-	return nil
+	if k != nil && k.Spec.PodAnnotations != nil {
+		// Add user defined annotations
+		for key, value := range k.Spec.PodAnnotations.MetricsServer {
+			annotations[key] = value
+		}
+	}
+	return &annotations
 }
 
 func podAnnotationsAdmissionWebhookCfg(k *v1alpha1.Keda) *map[string]string {
@@ -162,7 +171,25 @@ func buildSfnUpdateAdmissionWebhooksResources(u *unstructured.Unstructured) stat
 }
 
 func buildSfnUpdateAdmissionWebhooksPriorityClass(u *unstructured.Unstructured) stateFn {
-	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sFnApply)
+	return buildSfnUpdateObject(u, updateDeploymentPriorityClass, priorityClassName, sfnUpdateAdmissionWebhooksNetworkPolicy)
+}
+
+func sfnUpdateAdmissionWebhooksNetworkPolicy(ctx context.Context, f *fsm, ss *systemState) (stateFn, *ctrl.Result, error) {
+	np, err := f.firstUnstructed(isAddmissionWebhookNetworkPolicy)
+	if err != nil {
+		ss.instance.UpdateStateFromErr(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonNetworkPolicyUpdateErr,
+			err,
+		)
+		return stopWithErrorAndNoRequeue(err)
+	}
+
+	ipBlock := fmt.Sprintf("%s/32", f.APIServerIP)
+
+	return switchState(
+		buildSfnUpdateObject(np, updateAdmissionWebhooksNetworkPolicy, networkPolicyAPIServerAddress(ipBlock), sFnApply),
+	)
 }
 
 func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update func(T, R) error, getData func(*v1alpha1.Keda) *R, next stateFn) stateFn {
@@ -183,7 +210,7 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 	}
 }
 
-func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingMetricsSrvCfg {
+func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
 	if k != nil && k.Spec.Logging != nil {
 		return k.Spec.Logging.MetricsServer
 	}
@@ -218,6 +245,12 @@ func envVars(k *v1alpha1.Keda) *v1alpha1.EnvVars {
 		return &k.Spec.Env
 	}
 	return nil
+}
+
+func networkPolicyAPIServerAddress(address string) func(*v1alpha1.Keda) *string {
+	return func(k *v1alpha1.Keda) *string {
+		return &address
+	}
 }
 
 func disabledIstioSidecar(_ *v1alpha1.Keda) *v1alpha1.IstioCfg {

@@ -6,9 +6,9 @@
   name: Istio
   children:
    - path: operator.enabledSidecarInjection
-     name: Operator Sidecar Objection
+     name: Operator Sidecar Injection
    - path: metricServer.enabledSidecarInjection
-     name: Metric Server Sidecar Objection
+     name: Metric Server Sidecar Injection
 
 - path: spec.resources.operator
   widget: FormGroup

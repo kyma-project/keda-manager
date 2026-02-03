@@ -15,6 +15,7 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
+        sidecar.istio.io/inject: "false"
       labels:
         app.kubernetes.io/component: keda-manager.kyma-project.io
         control-plane: manager
@@ -34,18 +35,23 @@ spec:
             - /manager
           args:
             - --leader-elect
+            - --config-path=/etc/keda-manager/config.yaml
           image: controller:latest
           imagePullPolicy: Always
           name: manager
+          volumeMounts:
+            - name: config
+              mountPath: /etc/keda-manager
+              readOnly: true
           env:
             - name: KEDA_MODULE_VERSION
               value: main
             - name: IMAGE_KEDA_OPERATOR
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.17.2
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.3
             - name: IMAGE_KEDA_METRICS_APISERVER
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.17.2
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.3
             - name: IMAGE_KEDA_ADMISSION_WEBHOOKS
-              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.17.2
+              value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.3
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -68,7 +74,12 @@ spec:
               memory: 32Mi
               cpu: 10m
             limits:
-              memory: 128Mi
+              memory: 512Mi
               cpu: 200m
+      volumes:
+        - name: config
+          configMap:
+            name: keda-manager-config
+            optional: true
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
