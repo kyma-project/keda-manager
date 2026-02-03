@@ -1,7 +1,7 @@
 module-name: keda
 kind: kyma
 bdba:
-  - europe-docker.pkg.dev/kyma-project/prod/keda-manager:1.9.2
+  - europe-docker.pkg.dev/kyma-project/prod/keda-manager:1.9.3
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.0
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.0
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.0

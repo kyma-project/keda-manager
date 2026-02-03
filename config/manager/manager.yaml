@@ -40,7 +40,7 @@ spec:
           name: manager
           env:
             - name: KEDA_MODULE_VERSION
-              value: 1.9.2
+              value: 1.9.3
             - name: IMAGE_KEDA_OPERATOR
               value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.1
             - name: IMAGE_KEDA_METRICS_APISERVER
