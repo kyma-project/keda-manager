@@ -12,6 +12,7 @@ on:
 permissions: # used by build images steps
   id-token: write # This is required for requesting the JWT token
   contents: write # This is required for actions/checkout and builds
+  actions: read
 
 jobs:
 
@@ -63,12 +64,6 @@ jobs:
     with:
       image: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.ref_name }}
 
-  devOps-Insights:
-    name: DevOps Insights
-    needs: [publish-release]
-    uses: "./.github/workflows/_metrics.yaml"
-    secrets: inherit
-
   publish-release:
     name: Publish release
     needs: [run-integration-test, create-draft]
@@ -90,3 +85,12 @@ jobs:
             latest_release="true"
           fi
           ./.github/scripts/publish-release.sh ${{ needs.create-draft.outputs.release_id }} ${latest_release}
+
+  upload-release-report:
+    needs: [run-integration-test]
+    if: ${{ needs.run-integration-test.result == 'success' }}
+    uses: kyma-project/compliancy/.github/workflows/upload-release-report.yml@main
+    with:
+      release_version: ${{ github.ref_name }}
+    secrets:
+     RELEASE_LOG_UPLOADER_SA: ${{ secrets.RELEASE_LOG_UPLOADER_SA }}
