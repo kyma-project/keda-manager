@@ -69,7 +69,7 @@ spec:
               memory: 32Mi
               cpu: 10m
             limits:
-              memory: 128Mi
+              memory: 512Mi
               cpu: 200m
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
