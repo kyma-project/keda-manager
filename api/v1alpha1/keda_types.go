@@ -177,9 +177,9 @@ type Istio struct {
 }
 
 type LoggingCfg struct {
-	Operator      *LoggingCommonCfg `json:"operator,omitempty"`
-	MetricsServer *LoggingCommonCfg `json:"metricServer,omitempty"`
-	Webhook       *LoggingCommonCfg `json:"webhook,omitempty"`
+	Operator         *LoggingCommonCfg `json:"operator,omitempty"`
+	MetricsServer    *LoggingCommonCfg `json:"metricServer,omitempty"`
+	AdmissionWebhook *LoggingCommonCfg `json:"admissionWebhook,omitempty"`
 }
 
 type Resources struct {

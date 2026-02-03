@@ -12,7 +12,7 @@ spec:
       level: "info"
       format: "json"
       timeEncoding: "rfc3339"
-    webhook:
+    admissionWebhook:
       level: "info"
       format: "json"
       timeEncoding: "rfc3339"

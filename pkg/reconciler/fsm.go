@@ -26,7 +26,7 @@ type stateFn func(context.Context, *fsm, *systemState) (stateFn, *ctrl.Result, e
 
 // module specific configuuration
 type Cfg struct {
-	// the Finalizer identifies the module and is is used to delete
+	// the Finalizer identifies the module and is used to delete
 	// the module resources
 	Finalizer string
 	// the objects are module component parts; objects are applied
@@ -144,6 +144,12 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 }
 
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
+	logCfg.Sanitize()
+	return updateDeploymentContainer0Args(*deployment, &logCfg)
+}
+
+func updateKedaAdmissionWebhooksContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
+	logCfg.Sanitize()
 	return updateDeploymentContainer0Args(*deployment, &logCfg)
 }
 
