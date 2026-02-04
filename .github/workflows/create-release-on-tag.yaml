@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: ./.github/actions/setup-go
+      - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
 
       - name: Create changelog
         env:
