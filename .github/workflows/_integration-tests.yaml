@@ -17,8 +17,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - uses: ./.github/actions/setup-go
-      - uses: ./.github/actions/create-k3d-cluster
+      - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
+      - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
       - name: run test
         run: make -C hack/ci integration-test-on-cluster
         env:
