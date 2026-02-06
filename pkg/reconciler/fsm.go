@@ -26,7 +26,7 @@ type stateFn func(context.Context, *fsm, *systemState) (stateFn, *ctrl.Result, e
 
 // module specific configuuration
 type Cfg struct {
-	// the Finalizer identifies the module and is is used to delete
+	// the Finalizer identifies the module and is used to delete
 	// the module resources
 	Finalizer string
 	// the objects are module component parts; objects are applied
@@ -78,10 +78,15 @@ func (c *Cfg) kedaAdmissionWebhooksDeployment() (*unstructured.Unstructured, err
 	return c.firstUnstructed(isAdmissionWebhooksDeployment)
 }
 
-func updateDeploymentContainer0Args(deployment appsv1.Deployment, updater api.ArgUpdater) error {
-	for i := range deployment.Spec.Template.Spec.Containers[0].Args {
-		updater.UpdateArg(&deployment.Spec.Template.Spec.Containers[0].Args[i])
+func updateDeploymentContainer0Args(deployment *appsv1.Deployment, updater api.ArgUpdater) error {
+	container := &deployment.Spec.Template.Spec.Containers[0]
+	// Update existing args
+	for i := range container.Args {
+		updater.UpdateArg(&container.Args[i])
 	}
+	// Append missing args
+	missingArgs := updater.AppendMissingArgs(container.Args)
+	container.Args = append(container.Args, missingArgs...)
 	return nil
 }
 
@@ -129,7 +134,7 @@ func updateDeploymentPriorityClass(deployment *appsv1.Deployment, priorityClassN
 
 func updateKedaOperatorContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
 	logCfg.Sanitize()
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
 
 func updateKedaContanier0Resources(deployment *appsv1.Deployment, resources corev1.ResourceRequirements) error {
@@ -144,7 +149,31 @@ func updateKedaContanierEnvs(deployment *appsv1.Deployment, envs v1alpha1.EnvVar
 }
 
 func updateKedaMetricsServerContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
-	return updateDeploymentContainer0Args(*deployment, &logCfg)
+	logCfg.Sanitize()
+	// The metrics-apiserver has a legacy flag --logtostderr that forces console encoder when true.
+	updateMetricsServerLogToStderr(deployment, logCfg.Format)
+	return updateDeploymentContainer0Args(deployment, &logCfg)
+}
+
+// updateMetricsServerLogToStderr updates the --logtostderr flag for the metrics server.
+// When format is "json", we set --logtostderr=false to prevent it from overriding zap-encoder.
+func updateMetricsServerLogToStderr(deployment *appsv1.Deployment, format *v1alpha1.LogFormat) {
+	logToStderrValue := strconv.FormatBool(format == nil || *format != v1alpha1.LogFormatJSON)
+	logToStderrArg := "--logtostderr=" + logToStderrValue
+
+	args := &deployment.Spec.Template.Spec.Containers[0].Args
+	for i, arg := range *args {
+		if strings.HasPrefix(arg, "--logtostderr") {
+			(*args)[i] = logToStderrArg
+			return
+		}
+	}
+	*args = append(*args, logToStderrArg)
+}
+
+func updateKedaAdmissionWebhooksContainer0Args(deployment *appsv1.Deployment, logCfg v1alpha1.LoggingCommonCfg) error {
+	logCfg.Sanitize()
+	return updateDeploymentContainer0Args(deployment, &logCfg)
 }
 
 // the state of controlled system (k8s cluster)

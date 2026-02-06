@@ -201,8 +201,8 @@ func (in *LoggingCfg) DeepCopyInto(out *LoggingCfg) {
 		*out = new(LoggingCommonCfg)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Webhook != nil {
-		in, out := &in.Webhook, &out.Webhook
+	if in.AdmissionWebhook != nil {
+		in, out := &in.AdmissionWebhook, &out.AdmissionWebhook
 		*out = new(LoggingCommonCfg)
 		(*in).DeepCopyInto(*out)
 	}
