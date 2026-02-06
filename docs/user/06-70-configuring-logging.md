@@ -1,8 +1,8 @@
 # Configuring Logging
 
-This document describes how to configure logging for the KEDA module components. The module consists of:
+This document describes how to configure logging for the Keda module components. The module consists of:
 - **KEDA Manager** - Supports dynamic log reconfiguration without restart
-- **KEDA Components** (operator, metrics-apiserver, admission-webhooks) - Require pod restart for logging changes
+- **KEDA Components** (operator, metrics-apiserver, admission-webhooks) - Require Pod restart for logging changes
 
 ## Supported Log Levels
 
@@ -13,9 +13,9 @@ From the least to the most verbose: `fatal`, `panic`, `dpanic`, `error`, `warn`,
 - `json` - Structured JSON format (default)
 - `console` (or `text`) - Human-readable console format
 
-## Configure KEDA Manager Logging
+## Configure Keda Manager Logging
 
-The KEDA manager (keda-manager) supports **dynamic log level reconfiguration** through a ConfigMap. Changes take effect without requiring a pod restart.
+The Keda manager (keda-manager) supports dynamic log-level reconfiguration using a ConfigMap. Changes take effect without requiring a Pod restart.
 
    ```bash
    # Change log level only
@@ -25,16 +25,16 @@ The KEDA manager (keda-manager) supports **dynamic log level reconfiguration** t
    kubectl patch configmap keda-log-configmap -n kyma-system --type merge -p '{"data":{"log-config.yaml":"logLevel: debug\nlogFormat: json"}}'
    ```
 
-Verify the change :
+To verify the change, run:
 
    ```bash
    kubectl logs -n kyma-system -l app.kubernetes.io/name=keda-manager
    ```
 
-## Configure KEDA Components Logging (Requires Restart)
+## Configure Keda Module Components Logging (Requires Restart)
 
 > [NOTE]
-> Logging configuration changes for KEDA components (operator, metrics-apiserver, admission-webhooks) will trigger a restart to apply the new settings.
+> Logging configuration changes for the Keda module components (operator, metrics-apiserver, admission-webhooks) will trigger a restart to apply the new settings.
 
 ### Supported Time Encodings
 
@@ -47,7 +47,7 @@ Verify the change :
 
 ### Configuration
 
-Update the Keda Custom Resource to configure logging for KEDA components:
+Update the Keda custom resource to configure logging for KEDA components:
 
    ```yaml
    apiVersion: operator.kyma-project.io/v1alpha1
@@ -71,7 +71,7 @@ Update the Keda Custom Resource to configure logging for KEDA components:
          timeEncoding: "rfc3339"
   ```         
 >[NOTE]
->The zap logger used by KEDA components (operator, metrics-apiserver, admission-webhooks) has fixed field names in JSON format that **cannot be customized**: `level`, `ts`, `logger`, `msg`, `caller`.
+>The zap logger used by the Keda module components (operator, metrics-apiserver, admission-webhooks) has fixed field names in JSON format that **cannot be customized**: `level`, `ts`, `logger`, `msg`, `caller`.
 
 
 ### Verify the Changes
