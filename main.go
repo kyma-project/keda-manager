@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/fips140"
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/go-logr/zapr"
