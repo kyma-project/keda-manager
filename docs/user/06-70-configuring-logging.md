@@ -15,7 +15,7 @@ From the least to the most verbose: `fatal`, `panic`, `dpanic`, `error`, `warn`,
 
 ## Configure Keda Manager Logging
 
-The Keda manager (keda-manager) supports dynamic log-level reconfiguration using a ConfigMap. Changes take effect without requiring a Pod restart.
+The Keda manager (`keda-manager`) supports dynamic log-level reconfiguration using a ConfigMap. Changes take effect without requiring a Pod restart.
 
    ```bash
    # Change log level only
