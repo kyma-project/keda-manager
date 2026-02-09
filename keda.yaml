@@ -11304,6 +11304,9 @@ spec:
       app: keda-operator
   template:
     metadata:
+      annotations:
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
       labels:
         app: keda-operator
         name: keda-operator
@@ -11448,6 +11451,8 @@ spec:
         app.kubernetes.io/version: 2.18.3
         app.kubernetes.io/instance: keda
       annotations:
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
     spec:
@@ -11568,6 +11573,9 @@ spec:
       app: keda-admission-webhooks
   template:
     metadata:
+      annotations:
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
       labels:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
