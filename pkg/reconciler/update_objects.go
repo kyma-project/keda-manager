@@ -151,8 +151,13 @@ func sFnUpdateAdmissionWebhooksDeployment(_ context.Context, r *fsm, s *systemSt
 		)
 		return stopWithErrorAndNoRequeue(err)
 	}
-	next := buildSfnUpdateAdmissionWebhooksLabels(u)
+	next := buildSfnUpdateAdmissionWebhooksLogging(u)
 	return switchState(next)
+}
+
+func buildSfnUpdateAdmissionWebhooksLogging(u *unstructured.Unstructured) stateFn {
+	next := buildSfnUpdateAdmissionWebhooksLabels(u)
+	return buildSfnUpdateObject(u, updateKedaAdmissionWebhooksContainer0Args, loggingAdmissionWebhookCfg, next)
 }
 
 func buildSfnUpdateAdmissionWebhooksLabels(u *unstructured.Unstructured) stateFn {
@@ -213,6 +218,13 @@ func buildSfnUpdateObject[T any, R any](u *unstructured.Unstructured, update fun
 func loggingMetricsSrvCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
 	if k != nil && k.Spec.Logging != nil {
 		return k.Spec.Logging.MetricsServer
+	}
+	return nil
+}
+
+func loggingAdmissionWebhookCfg(k *v1alpha1.Keda) *v1alpha1.LoggingCommonCfg {
+	if k != nil && k.Spec.Logging != nil {
+		return k.Spec.Logging.AdmissionWebhook
 	}
 	return nil
 }
