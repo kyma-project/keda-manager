@@ -91,7 +91,7 @@ func hasDeployReplicaFailure(deployment appsv1.Deployment) bool {
 }
 
 func hasBootstrapperAnnotations(deployment appsv1.Deployment) bool {
-	annotations := deployment.GetAnnotations()
+	annotations := deployment.Spec.Template.GetAnnotations()
 	if annotations == nil {
 		return false
 	}
