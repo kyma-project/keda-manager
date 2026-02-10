@@ -43,6 +43,11 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		if hasDeployReplicaFailure(deployment) {
 			replicaFailure++
 		}
+
+		r.log.Info("%s deployment is current deployment", deployment.GetName())
+		if hasBootstrapperAnnotations(deployment) {
+			r.log.Info("%s deployment does not have expected annotations", deployment.GetName())
+		}
 	}
 
 	if replicaFailure > 0 {
@@ -83,4 +88,16 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 
 func hasDeployReplicaFailure(deployment appsv1.Deployment) bool {
 	return resource.HasDeploymentConditionTrueStatus(deployment.Status.Conditions, appsv1.DeploymentReplicaFailure)
+}
+
+func hasBootstrapperAnnotations(deployment appsv1.Deployment) bool {
+	annotations := deployment.GetAnnotations()
+	if annotations == nil {
+		return false
+	}
+
+	_, okPull := annotations[v1alpha1.KymaBootstraperAddImagePullSecretMutation]
+	_, okReg := annotations[v1alpha1.KymaBootstraperRegistryUrlMutation]
+
+	return okPull && okReg
 }

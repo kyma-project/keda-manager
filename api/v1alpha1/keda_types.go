@@ -66,6 +66,9 @@ const (
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console") // alias for text
 
+	KymaBootstraperRegistryUrlMutation        = "rt-cfg.kyma-project.io/alter-img-registry"
+	KymaBootstraperAddImagePullSecretMutation = "rt-cfg.kyma-project.io/add-img-pull-secret"
+
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")
 	TimeEncodingNano        = LogTimeEncoding("nano")
