@@ -16,9 +16,9 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: manager
         sidecar.istio.io/inject: "false"
-        rt-cfg.kyma-project.io/alter-img-registry: "false"
-        rt-cfg.kyma-project.io/add-img-pull-secret: "false"
-        rt-cfg.kyma-project.io/set-fips-mode: "false"
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
+        rt-cfg.kyma-project.io/set-fips-mode: "true"
       labels:
         app.kubernetes.io/component: keda-manager.kyma-project.io
         control-plane: manager
