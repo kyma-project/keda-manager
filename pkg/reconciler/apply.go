@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/annotation"
@@ -15,9 +16,11 @@ import (
 )
 
 const (
-	EnvOperatorImage  = "IMAGE_KEDA_OPERATOR"
-	EnvMetricsImage   = "IMAGE_KEDA_METRICS_APISERVER"
-	EnvAdmissionImage = "IMAGE_KEDA_ADMISSION_WEBHOOKS"
+	EnvOperatorImage             = "IMAGE_KEDA_OPERATOR"
+	EnvMetricsImage              = "IMAGE_KEDA_METRICS_APISERVER"
+	EnvAdmissionImage            = "IMAGE_KEDA_ADMISSION_WEBHOOKS"
+	EnvKymaFipsMode              = "KYMA_FIPS_MODE_ENABLED"
+	EnvFipsImageVariantKeySuffix = "_FIPS"
 )
 
 var (
@@ -77,13 +80,15 @@ func updateImagesInDeployments(obj map[string]interface{}) (map[string]interface
 			return nil, fmt.Errorf("convert from unstructured error: %w", err)
 		}
 
+		fipsEnabled := strings.ToLower(os.Getenv(EnvKymaFipsMode)) == "true"
+
 		switch dep.ObjectMeta.Name {
 		case operatorName:
-			updateImageIfOverride(EnvOperatorImage, &dep)
+			updateImageIfOverride(EnvOperatorImage, &dep, fipsEnabled)
 		case matricsServerName:
-			updateImageIfOverride(EnvMetricsImage, &dep)
+			updateImageIfOverride(EnvMetricsImage, &dep, fipsEnabled)
 		case admissionWebhooksName:
-			updateImageIfOverride(EnvAdmissionImage, &dep)
+			updateImageIfOverride(EnvAdmissionImage, &dep, fipsEnabled)
 		}
 
 		converted, err := toUnstructed(&dep)
@@ -95,7 +100,10 @@ func updateImagesInDeployments(obj map[string]interface{}) (map[string]interface
 	return obj, nil
 }
 
-func updateImageIfOverride(envName string, dep *v1.Deployment) {
+func updateImageIfOverride(envName string, dep *v1.Deployment, fipsEnabled bool) {
+	if fipsEnabled {
+		envName = envName + EnvFipsImageVariantKeySuffix
+	}
 	imageName := os.Getenv(envName)
 	if imageName != "" {
 		dep.Spec.Template.Spec.Containers[0].Image = imageName
