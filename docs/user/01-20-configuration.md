@@ -23,15 +23,16 @@ By default, the Keda module comes with the default configuration. You can change
 
    ```yaml
    spec:
-    operator:
-      level: "info"
-      format: "json"
-    metricServer:
-      level: "info"
-      format: "json"
-    admissionWebhook:
-      level: "info"
-      format: "json"
+    logging:
+      operator:
+        level: "info"
+        format: "json"
+      metricServer:
+        level: "info"
+        format: "json"
+      admissionWebhook:
+        level: "info"
+        format: "json"
    ```
 For more information about logging configuration, see [Keda logging configuration](06-70-configuring-logging.md).
 - To enable the Istio sidecar injection for **operator** and **metricServer**, set the value of **enabledSidecarInjection** to `true`. For example:
