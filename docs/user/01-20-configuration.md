@@ -16,14 +16,24 @@ By default, the Keda module comes with the default configuration. You can change
    - `debug` - is the most detailed option. Useful for a developer during debugging.
    - `info` - provides standard log level indicating operations within the Keda module. For example, it can show whether the workload scaling operation was successful or not.
    - `error` - shows error logs only. This means only log messages corresponding to errors and misconfigurations are visible in logs.
+   - `warn` - shows warning logs only. This means only log messages corresponding to warnings and potential issues are visible in logs.
+- To define the log output format, set the **logging.format** attribute to one of the following values:
+    - `json` - outputs logs in JSON format, which is structured and machine-readable.
+    - `console` - outputs logs in plain text format, which is human-readable.
 
    ```yaml
    spec:
-     logging:
-       operator:
-         level: "debug"
+    operator:
+      level: "info"
+      format: "json"
+    metricServer:
+      level: "info"
+      format: "json"
+    admissionWebhook:
+      level: "info"
+      format: "json"
    ```
-
+For more information about logging configuration, see [Keda logging configuration](06-70-configuring-logging.md).
 - To enable the Istio sidecar injection for **operator** and **metricServer**, set the value of **enabledSidecarInjection** to `true`. For example:
 
   ```yaml
