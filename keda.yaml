@@ -11314,6 +11314,9 @@ spec:
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.18.3
         app.kubernetes.io/instance: keda
+      annotations:
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
     spec:
       enableServiceLinks: true
       serviceAccountName: keda-operator
@@ -11450,6 +11453,8 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
     spec:
       enableServiceLinks: true
       serviceAccountName: keda-metrics-server
@@ -11578,6 +11583,9 @@ spec:
         app.kubernetes.io/part-of: keda-operator
         app.kubernetes.io/version: 2.18.3
         app.kubernetes.io/instance: keda
+      annotations:
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
     spec:
       enableServiceLinks: true
       serviceAccountName: keda-webhook

@@ -33,3 +33,14 @@ http:
 
 image:
   pullPolicy: IfNotPresent
+
+podAnnotations:
+  keda:
+    rt-cfg.kyma-project.io/alter-img-registry: 'true'
+    rt-cfg.kyma-project.io/add-img-pull-secret: 'true'
+  metricsAdapter:
+    rt-cfg.kyma-project.io/alter-img-registry: 'true'
+    rt-cfg.kyma-project.io/add-img-pull-secret: 'true'
+  webhooks:
+    rt-cfg.kyma-project.io/alter-img-registry: 'true'
+    rt-cfg.kyma-project.io/add-img-pull-secret: 'true'
