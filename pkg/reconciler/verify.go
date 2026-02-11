@@ -36,13 +36,10 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 			kedaVersion = deployment.GetLabels()["app.kubernetes.io/version"]
 		}
 
-		// verify required annotations on KEDA components
-		r.log.Infof("test deployment: %s", deployment.GetName())
+		// verify required bootstrapper annotations on Keda components
 		if deployment.GetName() == "keda-operator" || deployment.GetName() == "keda-operator-metrics-apiserver" || deployment.GetName() == "keda-admission-webhooks" {
-			if hasRequiredAnnotations(&deployment) {
-				//r.log.Debugf("deployment %s/%s is missing required Kyma bootstrapper annotations", obj.GetNamespace(), obj.GetName())
+			if !hasRequiredAnnotations(&deployment) {
 				missingAnnotations++
-				r.log.Infof("deployment processing: %s", deployment.GetName())
 			}
 		}
 
@@ -76,15 +73,15 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		return stopWithRequeueAfter(time.Second * 10)
 	}
 
-	//if missingAnnotations > 0 {
-	//	r.log.Debugf("%d deployments missing required Kyma bootstrapper annotations", missingAnnotations)
-	//	s.instance.UpdateStateProcessing(
-	//		v1alpha1.ConditionTypeInstalled,
-	//		v1alpha1.ConditionReasonVerification,
-	//		"one or more deployments missing required annotations",
-	//	)
-	//	return stopWithRequeueAfter(time.Second * 10)
-	//}
+	if missingAnnotations > 0 {
+		r.log.Debugf("%d deployments missing required Kyma bootstrapper annotations", missingAnnotations)
+		s.instance.UpdateStateProcessing(
+			v1alpha1.ConditionTypeInstalled,
+			v1alpha1.ConditionReasonVerification,
+			"one or more deployments missing required annotations",
+		)
+		return stopWithRequeueAfter(time.Second * 10)
+	}
 
 	// remove possible previous DeploymentFailure condition
 	s.instance.RemoveCondition(v1alpha1.ConditionTypeDeploymentFailure)
