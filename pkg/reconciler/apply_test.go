@@ -155,7 +155,6 @@ func TestUpdateImageIfOverride(t *testing.T) {
 }
 
 func TestFIPSImageVariantSelection(t *testing.T) {
-	// Operator image with FIPS enabled reads from *_FIPS env
 	t.Run("operator image uses value from *_FIPS env when FIPS enabled", func(t *testing.T) {
 		t.Setenv(EnvKymaFipsMode, "true")
 		t.Setenv(EnvOperatorImage+EnvFipsImageVariantKeySuffix, "eu.gcr.io/kyma-project/keda-operator-fips:2.18.3")
