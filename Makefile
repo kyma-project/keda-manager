@@ -1,6 +1,6 @@
 # incoming variables
 
-KEDA_VERSION ?= 2.18.3
+KEDA_VERSION ?= 2.19.0
 
 MODULE_VERSION ?= 0.0.0
 
