@@ -69,6 +69,7 @@ const (
 
 	KymaBootstraperRegistryUrlMutation        = "rt-cfg.kyma-project.io/alter-img-registry"
 	KymaBootstraperAddImagePullSecretMutation = "rt-cfg.kyma-project.io/add-img-pull-secret"
+	KymaBootstrapperSetFipsMode               = "rt-cfg.kyma-project.io/set-fips-mode"
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")
