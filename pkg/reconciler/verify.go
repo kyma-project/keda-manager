@@ -15,7 +15,6 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 	var ready int
 	var replicaFailure int
 	var kedaVersion string
-	var missingAnnotations int
 
 	for _, obj := range s.objs {
 		if !isDeployment(obj) {
@@ -34,13 +33,6 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 
 		if deployment.GetName() == "keda-operator" {
 			kedaVersion = deployment.GetLabels()["app.kubernetes.io/version"]
-		}
-
-		// verify required bootstrapper annotations on Keda components
-		if deployment.GetName() == "keda-operator" || deployment.GetName() == "keda-operator-metrics-apiserver" || deployment.GetName() == "keda-admission-webhooks" {
-			if !hasRequiredAnnotations(&deployment) {
-				missingAnnotations++
-			}
 		}
 
 		if resource.IsDeploymentReady(deployment) {
@@ -73,16 +65,6 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 		return stopWithRequeueAfter(time.Second * 10)
 	}
 
-	if missingAnnotations > 0 {
-		r.log.Debugf("%d deployments missing required Kyma bootstrapper annotations", missingAnnotations)
-		s.instance.UpdateStateProcessing(
-			v1alpha1.ConditionTypeInstalled,
-			v1alpha1.ConditionReasonVerification,
-			"one or more deployments missing required annotations",
-		)
-		return stopWithRequeueAfter(time.Second * 10)
-	}
-
 	// remove possible previous DeploymentFailure condition
 	s.instance.RemoveCondition(v1alpha1.ConditionTypeDeploymentFailure)
 
@@ -101,18 +83,4 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 
 func hasDeployReplicaFailure(deployment appsv1.Deployment) bool {
 	return resource.HasDeploymentConditionTrueStatus(deployment.Status.Conditions, appsv1.DeploymentReplicaFailure)
-}
-
-// hasRequiredAnnotations checks that the deployment's pod template metadata contains both required annotations
-func hasRequiredAnnotations(deployment *appsv1.Deployment) bool {
-	if deployment == nil {
-		return false
-	}
-	anns := deployment.Spec.Template.ObjectMeta.Annotations
-	if anns == nil {
-		return false
-	}
-	_, ok1 := anns[v1alpha1.KymaBootstraperRegistryUrlMutation]
-	_, ok2 := anns[v1alpha1.KymaBootstraperAddImagePullSecretMutation]
-	return ok1 && ok2
 }
