@@ -49,6 +49,7 @@ const (
 	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
 	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
 	ConditionReasonVerification             = ConditionReason("Verification")
+	ConditionReasonValidationErr            = ConditionReason("ValidationErr")
 	ConditionReasonInitialized              = ConditionReason("Initialized")
 	ConditionReasonKedaDuplicated           = ConditionReason("KedaDuplicated")
 	ConditionReasonDeletion                 = ConditionReason("Deletion")
