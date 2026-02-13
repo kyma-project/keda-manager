@@ -7,7 +7,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func sFnBootstrappeValidation(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+func sFnBootstrappeValidation(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 
 	if hasRestrictedAnnotations(s.instance) {
 		err := fmt.Errorf("used restricted annotations in Keda CR %s", s.instance.GetName())
@@ -23,6 +23,11 @@ func sFnBootstrappeValidation(_ context.Context, r *fsm, s *systemState) (stateF
 }
 
 func hasRestrictedAnnotations(dep v1alpha1.Keda) bool {
+	// PodAnnotations is a pointer in the spec; guard against nil to avoid panic
+	if dep.Spec.PodAnnotations == nil {
+		return false
+	}
+
 	anns := dep.Spec.PodAnnotations
 
 	restricted := []string{
@@ -32,14 +37,20 @@ func hasRestrictedAnnotations(dep v1alpha1.Keda) bool {
 	}
 
 	for _, an := range restricted {
-		if _, ok := anns.AdmissionWebhook[an]; ok {
-			return true
+		if anns.AdmissionWebhook != nil {
+			if _, ok := anns.AdmissionWebhook[an]; ok {
+				return true
+			}
 		}
-		if _, ok := anns.Operator[an]; ok {
-			return true
+		if anns.Operator != nil {
+			if _, ok := anns.Operator[an]; ok {
+				return true
+			}
 		}
-		if _, ok := anns.MetricsServer[an]; ok {
-			return true
+		if anns.MetricsServer != nil {
+			if _, ok := anns.MetricsServer[an]; ok {
+				return true
+			}
 		}
 	}
 
