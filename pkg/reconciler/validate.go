@@ -7,7 +7,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func sFnBootstrappeValidation(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+func sFnBootstrapperValidation(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 
 	if hasRestrictedAnnotations(s.instance) {
 		err := fmt.Errorf("used restricted annotations in Keda CR %s", s.instance.GetName())

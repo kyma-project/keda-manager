@@ -71,7 +71,7 @@ func Test_hasRestrictedAnnotations(t *testing.T) {
 	}
 }
 
-func Test_sFnBootstrappeValidation(t *testing.T) {
+func Test_sFnBootstrapperValidation(t *testing.T) {
 	t.Run("no restricted annotations move to the next state", func(t *testing.T) {
 		instance := v1alpha1.Keda{
 			Spec: v1alpha1.KedaSpec{
@@ -84,7 +84,7 @@ func Test_sFnBootstrappeValidation(t *testing.T) {
 		}
 		s := &systemState{instance: instance}
 
-		gotFn, gotResult, err := sFnBootstrappeValidation(context.Background(), nil, s)
+		gotFn, gotResult, err := sFnBootstrapperValidation(context.Background(), nil, s)
 
 		require.NoError(t, err)
 		require.Nil(t, gotResult, "result should be nil")
@@ -106,7 +106,7 @@ func Test_sFnBootstrappeValidation(t *testing.T) {
 		}
 		s := &systemState{instance: instance}
 
-		gotFn, gotResult, err := sFnBootstrappeValidation(context.Background(), nil, s)
+		gotFn, gotResult, err := sFnBootstrapperValidation(context.Background(), nil, s)
 
 		require.NoError(t, err)
 		require.Nil(t, gotResult, "result should be nil")
