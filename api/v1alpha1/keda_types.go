@@ -49,6 +49,7 @@ const (
 	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
 	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
 	ConditionReasonVerification             = ConditionReason("Verification")
+	ConditionReasonValidationErr            = ConditionReason("ValidationErr")
 	ConditionReasonInitialized              = ConditionReason("Initialized")
 	ConditionReasonKedaDuplicated           = ConditionReason("KedaDuplicated")
 	ConditionReasonDeletion                 = ConditionReason("Deletion")
@@ -65,6 +66,10 @@ const (
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console") // alias for text
+
+	KymaBootstraperRegistryUrlMutation        = "rt-cfg.kyma-project.io/alter-img-registry"
+	KymaBootstraperAddImagePullSecretMutation = "rt-cfg.kyma-project.io/add-img-pull-secret"
+	KymaBootstrapperSetFipsMode               = "rt-cfg.kyma-project.io/set-fips-mode"
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")

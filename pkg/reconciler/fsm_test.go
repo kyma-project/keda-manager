@@ -139,3 +139,77 @@ func Test_UpdateupdateDeploymentLabels(t *testing.T) {
 		require.EqualValues(t, expectedLabels, deployment.Spec.Template.ObjectMeta.Labels)
 	})
 }
+
+func Test_updateDeploymentAnnotations(t *testing.T) {
+	type args struct {
+		deployment  *appsv1.Deployment
+		annotations map[string]string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			name: "merge empty existing",
+			args: args{
+				deployment:  &appsv1.Deployment{},
+				annotations: map[string]string{"a": "1", "b": "2"},
+			},
+			want: map[string]string{"a": "1", "b": "2"},
+		},
+		{
+			name: "preserve existing",
+			args: args{
+				deployment: func() *appsv1.Deployment {
+					d := &appsv1.Deployment{}
+					d.Spec.Template.ObjectMeta.SetAnnotations(map[string]string{"keep": "yes"})
+					return d
+				}(),
+				annotations: map[string]string{"a": "1"},
+			},
+			want: map[string]string{"keep": "yes", "a": "1"},
+		},
+		{
+			name: "override existing",
+			args: args{
+				deployment: func() *appsv1.Deployment {
+					d := &appsv1.Deployment{}
+					d.Spec.Template.ObjectMeta.SetAnnotations(map[string]string{"k": "old", "keep": "yes"})
+					return d
+				}(),
+				annotations: map[string]string{"k": "new"},
+			},
+			want: map[string]string{"k": "new", "keep": "yes"},
+		},
+		{
+			name: "nil incoming preserves existing",
+			args: args{
+				deployment: func() *appsv1.Deployment {
+					d := &appsv1.Deployment{}
+					d.Spec.Template.ObjectMeta.SetAnnotations(map[string]string{"keep": "yes"})
+					return d
+				}(),
+				annotations: nil,
+			},
+			want: map[string]string{"keep": "yes"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := updateDeploymentAnnotations(tt.args.deployment, tt.args.annotations); (err != nil) != tt.wantErr {
+				t.Fatalf("updateDeploymentAnnotations() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got := tt.args.deployment.Spec.Template.ObjectMeta.GetAnnotations()
+			if len(got) != len(tt.want) {
+				t.Fatalf("annotations length mismatch: got %v want %v", got, tt.want)
+			}
+			for k, v := range tt.want {
+				if got[k] != v {
+					t.Fatalf("annotation %s mismatch: got %v want %v", k, got[k], v)
+				}
+			}
+		})
+	}
+}

@@ -97,7 +97,15 @@ func updateDeploymentLabels(deployment *appsv1.Deployment, config v1alpha1.Istio
 }
 
 func updateDeploymentAnnotations(deployment *appsv1.Deployment, annotations map[string]string) error {
-	deployment.Spec.Template.SetAnnotations(annotations)
+	// Merge existing annotations with provided ones so we don't clear annotations set in the chart
+	existing := deployment.Spec.Template.GetAnnotations()
+	if existing == nil {
+		existing = map[string]string{}
+	}
+	for k, v := range annotations {
+		existing[k] = v
+	}
+	deployment.Spec.Template.SetAnnotations(existing)
 	return nil
 }
 
