@@ -40,7 +40,7 @@ spec:
               mountPath: /logconfig
           env:
             - name: LOG_CONFIG_PATH
-              value: /logconfig/log-config.yaml
+              value: 1.10.0
             - name: KEDA_MODULE_VERSION
               value: main
             - name: IMAGE_KEDA_OPERATOR
