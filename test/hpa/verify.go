@@ -33,6 +33,7 @@ func Verify(utils *utils.TestUtils) error {
 	if err != nil {
 		return err
 	}
+	utils.Logger.Infof("%d HPAs found", len(hpa.Items))
 	if len(hpa.Items) != 1 {
 		return fmt.Errorf("found '%d' hpas, expected '1'", len(hpa.Items))
 	}
@@ -41,23 +42,27 @@ func Verify(utils *utils.TestUtils) error {
 }
 
 func verify(utils *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
+
+	utils.Logger.Infof("Checking HPA minreplicas: %d == 1", *hpa.Spec.MinReplicas)
 	if *hpa.Spec.MinReplicas != 1 {
-		return fmt.Errorf("hpa '%s' has minReplicas == '%d', expected 1", hpa.Name, *hpa.Spec.MinReplicas)
+		return fmt.Errorf("hpa '%s' has minReplicas == '%d', expected 1", hpa.Name, hpa.Spec.MinReplicas)
 	}
 
+	utils.Logger.Infof("Checking HPA maxreplicas: %d == 5", hpa.Spec.MaxReplicas)
 	if hpa.Spec.MaxReplicas != 5 {
 		return fmt.Errorf("hpa '%s' has maxReplicas == '%d', expected 5", hpa.Name, hpa.Spec.MaxReplicas)
 	}
-
+	utils.Logger.Infof("Checking HPA currentreplicas: %d == %d", hpa.Status.CurrentReplicas, utils.ScaleDeploymentTo)
 	if hpa.Status.CurrentReplicas != utils.ScaleDeploymentTo {
 		return fmt.Errorf("hpa '%s' has currentReplicas == '%d', expected '%d'", hpa.Name, hpa.Status.CurrentReplicas, utils.ScaleDeploymentTo)
 	}
 
-	return verifyHpaCondition(hpa)
+	return verifyHpaCondition(utils, hpa)
 }
 
-func verifyHpaCondition(hpa *v2.HorizontalPodAutoscaler) error {
+func verifyHpaCondition(utils *utils.TestUtils, hpa *v2.HorizontalPodAutoscaler) error {
 	for _, condition := range hpa.Status.Conditions {
+		utils.Logger.Infof("Checking HPA condition: %s = %s", condition.Type, condition.Status)
 		if condition.Type == v2.AbleToScale && condition.Status == corev1.ConditionTrue {
 			return nil
 		}
