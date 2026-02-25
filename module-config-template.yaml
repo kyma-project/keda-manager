@@ -36,3 +36,4 @@ icons:
   - name: module-icon
     #TODO: Provide icon for keda-manager
     link: https://raw.githubusercontent.com/kyma-project/kyma/refs/heads/main/docs/assets/logo_icon.svg
+team: Otters
