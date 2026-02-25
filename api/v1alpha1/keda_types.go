@@ -49,6 +49,7 @@ const (
 	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
 	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
 	ConditionReasonVerification             = ConditionReason("Verification")
+	ConditionReasonValidationErr            = ConditionReason("ValidationErr")
 	ConditionReasonInitialized              = ConditionReason("Initialized")
 	ConditionReasonKedaDuplicated           = ConditionReason("KedaDuplicated")
 	ConditionReasonDeletion                 = ConditionReason("Deletion")
@@ -65,6 +66,10 @@ const (
 
 	LogFormatJSON    = LogFormat("json")
 	LogFormatConsole = LogFormat("console") // alias for text
+
+	KymaBootstraperRegistryUrlMutation        = "rt-cfg.kyma-project.io/alter-img-registry"
+	KymaBootstraperAddImagePullSecretMutation = "rt-cfg.kyma-project.io/add-img-pull-secret"
+	KymaBootstrapperSetFipsMode               = "rt-cfg.kyma-project.io/set-fips-mode"
 
 	TimeEncodingEpoch       = LogTimeEncoding("epoch")
 	TimeEncodingMillis      = LogTimeEncoding("millis")
@@ -160,6 +165,24 @@ func (o *LoggingCommonCfg) UpdateArg(arg *string) {
 	}
 }
 
+// AppendMissingArgs returns logging args that are not present in the existing args
+func (o *LoggingCommonCfg) AppendMissingArgs(existingArgs []string) []string {
+	var missingArgs []string
+	for _, cfgProp := range o.list() {
+		found := false
+		for _, arg := range existingArgs {
+			if cfgProp.Match(&arg) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			missingArgs = append(missingArgs, cfgProp.String())
+		}
+	}
+	return missingArgs
+}
+
 // Sanitize converts "text" to "console" for the Format field since zap only accepts "console" or "json"
 func (o *LoggingCommonCfg) Sanitize() {
 	if o.Format != nil && *o.Format == "text" {
@@ -177,9 +200,9 @@ type Istio struct {
 }
 
 type LoggingCfg struct {
-	Operator      *LoggingCommonCfg `json:"operator,omitempty"`
-	MetricsServer *LoggingCommonCfg `json:"metricServer,omitempty"`
-	Webhook       *LoggingCommonCfg `json:"webhook,omitempty"`
+	Operator         *LoggingCommonCfg `json:"operator,omitempty"`
+	MetricsServer    *LoggingCommonCfg `json:"metricServer,omitempty"`
+	AdmissionWebhook *LoggingCommonCfg `json:"admissionWebhook,omitempty"`
 }
 
 type Resources struct {

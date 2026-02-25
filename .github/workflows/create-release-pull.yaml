@@ -1,0 +1,55 @@
+name: create pull workflow for release
+
+on:
+  create:
+
+jobs:
+  prerequisite:
+    # We can't filter out specific names in the 'on' section, so we need to do it here
+    runs-on: ubuntu-latest
+    outputs:
+      branch-name: ${{ steps.set-branch-name.outputs.branch-name }}
+    steps:
+      - id: set-branch-name
+        run: |
+          name=""
+          # if is branch and name is regex release-*, e.g release-1.0 or release-2.1
+          if [[ "${TYPE}" == "branch" && "${NAME}" =~ ^release-.* ]]; then
+            name="${NAME}"
+          fi
+
+          echo "branch-name=${name}" >> "$GITHUB_OUTPUT"
+        env:
+          TYPE: ${{ github.ref_type }}
+          NAME: ${{ github.ref_name }}
+
+  create-pull-workflow:
+    needs: prerequisite
+    if: needs.prerequisite.outputs.branch-name != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          ref: main
+          fetch-depth: 0
+      # copy .github/workflows/pull.yaml to a new file .github/workflows/pull-<branch-name>.yaml,
+      # replace `main` with `<branch-name>` in the new file
+      # push the new file to the main branch using bot
+      - name: Create pull workflow file
+        run: |
+          new_workflow_file=".github/workflows/pull-${BRANCH_NAME}.yaml"
+          sed "s/@main/@${BRANCH_NAME}/g" .github/workflows/pull.yaml > "${new_workflow_file}"
+          # replace main branch in the .on.pull_request_target.branches with the branch name with yq
+          yq eval ".on.pull_request_target.branches[0] = \"${BRANCH_NAME}\"" -i "${new_workflow_file}"
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BRANCH_NAME: ${{ needs.prerequisite.outputs.branch-name }}
+      - name: Commit&Push
+        run: |
+          git config --local user.email "team-otters@sap.com"
+          git config --local user.name "ottersbot"
+          git add .
+          git commit -m "Create pull workflow for ${BRANCH_NAME} branch"
+          git push origin main

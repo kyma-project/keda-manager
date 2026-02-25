@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	testTimeout = time.Second * 90
+	testTimeout = time.Second * 180
 )
 
 func main() {

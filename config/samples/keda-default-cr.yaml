@@ -6,6 +6,16 @@ spec:
   logging:
     operator:
       level: "info"
+      format: "json"
+      timeEncoding: "rfc3339"
+    metricServer:
+      level: "info"
+      format: "json"
+      timeEncoding: "rfc3339"
+    admissionWebhook:
+      level: "info"
+      format: "json"
+      timeEncoding: "rfc3339"
   resources:
     operator:
       limits:

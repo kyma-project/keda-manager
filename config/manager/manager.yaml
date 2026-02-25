@@ -16,6 +16,9 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: manager
         sidecar.istio.io/inject: "false"
+        rt-cfg.kyma-project.io/alter-img-registry: "true"
+        rt-cfg.kyma-project.io/add-img-pull-secret: "true"
+        rt-cfg.kyma-project.io/set-fips-mode: "true"
       labels:
         app.kubernetes.io/component: keda-manager.kyma-project.io
         control-plane: manager
@@ -23,27 +26,21 @@ spec:
       priorityClassName: "priority-class"
       securityContext:
         runAsNonRoot: true
-        # TODO(user): For common cases that do not require escalating privileges
-        # it is recommended to ensure that all your Pods/Containers are restrictive.
-        # More info: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
-        # Please uncomment the following code if your project does NOT have to work on old Kubernetes
-        # versions < 1.19 or on vendors versions which do NOT support this field by default (i.e. Openshift < 4.11 ).
-        # seccompProfile:
-        #   type: RuntimeDefault
       containers:
         - command:
             - /manager
           args:
             - --leader-elect
-            - --config-path=/etc/keda-manager/config.yaml
+            - --config-path=/logconfig/log-config.yaml
           image: controller:latest
           imagePullPolicy: Always
           name: manager
           volumeMounts:
-            - name: config
-              mountPath: /etc/keda-manager
-              readOnly: true
+            - name: log-configuration
+              mountPath: /logconfig
           env:
+            - name: LOG_CONFIG_PATH
+              value: /logconfig/log-config.yaml
             - name: KEDA_MODULE_VERSION
               value: main
             - name: IMAGE_KEDA_OPERATOR
@@ -52,6 +49,12 @@ spec:
               value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.3
             - name: IMAGE_KEDA_ADMISSION_WEBHOOKS
               value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.3
+            - name: IMAGE_KEDA_OPERATOR_FIPS
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-fips:2.18.2
+            - name: IMAGE_KEDA_METRICS_APISERVER_FIPS
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-metrics-apiserver-fips:2.18.2
+            - name: IMAGE_KEDA_ADMISSION_WEBHOOKS_FIPS
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-admission-webhooks-fips:2.18.2
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -74,12 +77,11 @@ spec:
               memory: 32Mi
               cpu: 10m
             limits:
-              memory: 128Mi
+              memory: 512Mi
               cpu: 200m
       volumes:
-        - name: config
+        - name: log-configuration
           configMap:
-            name: keda-manager-config
-            optional: true
+            name: log-configmap
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10

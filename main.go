@@ -17,13 +17,16 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/fips140"
-	"errors"
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/go-logr/zapr"
+	"github.com/kyma-project/keda-manager/pkg/logging"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -40,18 +43,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/kyma-project/manager-toolkit/logging/config"
-	"github.com/kyma-project/manager-toolkit/logging/logger"
-
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
 	"github.com/kyma-project/keda-manager/pkg/resources"
+	"github.com/kyma-project/manager-toolkit/logging/config"
 	//+kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme = runtime.NewScheme()
 )
 
 func init() {
@@ -63,7 +63,7 @@ func init() {
 
 func main() {
 	if !isFIPS140Only() {
-		setupLog.Error(errors.New("FIPS not enforced"), "FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
+		fmt.Printf("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.\n")
 		panic("FIPS 140 exclusive mode is not enabled. Check GODEBUG flags.")
 	}
 
@@ -81,58 +81,45 @@ func main() {
 	flag.Parse()
 
 	// Load configuration - from file if provided, otherwise from environment
-	var cfg config.Config
+	var logCfg config.Config
 	var err error
 	if configPath != "" {
-		cfg, err = config.LoadConfig(configPath)
+		logCfg, err = config.LoadConfig(configPath)
 		if err != nil {
+			fmt.Printf("unable to load config: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
-		cfg, err = config.GetConfig("")
+		logCfg, err = config.GetConfig("")
 		if err != nil {
+			fmt.Printf("unable to get config: %v\n", err)
 			os.Exit(1)
 		}
 	}
+	logLevel := logCfg.LogLevel
+	logFormat := logCfg.LogFormat
 
 	// Setup logging with atomic level for dynamic reconfiguration
 	atomicLevel := zap.NewAtomicLevel()
-	parsedLogLevel, err := logger.MapLevel(cfg.LogLevel)
+	parsedLevel, err := zapcore.ParseLevel(logLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to parse logging level")
+		fmt.Printf("unable to parse logger level: %v\n", err)
 		os.Exit(1)
 	}
+	atomicLevel.SetLevel(parsedLevel)
 
-	format, err := logger.MapFormat(cfg.LogFormat)
+	// Configure logger using manager-toolkit
+	log, err := logging.ConfigureLogger(logLevel, logFormat, atomicLevel)
 	if err != nil {
-		setupLog.Error(err, "unable to set logging format")
+		fmt.Printf("unable to configure logger: %v\n", err)
 		os.Exit(1)
 	}
 
-	log, err := logger.NewWithAtomicLevel(format, atomicLevel)
-	if err != nil {
-		setupLog.Error(err, "unable to set logger")
-		os.Exit(1)
-	}
+	ctx := context.Background()
+	logWithCtx := log.WithContext()
+	go logging.ReconfigureOnConfigChange(ctx, logWithCtx.Named("notifier"), atomicLevel, configPath)
 
-	if err := logger.InitKlog(log, parsedLogLevel); err != nil {
-		setupLog.Error(err, "unable to init Klog")
-		os.Exit(1)
-	}
-
-	zapLog := log.WithContext()
-	zapLog.Infof("loaded config: logLevel=%s, logFormat=%s", cfg.LogLevel, cfg.LogFormat)
-
-	// Set controller-runtime logger to use our zap logger (respects format from config)
-	ctrl.SetLogger(zapr.NewLogger(zapLog.Desugar()))
-
-	// Setup signal handler once - used for both manager and dynamic config
-	signalCtx := ctrl.SetupSignalHandler()
-
-	// Start dynamic reconfiguration in background if config path is provided
-	if configPath != "" {
-		go config.ReconfigureOnConfigChange(signalCtx, zapLog, atomicLevel, configPath)
-	}
+	ctrl.SetLogger(zapr.NewLogger(logWithCtx.Desugar()))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
@@ -155,40 +142,39 @@ func main() {
 		},
 	})
 	if err != nil {
-		zapLog.Error("unable to start manager", "error", err)
+		fmt.Printf("unable to start manager: %v\n", err)
 		os.Exit(1)
 	}
 
 	data, err := resources.LoadFromPaths("keda-networkpolicies.yaml", "keda.yaml")
 	if err != nil {
-		zapLog.Error("unable to load k8s data", "error", err)
+		fmt.Printf("unable to load k8s data: %v\n", err)
 		os.Exit(1)
 	}
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
-		zapLog,
+		logWithCtx,
 		data,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
-		zapLog.Error("unable to create controller", "controller", "Keda", "error", err)
+		fmt.Printf("unable to create controller: %v\n", err)
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		zapLog.Error("unable to set up health check", "error", err)
-		os.Exit(1)
+		fmt.Printf("unable to set up health check: %v\n", err)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		zapLog.Error("unable to set up ready check", "error", err)
+		fmt.Printf("unable to set up ready check: %v\n", err)
 		os.Exit(1)
 	}
 
-	zapLog.Info("starting manager")
-	if err := mgr.Start(signalCtx); err != nil {
-		zapLog.Error("problem running manager", "error", err)
+	fmt.Printf("starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		fmt.Printf("problem running manager: %v\n", err)
 		os.Exit(1)
 	}
 }
