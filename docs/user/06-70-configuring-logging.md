@@ -42,7 +42,7 @@ The Keda manager (`keda-manager`) supports dynamic log-level reconfiguration usi
 ## Configure Keda Module Components Logging
 
 > [!NOTE]
-> Applying logging configuration changes to the operator, metrics-server, and admission-webhooks components triggers a restart to apply the new settings.
+> Modifying the logging configuration of the operator, metrics-server, and admission-webhooks components triggers a restart to apply the new settings.
 
 ### Supported Time Encodings
 
