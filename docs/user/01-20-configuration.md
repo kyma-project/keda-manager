@@ -4,7 +4,7 @@ By default, the Keda module comes with the default configuration. You can change
 
 ## Prerequisites
 
-[You have added the Keda module](https://kyma-project.io/#/02-get-started/01-quick-install).
+[You have added the Keda module](https://kyma-project.io/02-get-started/01-quick-install.html).
 
 ## Procedure
 
@@ -101,4 +101,4 @@ For more information about logging configuration, see [Keda logging configuratio
          value: TLS13
    ```
 
-For more information about the Keda resources, see [Keda concepts](https://keda.sh/docs/latest/concepts/).
+For more information about the KEDA resources, see [KEDA concepts](https://keda.sh/docs/latest/concepts/).
