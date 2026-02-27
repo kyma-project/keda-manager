@@ -2,7 +2,7 @@
 
 KEDA_VERSION ?= 2.18.3
 
-MODULE_VERSION ?= 0.0.0
+MODULE_VERSION ?= main
 
 # Image URL to use all building/pushing image targets
 IMG ?= europe-docker.pkg.dev/kyma-project/prod/keda-manager:$(MODULE_VERSION)
