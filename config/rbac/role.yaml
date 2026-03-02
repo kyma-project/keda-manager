@@ -9,17 +9,11 @@ rules:
   resources:
   - configmaps
   - configmaps/status
-  - events
-  - services
-  verbs:
-  - '*'
-- apiGroups:
-  - ""
-  resources:
   - external
   - pods
   - secrets
   - serviceaccounts
+  - services
   verbs:
   - create
   - delete
@@ -27,6 +21,13 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - ""
   resources:
@@ -52,7 +53,11 @@ rules:
   resources:
   - '*/scale'
   verbs:
-  - '*'
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -122,19 +127,34 @@ rules:
   resources:
   - horizontalpodautoscalers
   verbs:
-  - '*'
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - batch
   resources:
   - jobs
   verbs:
-  - '*'
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - coordination.k8s.io
   resources:
   - leases
   verbs:
-  - '*'
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - discovery.k8s.io
   resources:
@@ -150,13 +170,17 @@ rules:
   - clustercloudeventsources
   - clustercloudeventsources/status
   verbs:
-  - '*'
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - external.metrics.k8s.io
   resources:
-  - '*'
+  - externalmetrics
   verbs:
-  - '*'
+  - list
+  - watch
 - apiGroups:
   - keda.sh
   resources:
@@ -171,7 +195,12 @@ rules:
   - triggerauthentications
   - triggerauthentications/status
   verbs:
-  - '*'
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - networking.k8s.io
   resources:
