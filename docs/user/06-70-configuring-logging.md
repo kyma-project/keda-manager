@@ -106,14 +106,12 @@ Update the Keda custom resource to configure logging for KEDA components:
 
 ### Limitations
 
-The **klog logs** (Kubernetes API server framework) used by `keda-operator-metrics-apiserver` are always in text format:
+The **klog logs** (Kubernetes API server framework) used by `keda-operator-metrics-apiserver` are always in text format, prefixed with `I`, `W`, `E` for `Info`, `Warning`, and `Error`:
    ```
    I0203 12:03:29.253333       1 requestheader_controller.go:180] Starting RequestHeaderAuthRequestController <- Actual log line
    W0203 11:39:56.585970       1 this is a warning example
    E0203 11:39:56.586030       1 this is an error example
    ```
-(prefixed with `I`, `W`, `E` for Info, Warning, Error)
-
 
 ## Related Information
 
