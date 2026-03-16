@@ -2,7 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: keda-editor-role
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+  name: kyma-keda-edit
 rules:
 - apiGroups:
   - operator.kyma-project.io

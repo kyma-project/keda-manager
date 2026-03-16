@@ -2,7 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: keda-viewer-role
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  name: kyma-keda-view
 rules:
 - apiGroups:
   - operator.kyma-project.io
