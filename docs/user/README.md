@@ -48,10 +48,10 @@ To learn how to scale the Kubernetes workloads using the KEDA API based on a sim
 
 For the developer guides, see:
 
-- [Install Keda Manager](../contributor/01-10-installation.md) - describes the advanced installation options.
-- [Extend user interface (UI)](../contributor/01-20-extend-ui.md) - describes how to configure a dedicated UI for your CustomResourceDefinition (CRD) using Kyma dashboard.
-- [Use Keda Manager to manage KEDA](../contributor/02-10-management.md) - describes how you can manage your KEDA instance using Keda Manager.
+- [Install Keda Manager](https://github.com/kyma-project/keda-manager/blob/main/docs/contributor/01-10-installation.md) - describes the advanced installation options.
+- [Extend user interface (UI)](https://github.com/kyma-project/keda-manager/blob/main/docs/contributor/01-20-extend-ui.md) - describes how to configure a dedicated UI for your CustomResourceDefinition (CRD) using Kyma dashboard.
+- [Use Keda Manager to manage KEDA](https://github.com/kyma-project/keda-manager/blob/main/docs/contributor/02-10-management.md) - describes how you can manage your KEDA instance using Keda Manager.
 
 For troubleshooting, see:
 
-- [Scripts don't work](../contributor/03-10-scripts-not-working.md)
+- [Scripts don't work](https://github.com/kyma-project/keda-manager/blob/main/docs/contributor/03-10-scripts-not-working.md)
