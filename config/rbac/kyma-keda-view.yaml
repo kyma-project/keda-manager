@@ -4,6 +4,12 @@ kind: ClusterRole
 metadata:
   labels:
     rbac.authorization.k8s.io/aggregate-to-view: "true"
+    kyma-project.io/module: keda
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: keda-view-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: keda
   name: kyma-keda-view
 rules:
 - apiGroups:
@@ -18,12 +24,6 @@ rules:
   - operator.kyma-project.io
   resources:
   - kedas/status
-  verbs:
-  - get
-- apiGroups:
-  - apiextensions.k8s.io
-  resources:
-  - customresourcedefinitions
   verbs:
   - get
 
