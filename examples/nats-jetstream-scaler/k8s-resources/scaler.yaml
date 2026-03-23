@@ -1,0 +1,57 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: jetstream-lag-scaler
+  namespace: nats-jetstream-demo
+spec:
+  scaleTargetRef:
+    name: jetstream-consumer
+  # Scaling configuration
+  minReplicaCount: 0                  # Scale down to 0 when no lag
+  maxReplicaCount: 10                 # Don't scale beyond 10 pods
+  pollingInterval: 5                  # Check lag every 5 seconds
+  cooldownPeriod: 30                  # Wait 30s before scaling down
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 0  # Faster scale-down (default is 300)
+          policies:
+          - type: Pods
+            value: 2
+            periodSeconds: 10
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Pods
+            value: 4
+            periodSeconds: 10
+  triggers:
+  - type: nats-jetstream
+    metadata:
+      # NATS JetStream monitoring endpoint (port 8222)
+      natsServerMonitoringEndpoint: eventing-nats.kyma-system.svc.cluster.local:8222
+      
+      # Account: "$G" is the default global account
+      account: $G
+      
+      # Stream and consumer to monitor
+      stream: demo-stream
+      consumer: demo-consumer
+      
+      # Scaling thresholds
+      # lagThreshold: number of unacked messages that triggers a new replica
+      #   Calculation: (desired_replicas) = ceil(lag / lagThreshold)
+      #   With lagThreshold=5: lag of 25 → 5 replicas, lag of 5 → 1 replica
+      # With consumer processing 1 msg/sec per pod:
+      #   - lagThreshold=5 means scale +1 pod per 5 messages of backlog
+      #   - This gives responsive scaling without thrashing
+      lagThreshold: "20"
+      
+      # activationLagThreshold: minimum lag needed to activate scaler
+      #   If lag < this, KEDA won't apply any scaling (useful for cost savings)
+      activationLagThreshold: "1"
+      
+      # HTTPS settings (set to "true" if NATS is using TLS on monitoring port)
+      useHttps: "false"
+

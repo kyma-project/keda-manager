@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-jetstream
+  namespace: nats-jetstream-demo
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: setup
+        image: natsio/nats-box:0.14.0
+        env:
+        - name: NATS_URL
+          value: nats://eventing-nats.kyma-system.svc.cluster.local:4222
+        command:
+        - sh
+        - -c
+        - |
+          set -eu
+          echo "Waiting for NATS JetStream..."
+          for i in $(seq 1 30); do
+            if nats --server "$NATS_URL" rtt >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+          echo "Creating stream and consumer"
+          nats --server "$NATS_URL" stream add demo-stream --subjects "orders.created" --storage file --retention limits --defaults || true
+          nats --server "$NATS_URL" consumer add demo-stream demo-consumer --pull --filter "orders.created" --ack explicit --defaults || true
+
+          echo "JetStream setup complete"

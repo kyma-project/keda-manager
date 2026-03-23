@@ -1,0 +1,7 @@
+namespace: nats-jetstream-demo
+
+resources:
+  - namespace.yaml
+  - producer-consumer.yaml
+  - setup-job.yaml
+  - scaler.yaml
