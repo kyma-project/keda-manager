@@ -50,11 +50,11 @@ spec:
             - name: IMAGE_KEDA_ADMISSION_WEBHOOKS
               value: europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.3
             - name: IMAGE_KEDA_OPERATOR_FIPS
-              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-fips:2.18.2
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-fips:2.18.3
             - name: IMAGE_KEDA_METRICS_APISERVER_FIPS
-              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-metrics-apiserver-fips:2.18.2
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-metrics-apiserver-fips:2.18.3
             - name: IMAGE_KEDA_ADMISSION_WEBHOOKS_FIPS
-              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-admission-webhooks-fips:2.18.2
+              value: europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-admission-webhooks-fips:2.18.3
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

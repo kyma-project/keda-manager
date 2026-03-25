@@ -5,6 +5,9 @@ bdba:
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.18.3
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.18.3
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.18.3
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-fips:2.18.3
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-metrics-apiserver-fips:2.18.3
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/keda-admission-webhooks-fips:2.18.3
 mend:
   language: golang-mod
   exclude:
