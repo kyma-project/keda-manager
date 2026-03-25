@@ -1,0 +1,62 @@
+# Kubernetes ClusterRole aggregation hierarchy: admin ⊃ edit ⊃ view.
+# Only list rules unique to each role; the test merges upward.
+#
+# "forbidden" lists rules that must NOT exist in the ClusterRole.
+# The test will fail if any forbidden rule is found. Forbidden permissions are per-role only and do NOT inherit upward.
+admin:
+  rules: []
+  forbidden: []
+
+edit:
+  rules:
+    # kyma-keda-edit
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas/status
+      verbs:
+        - get
+  forbidden:
+    - apiGroups:
+        - ""
+      resources:
+        - namespaces
+      verbs:
+        - create
+
+view:
+  rules:
+    # kyma-keda-view
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas/status
+      verbs:
+        - get
+  forbidden:
+    - apiGroups:
+        - ""
+      resources:
+        - secrets
+      verbs:
+        - get
