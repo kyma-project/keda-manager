@@ -76,8 +76,7 @@ jobs:
           kubectl create namespace kyma-system || true
           make deploy
         env:
-          IMG_DIRECTORY: ${{ inputs.img_directory }}
-          IMG_VERSION: ${{ inputs.img_version }}
+          IMG: ${{ inputs.image }}
       - name: run rbac tests
         uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
         with:
