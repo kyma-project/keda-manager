@@ -7,7 +7,7 @@ This example demonstrates event-driven autoscaling of a consumer deployment with
 - A consumer processes messages from a JetStream pull consumer.
 - KEDA scales the consumer deployment based on JetStream consumer lag.
 
-## How the sample app works
+## How the Sample App Works
 
 This sample deploys four main elements in the `nats-jetstream-demo` namespace:
 
@@ -22,7 +22,7 @@ The runtime flow is:
 2. If consumer replicas are low (or zero), the message backlog (lag) grows.
 3. KEDA reads lag metrics from the NATS monitoring endpoint.
 4. KEDA updates HPA desired replicas for `jetstream-consumer`.
-5. Consumer pods scale up, process backlog, and acknowledge messages.
+5. Consumer Pods scale up, process backlog, and acknowledge messages.
 6. As lag drops below the threshold defined in the scaler definition and cooldown passes, KEDA scales consumer replicas back down.
 
 ## Diagram
@@ -32,7 +32,7 @@ The runtime flow is:
 ## Prerequisites
 
 - `KUBECONFIG` environment variable pointing to a Kubernetes cluster.
-- KEDA and NATS modules installed in the Kyma cluster (`make ensure_kyma_modules`).
+- Keda and NATS modules installed in the Kyma cluster (`make ensure_kyma_modules`).
 
 ## Install Kyma Modules
 
@@ -45,15 +45,15 @@ make ensure_kyma_modules
 This target:
 
 - Creates the `kyma-system` namespace (if missing).
-- Installs KEDA manager and the default KEDA custom resource.
-- Installs NATS manager and the default NATS custom resource.
+- Installs Keda manager and the default KEDA custom resource (CR).
+- Installs NATS manager and the default NATS CR.
 
 You can also run the same commands manually:
 
 ```sh
 kubectl get ns kyma-system >/dev/null 2>&1 || kubectl create ns kyma-system
 
-# Install the KEDA manager along with its custom CR:
+# Install Keda manager along with its custom CR:
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
 kubectl wait --for condition=established --timeout=180s crd/kedas.operator.kyma-project.io
 kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml -n kyma-system
@@ -64,7 +64,7 @@ kubectl wait --for condition=established --timeout=180s crd/nats.operator.kyma-p
 kubectl apply -f https://github.com/kyma-project/nats-manager/releases/latest/download/nats-default-cr.yaml -n kyma-system
 ```
 
-If you're using the [Kyma CLI](https://github.com/kyma-project/cli) you can install the modules using the following commands:
+If you're using [Kyma CLI](https://github.com/kyma-project/cli), you can install the modules using the following commands:
 
 ```sh
 kyma module add keda --default-config-cr
@@ -106,7 +106,7 @@ Module versions in the output above are examples and can differ depending on the
 
 ## Verify Scaling
 
-1. Watch pods and HPA:
+1. Watch Pods and HPA:
 
    ```sh
    kubectl get pods -n nats-jetstream-demo -w
@@ -182,7 +182,7 @@ setup-jetstream-ptjfk                 0/1     Completed   0          68s
 
 ```
 
-When the number of tasks falls below the defined threshold, the number of active consumers will decrease.
+When the number of tasks falls below the defined threshold, the number of active consumers decreases.
 
 ## Cleanup
 
