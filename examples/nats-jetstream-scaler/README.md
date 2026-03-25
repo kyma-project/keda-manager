@@ -7,6 +7,16 @@ This example demonstrates event-driven autoscaling of a consumer deployment with
 - A consumer processes messages from a JetStream pull consumer.
 - KEDA scales the consumer deployment based on JetStream consumer lag.
 
+## Prerequisites
+
+- `KUBECONFIG` environment variable pointing to a Kubernetes cluster.
+- Keda and NATS modules installed in the Kyma cluster.
+   - For unmanaged Kyma, see [Kyma Quick Install][kyma-quick-install].
+   - For managed Kyma, see [Enable and Disable Kyma Module][kyma-managed-modules].
+
+[kyma-quick-install]: https://kyma-project.io/02-get-started/01-quick-install.html
+[kyma-managed-modules]: https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US
+
 ## How the Sample App Works
 
 This sample deploys four main elements in the `nats-jetstream-demo` namespace:
@@ -28,60 +38,6 @@ The runtime flow is:
 ## Diagram
 
 ![diagram](assets/nats-jetstream-keda-integration.drawio.svg)
-
-## Prerequisites
-
-- `KUBECONFIG` environment variable pointing to a Kubernetes cluster.
-- Keda and NATS modules installed in the Kyma cluster (`make ensure_kyma_modules`).
-
-## Install Kyma Modules
-
-If your Kyma cluster does not have KEDA and NATS yet, install them with:
-
-```sh
-make ensure_kyma_modules
-```
-
-This target:
-
-- Creates the `kyma-system` namespace (if missing).
-- Installs Keda manager and the default KEDA custom resource (CR).
-- Installs NATS manager and the default NATS CR.
-
-You can also run the same commands manually:
-
-```sh
-kubectl get ns kyma-system >/dev/null 2>&1 || kubectl create ns kyma-system
-
-# Install Keda manager along with its custom CR:
-kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-manager.yaml
-kubectl wait --for condition=established --timeout=180s crd/kedas.operator.kyma-project.io
-kubectl apply -f https://github.com/kyma-project/keda-manager/releases/latest/download/keda-default-cr.yaml -n kyma-system
-
-# Install the NATS manager along with its custom CR:
-kubectl apply -f https://github.com/kyma-project/nats-manager/releases/latest/download/nats-manager.yaml
-kubectl wait --for condition=established --timeout=180s crd/nats.operator.kyma-project.io
-kubectl apply -f https://github.com/kyma-project/nats-manager/releases/latest/download/nats-default-cr.yaml -n kyma-system
-```
-
-If you're using [Kyma CLI](https://github.com/kyma-project/cli), you can install the modules using the following commands:
-
-```sh
-kyma module add keda --default-config-cr
-kyma module add nats --default-config-cr
-```
-
-In order to verify the installation, make use of the `module list` command, you should see a similar output:
-
-```sh
-$ kyma module list
-NAME           VERSION        CR POLICY         MANAGED   MODULE STATUS   INSTALLATION STATUS
-# some potential other modules 
-keda           1.10.0(fast)   CreateAndDelete   true      Ready           Ready
-nats           1.4.3(fast)    CreateAndDelete   true      Ready           Ready
-```
-
-Module versions in the output above are examples and can differ depending on the current release channel.
 
 ## Deploy
 
