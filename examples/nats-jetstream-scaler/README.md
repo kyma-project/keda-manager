@@ -1,4 +1,4 @@
-## Scenario
+# Scenario
 
 This example demonstrates event-driven autoscaling of a consumer deployment with the KEDA
 `nats-jetstream` scaler.
@@ -12,7 +12,7 @@ This example demonstrates event-driven autoscaling of a consumer deployment with
 - `KUBECONFIG` environment variable pointing to a Kubernetes cluster.
 - Keda and NATS modules installed in the Kyma cluster.
    - For unmanaged Kyma, see [Kyma Quick Install][kyma-quick-install].
-   - For managed Kyma, see [Enable and Disable Kyma Module][kyma-managed-modules].
+   - For managed Kyma, see [Adding and Deleting a Kyma Module][kyma-managed-modules].
 
 [kyma-quick-install]: https://kyma-project.io/02-get-started/01-quick-install.html
 [kyma-managed-modules]: https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US
