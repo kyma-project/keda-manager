@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/kedacore/keda/v2 v2.18.3
-	github.com/kyma-project/manager-toolkit/installation/base v0.260113.143439-fb9dc47
+	github.com/kyma-project/manager-toolkit/installation/base v0.260323.101933-4244775
 	github.com/kyma-project/manager-toolkit/logging v0.260128.123422-9ec1c8b
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
@@ -21,7 +21,7 @@ require (
 	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.3
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
-	sigs.k8s.io/controller-runtime v0.22.4
+	sigs.k8s.io/controller-runtime v0.22.5
 )
 
 require (
