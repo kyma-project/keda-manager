@@ -26,4 +26,40 @@ rules:
   - kedas/status
   verbs:
   - get
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  - scaledjobs
+  - triggerauthentications
+  - clustertriggerauthentications
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects/status
+  - scaledjobs/status
+  - triggerauthentications/status
+  - clustertriggerauthentications/status
+  verbs:
+  - get
+- apiGroups:
+  - eventing.keda.sh
+  resources:
+  - cloudeventsources
+  - clustercloudeventsources
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - eventing.keda.sh
+  resources:
+  - cloudeventsources/status
+  - clustercloudeventsources/status
+  verbs:
+  - get
 

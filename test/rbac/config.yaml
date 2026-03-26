@@ -28,6 +28,50 @@ edit:
         - kedas/status
       verbs:
         - get
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects
+        - scaledjobs
+        - triggerauthentications
+        - clustertriggerauthentications
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects/status
+        - scaledjobs/status
+        - triggerauthentications/status
+        - clustertriggerauthentications/status
+      verbs:
+        - get
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources
+        - clustercloudeventsources
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources/status
+        - clustercloudeventsources/status
+      verbs:
+        - get
   forbidden:
     - apiGroups:
         - ""
@@ -51,6 +95,42 @@ view:
         - operator.kyma-project.io
       resources:
         - kedas/status
+      verbs:
+        - get
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects
+        - scaledjobs
+        - triggerauthentications
+        - clustertriggerauthentications
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects/status
+        - scaledjobs/status
+        - triggerauthentications/status
+        - clustertriggerauthentications/status
+      verbs:
+        - get
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources
+        - clustercloudeventsources
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources/status
+        - clustercloudeventsources/status
       verbs:
         - get
   forbidden:
