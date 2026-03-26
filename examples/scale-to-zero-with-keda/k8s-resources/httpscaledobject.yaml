@@ -1,0 +1,24 @@
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: http-echo
+  namespace: demo-app
+spec:
+  hosts:
+  - "http-echo-keda.<YOUR_DOMAIN>"
+  pathPrefixes:
+  - /
+  scaleTargetRef:
+    name: http-echo
+    kind: Deployment
+    apiVersion: apps/v1
+    service: http-echo
+    port: 8080
+  replicas:
+    min: 0
+    max: 10
+  scalingMetric:
+    requestRate:
+      targetValue: 10
+      granularity: "1s"
+      window: "1m"
