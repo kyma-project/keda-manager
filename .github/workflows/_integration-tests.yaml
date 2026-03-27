@@ -80,5 +80,5 @@ jobs:
       - name: run rbac tests
         uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
         with:
-          config: test/rbac/config.yaml
+          config: ${{ github.workspace }}/test/rbac/config.yaml
 
