@@ -1,0 +1,40 @@
+name: Rebuild Keda FIPS images from Chainguard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "external-chainguard-images.yaml"
+
+jobs:
+  keda-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Calculate variants
+        id: calculate-variants
+        run: |
+          KEDA_VERSION=$(yq -r '.keda_version' external-chainguard-images.yaml)
+          echo "KEDA_VERSION=$KEDA_VERSION" >> $GITHUB_OUTPUT
+
+    outputs:
+      keda_version: ${{ steps.calculate-variants.outputs.KEDA_VERSION }}
+
+  build:
+    needs: keda-version
+    strategy:
+      matrix:
+        keda:
+          - image: keda-fips
+          - image: keda-admission-webhooks-fips
+          - image: keda-metrics-apiserver-fips
+    uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main
+    with:
+      name: ${{ matrix.keda.image }}
+      dockerfile: Dockerfile-chainguard
+      tags: ${{ needs.keda-version.outputs.keda_version }}
+      use-restricted-registry: true
+      build-args: |
+        IMAGE=${{ matrix.keda.image }}:${{ needs.keda-version.outputs.keda_version }}
