@@ -35,3 +35,6 @@ jobs:
       name: ${{ matrix.keda.image }}
       dockerfile: Dockerfile-chainguard
       tags: ${{ needs.keda-version.outputs.keda_version }}
+      use-restricted-registry: true
+      build-args: |
+        IMAGE=${{ matrix.keda.image }}:${{ needs.keda-version.outputs.keda_version }}
