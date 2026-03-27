@@ -60,3 +60,25 @@ jobs:
           btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
           btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
           btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+
+  rbac-integration-test:
+    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
+      - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
+      - name: deploy keda
+        run: |
+          kubectl create namespace kyma-system || true
+          make deploy
+        env:
+          IMG: ${{ inputs.image }}
+      - name: run rbac tests
+        uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
+        with:
+          config: test/rbac/config.yaml
+

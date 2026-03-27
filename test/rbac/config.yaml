@@ -1,0 +1,142 @@
+# Kubernetes ClusterRole aggregation hierarchy: admin ⊃ edit ⊃ view.
+# Only list rules unique to each role; the test merges upward.
+#
+# "forbidden" lists rules that must NOT exist in the ClusterRole.
+# The test will fail if any forbidden rule is found. Forbidden permissions are per-role only and do NOT inherit upward.
+admin:
+  rules: []
+  forbidden: []
+
+edit:
+  rules:
+    # kyma-keda-edit
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas/status
+      verbs:
+        - get
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects
+        - scaledjobs
+        - triggerauthentications
+        - clustertriggerauthentications
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects/status
+        - scaledjobs/status
+        - triggerauthentications/status
+        - clustertriggerauthentications/status
+      verbs:
+        - get
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources
+        - clustercloudeventsources
+      verbs:
+        - create
+        - delete
+        - get
+        - list
+        - patch
+        - update
+        - watch
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources/status
+        - clustercloudeventsources/status
+      verbs:
+        - get
+  forbidden:
+    - apiGroups:
+        - ""
+      resources:
+        - namespaces
+      verbs:
+        - create
+
+view:
+  rules:
+    # kyma-keda-view
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - operator.kyma-project.io
+      resources:
+        - kedas/status
+      verbs:
+        - get
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects
+        - scaledjobs
+        - triggerauthentications
+        - clustertriggerauthentications
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - keda.sh
+      resources:
+        - scaledobjects/status
+        - scaledjobs/status
+        - triggerauthentications/status
+        - clustertriggerauthentications/status
+      verbs:
+        - get
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources
+        - clustercloudeventsources
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - eventing.keda.sh
+      resources:
+        - cloudeventsources/status
+        - clustercloudeventsources/status
+      verbs:
+        - get
+  forbidden:
+    - apiGroups:
+        - ""
+      resources:
+        - secrets
+      verbs:
+        - get
