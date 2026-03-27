@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/name: nats-jetstream-demo
+    kubernetes.io/metadata.name: nats-jetstream-demo
+  name: nats-jetstream-demo
+spec:

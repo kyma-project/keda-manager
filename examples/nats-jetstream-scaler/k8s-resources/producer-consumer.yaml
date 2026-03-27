@@ -1,0 +1,109 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jetstream-producer
+  namespace: nats-jetstream-demo
+  labels:
+    app.kubernetes.io/name: jetstream-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jetstream-producer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jetstream-producer
+    spec:
+      containers:
+      - name: producer
+        image: natsio/nats-box:0.14.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NATS_URL
+          value: nats://eventing-nats.kyma-system.svc.cluster.local:4222
+        - name: STREAM_NAME
+          value: demo-stream
+        - name: SUBJECT
+          value: orders.created
+        - name: BATCH_SIZE
+          value: "100"
+        - name: BATCH_INTERVAL_SECONDS
+          value: "90"
+        command:
+        - sh
+        - -c
+        - |
+          set -eu
+          msg=1
+          echo "[Producer] Publishing ${BATCH_SIZE} messages every ${BATCH_INTERVAL_SECONDS}s"
+          while true; do
+            for i in $(seq 1 "${BATCH_SIZE}"); do
+              nats --server "${NATS_URL}" pub "${SUBJECT}" "order-${msg}" >/dev/null
+              msg=$((msg + 1))
+            done
+            echo "[Producer] Batch of ${BATCH_SIZE} messages published"
+            sleep "${BATCH_INTERVAL_SECONDS}"
+          done
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jetstream-consumer
+  namespace: nats-jetstream-demo
+  labels:
+    app.kubernetes.io/name: jetstream-consumer
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jetstream-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jetstream-consumer
+    spec:
+      containers:
+      - name: consumer
+        image: natsio/nats-box:0.14.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NATS_URL
+          value: nats://eventing-nats.kyma-system.svc.cluster.local:4222
+        - name: STREAM_NAME
+          value: demo-stream
+        - name: CONSUMER_NAME
+          value: demo-consumer
+        - name: PROCESS_DELAY_SECONDS
+          value: "1"
+        command:
+        - sh
+        - -c
+        - |
+          set -eu
+          processed=0
+          echo "[Consumer] Processing 1 message every ${PROCESS_DELAY_SECONDS}s"
+          while true; do
+            if nats --server "${NATS_URL}" consumer next "${STREAM_NAME}" "${CONSUMER_NAME}" --count 1 --ack --wait 2s --raw >/tmp/msg 2>/dev/null; then
+              processed=$((processed + 1))
+              echo "[Consumer #${processed}] Processed: $(cat /tmp/msg)"
+              sleep "${PROCESS_DELAY_SECONDS}"
+            else
+              sleep 1
+            fi
+          done
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
