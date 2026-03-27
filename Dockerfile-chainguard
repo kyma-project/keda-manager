@@ -1,0 +1,6 @@
+# This Dockerfile is used to build the KEDA FIPS compliant images from chainguard
+# These images have to rebuild to keep them on constant SHA256 digest, as the base image is updated with security patches
+
+ARG IMAGE
+
+FROM europe-docker.pkg.dev/kyma-project/restricted-prod/sap.com/${IMAGE}
