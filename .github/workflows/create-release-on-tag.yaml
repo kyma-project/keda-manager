@@ -1,4 +1,4 @@
-# This workflow is part of the release process and is automatically run when the .github/workflows/create-release.yaml one 
+# This workflow is part of the release process and is automatically run when the .github/workflows/create-release.yaml one
 # creates a tag because create-release.yaml pushes a new commit to the branch and building jobs can't resolve such a situation.
 # Because of this, we run the second part of the process in a separate workflow that has its own context based on the tag created.
 
@@ -15,7 +15,6 @@ permissions: # used by build images steps
   actions: read
 
 jobs:
-
   builds:
     uses: ./.github/workflows/_build.yaml
     with:
@@ -28,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -71,7 +70,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
