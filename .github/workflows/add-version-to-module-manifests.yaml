@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       keda_tag:
-        description: 'Keda tag to add (`x.x.x`)'
+        description: "Keda tag to add (`x.x.x`)"
         default: ""
         required: true
 
@@ -18,14 +18,13 @@ env:
   KEDA_REPO_URL: ${{ secrets.KEDA_REPO_URL }}
 
 jobs:
-
   add-keda:
     name: Get, render and push keda assets
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.keda_tag }}
@@ -42,7 +41,7 @@ jobs:
         run: |
           make module-config
           echo "==== module-config ==="
-          cat module-config.yaml 
+          cat module-config.yaml
 
       - name: Set up module-manifests repo
         run: |
@@ -59,7 +58,7 @@ jobs:
 
           mkdir -p modules/keda/${MODULE_VERSION}
           cp ../module-config.yaml modules/keda/${MODULE_VERSION}/module-config.yaml
-          
+
           git add .
           git commit -m "add keda ${MODULE_VERSION}"
           git push origin "keda-${MODULE_VERSION}" -f
