@@ -3,9 +3,6 @@
 ## Overview
 
 This example demonstrates how to use the [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) on a Kyma cluster to achieve HTTP-based scale-to-zero and scale-from-zero for workloads, without losing any requests.
-
-Unlike the [Prometheus-based scaling example](../scale-to-zero-with-keda), the HTTP Add-on intercepts and queues incoming HTTP traffic directly, eliminating the need for intermediate messaging systems like NATS or Kafka.
-
 It uses:
 
 - [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) to intercept, queue, and count incoming HTTP requests — enabling scale-to-zero and scale-from-zero without lost requests,
@@ -69,10 +66,34 @@ helm install http-add-on kedacore/keda-add-ons-http \
   -p '{"spec":{"template":{"metadata":{"annotations":{"traffic.sidecar.istio.io/excludeInboundPorts":"9090"}}}}}'
   ```
 
-  3. Apply the example resources from `./k8s-resources` directory:
+  3. Edit the `k8s-resources/apirule.yaml` and `k8s-resources/httpscaledobject.yaml` files to fill in the hosts value.
+
+  4. Apply the example resources from `./k8s-resources` directory:
 
 ```bash
 kubectl apply -f ./k8s-resources
 ```
 
+tutaj opisać jeszcze co robi dany resource, poprawić apkę
+dodać info na temat tune cold start
+
 ## Test the application 
+
+At first, the application Pod is scaled down.
+
+1. List HPA for the demo application and check that the current replica count is zero:
+
+```bash
+kubectl get hpa -n demo-app
+NAME            REFERENCE         TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+keda-hpa-xkcd   Deployment/xkcd   <unknown>/10 (avg)   1         10        0          2h
+```
+
+2. List Pods of demo application and check that replica count is zero:
+
+```bash
+kubectl get pod -n  demo-app
+No resources found in demo-app namespace.
+```
+
+3. Generate a load (even a single request) and check that the non-zero request rate
