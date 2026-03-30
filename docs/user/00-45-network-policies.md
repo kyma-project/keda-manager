@@ -14,7 +14,7 @@ To list the network policies belonging to the KEDA module, run the following com
 kubectl get networkpolicies -n kyma-system -l kyma-project.io/module=keda
 ```
 
-The following tables describe the network policies for the KEDA module.
+The following tables describe the network policies for the KEDA module:
 
 **KEDA Manager Policies**
 
