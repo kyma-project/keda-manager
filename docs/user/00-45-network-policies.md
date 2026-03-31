@@ -4,24 +4,24 @@
 
 The Keda module defines network policies to ensure communication within the Kubernetes cluster, particularly in environments where a deny-all network policy is applied.
 
-When a cluster-wide deny-all network policy is enforced, which blocks all ingress and egress traffic by default, the KEDA network policies explicitly allow only the necessary communication paths to ensure the module functions correctly.
+When a cluster-wide deny-all network policy is enforced, which blocks all ingress and egress traffic by default, the Keda module network policies explicitly allow only the necessary communication paths to ensure the module functions correctly.
 
 ## Network Policies
 
-To list the network policies belonging to the KEDA module, run the following command:
+To list the network policies belonging to the Keda module, run the following command:
 
 ```bash
 kubectl get networkpolicies -n kyma-system -l kyma-project.io/module=keda
 ```
 
-The following tables describe the network policies for the KEDA module:
+The following tables describe the network policies for the Keda module:
 
-**KEDA Manager Policies**
+**Keda Manager Policies**
 
 | Policy Name | Type | Port(s) | Description |
 |---|---|---|---|
-| `kyma-project.io--keda-manager-allow-to-apiserver` | Egress | 443 (TCP), 6443 (TCP) | Allows egress from the KEDA Manager Pod to the Kubernetes API server. Applied to Pods labeled `app.kubernetes.io/component: keda-manager.kyma-project.io` and `control-plane: manager`. |
-| `kyma-project.io--keda-manager-allow-to-dns` | Egress | 53 (TCP/UDP), 8053 (TCP/UDP) | Allows egress from the KEDA Manager Pod to DNS services for cluster and external DNS resolution. Targets any IP on port 53, and Pods labeled `k8s-app: kube-dns` or `k8s-app: node-local-dns` in namespaces labeled `gardener.cloud/purpose: kube-system` on ports 53 and 8053. Applied to Pods labeled `app.kubernetes.io/component: keda-manager.kyma-project.io` and `control-plane: manager`. |
+| `kyma-project.io--keda-manager-allow-to-apiserver` | Egress | 443 (TCP), 6443 (TCP) | Allows egress from the Keda Manager Pod to the Kubernetes API server. Applied to Pods labeled `app.kubernetes.io/component: keda-manager.kyma-project.io` and `control-plane: manager`. |
+| `kyma-project.io--keda-manager-allow-to-dns` | Egress | 53 (TCP/UDP), 8053 (TCP/UDP) | Allows egress from the Keda Manager Pod to DNS services for cluster and external DNS resolution. Targets any IP on port 53, and Pods labeled `k8s-app: kube-dns` or `k8s-app: node-local-dns` in namespaces labeled `gardener.cloud/purpose: kube-system` on ports 53 and 8053. Applied to Pods labeled `app.kubernetes.io/component: keda-manager.kyma-project.io` and `control-plane: manager`. |
 
 **KEDA Admission Webhooks Policies**
 
