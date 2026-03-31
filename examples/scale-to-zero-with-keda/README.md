@@ -1,125 +1,174 @@
-# Scale to Zero With Keda
+# Scale to Zero with KEDA HTTP Add-on
 
 ## Overview
 
-This example demonstrates an event-driven approach that allows you to decouple functional parts of an application and apply consumption-based scaling.
+This example demonstrates how to use the [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) on a Kyma cluster to achieve HTTP-based scale-to-zero and scale-from-zero for workloads, without losing any requests.
 It uses:
 
-- Functions to deploy workloads directly from a Git repository,
-- In-cluster Eventing to enable event-driven communication,
-- [Keda](https://keda.sh/) to drive the Function's scaling,
-- Prometheus and Istio to deliver metrics essential for scaling decisions.
+- [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) to intercept, queue, and count incoming HTTP requests — enabling scale-to-zero and scale-from-zero without lost requests,
+- [KEDA](https://keda.sh/) to drive the workload's scaling based on request rate metrics provided by the HTTP Add-on,
+- A demo application ([hashicorp/http-echo](https://hub.docker.com/r/hashicorp/http-echo)) that returns request-specific information (request headers, pod name, timestamp) to verify that no requests are lost during scaling,
+- Istio service mesh to provide mTLS encryption between all components and to expose the application via API Gateway,
+- API Gateway (APIRule v2) to route external HTTPS traffic to the HTTP Add-on's Interceptor.
 
 It realises the following scenario:
 
-![KEDA scaling scenario](assets/scaling-scenario.png "Scenario")
+![KEDA scaling scenario](assets/scale-to-0.png "Scenario")
 
-1. `http request` arrives in the `http-proxy-fn` Pod.
-2. `http-proxy-fn` sends a message to the initially scaled-down `scalable-worker-fn` using Kyma Eventing.
-3. Eventing keeps resending the message until it's received and acknowledged.
-4. Prometheus records the traffic between Eventing and the `scalable-worker-fn` Kubernetes service.
-5. KEDA reads a non-zero request rate targeted for the `scalable-worker-fn` Kubernetes service.
-6. KEDA scales up the `scalable-worker-fn` Function. Function Controller spins up the new Pod replicas.
-7. `scalable-worker-fn` eventually receives the message from Eventing and processes it; Eventing receives the acknowledgment and stops resending
-8. After a cooldown period, the request rate targeted for `scalable-worker-fn` is again zero - KEDA scales it back down to zero
+1. An `HTTP request` arrives at the **API Gateway**, which routes traffic to the **Interceptor's Service**.
+2. The **Interceptor** receives the request, counts it, and queues it if the target workload has 0 replicas.
+3. The **External Scaler** pulls request count metrics from the **Interceptor** via gRPC.
+4. **KEDA** reads metrics from the **External Scaler** and scales the target **Deployment** accordingly (including to/from zero).
+5. **KEDA** reconciles the **ScaledObject** (auto-created from HTTPScaledObject) to manage the scaling behavior.
+6. The **KEDA-HTTP Operator** watches **HTTPScaledObject** resources and configures all add-on components (Interceptor routing, ScaledObject, External Scaler).
+7. Once the **Deployment** has ready replicas, the **Interceptor** forwards the queued request to the application **Service**, which routes it to the running **Pod**.
 
-The proxy Function receives the incoming HTTP traffic, and with every request, it publishes the payload as an in-cluster event to a particular topic.
-
-The second Function (the actual worker) is subscribed to the topic and processes the incoming messages. Until there are no messages published for its subscribed topic, it remains scaled to zero - there are no actual worker Pods living in the runtime.
-
-KEDA is used to scale the worker Function. [KEDA Prometheus scaler](https://keda.sh/docs/latest/scalers/prometheus/) is used to measure the load targeted for the worker Function and scale it accordingly (from 0 to 5 replicas).
 
 ## Prerequisites
 
 - Kyma as the target Kubernetes runtime.
-- [Keda and Serverless modules installed](https://kyma-project.io/#/02-get-started/01-quick-install?id=steps)
-- [Custom Prometheus stack installed](https://github.com/kyma-project/examples/blob/main/prometheus/README.md#installation) with [Istio scraping enabled](https://github.com/kyma-project/examples/blob/main/prometheus/README.md#installation)
+- [Keda, Istio and API Gateway modules installed](https://kyma-project.io/02-get-started/01-quick-install.html#steps)
+
 
 ## Installation
 
-1. Make sure Istio sidecar injection is enabled in the target Namespace:
+### 1. Install the `http-add-on`
 
+Create a dedicated namespace and install the add-on via Helm:
+
+Add Helm repository:
 ```bash
-kubectl label namespace default istio-injection=enabled
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
 ```
 
-2. Edit the `k8s-resources/scalable-worker-fn.yml` and `k8s-resources/peer-authentication.yaml` files to fill in the namespace value (namespace where Prometheus was deployed).
+Create namespace with Istio sidecar injection enabled:
+```bash
+kubectl create namespace http-add-on
+kubectl label namespace http-add-on istio-injection=enabled
+```
+Install the http-add-on:
+```bash
+helm install http-add-on kedacore/keda-add-ons-http \
+  --namespace http-add-on
+  ```
 
-3. Apply the example resources from `./k8s-resources` directory:
+###  2. Configure Istio compatibility
+
+  The add-on components use gRPC on port 9090 for internal communication. Istio sidecar intercepts this traffic and breaks gRPC health checks, causing `CrashLoopBackOff`. Exclude port 9090 from sidecar interception on all add-on deployments:
+  - keda-add-ons-http-controller-manager
+  - keda-add-ons-http-external-scaler
+  - keda-add-ons-http-interceptor
+
+  ```bash
+  kubectl patch deployment <http-add-on-deployment> -n http-add-on \
+  --type=merge \
+  -p '{"spec":{"template":{"metadata":{"annotations":{"traffic.sidecar.istio.io/excludeInboundPorts":"9090"}}}}}'
+  ```
+ Wait until all pods are running the Istio sidecar (2/2):
+ 
+ ```bash
+ kubectl get pods -n http-add-on
+NAME                                                   READY   STATUS    RESTARTS      AGE
+keda-add-ons-http-controller-manager-87b4477f6-5bppt   2/2     Running   0             1h
+keda-add-ons-http-external-scaler-5968cb8456-hr5ft     2/2     Running   0             1h
+keda-add-ons-http-external-scaler-5968cb8456-p95bm     2/2     Running   0             1h
+keda-add-ons-http-external-scaler-5968cb8456-zkmmn     2/2     Running   0             1h
+keda-add-ons-http-interceptor-5ffc68f88d-fsv6m         2/2     Running   0             1h
+keda-add-ons-http-interceptor-5ffc68f88d-gn96w         2/2     Running   0             1h
+keda-add-ons-http-interceptor-5ffc68f88d-tp2zf         2/2     Running   0             1h
+ ```
+
+###  3. Deploy the example resources
+Edit the `k8s-resources/apirule.yaml`, `k8s-resources/httpscaledobject.yaml` and `k8s-resources/envoyfilter.yaml` files to fill in the hosts value.
+
+Apply the example resources from `./k8s-resources` directory:
 
 ```bash
 kubectl apply -f ./k8s-resources
 ```
+### 4. Key resources explained
 
-## Test the application
+| Resource | Kind | Description |
+|---|---|---|
+| `apirule.yaml` | `APIRule` | Routes external HTTPS traffic from `https://http-echo-keda.<YOUR_DOMAIN>` through Istio Ingress Gateway directly to the HTTP Add-on Interceptor's Service (`keda-add-ons-http-interceptor-proxy`) in the `http-add-on` namespace. The Interceptor then handles request queuing and forwarding to the application. |
+| `httpscaledobject.yaml` | `HTTPScaledObject` | Configures the HTTP Add-on to scale the `http-echo` Deployment based on the incoming request rate. Sets `min: 0` to allow scale-to-zero and `max: 10` for scale-out. The operator automatically creates a corresponding KEDA `ScaledObject` for this resource. |
+| `envoyfilter.yaml` | `EnvoyFilter` | Configures the Istio Ingress Gateway to automatically retry requests that fail with `5xx`, `connect-failure`, or `reset` — up to 100 times with a 3-second per-try timeout. This is critical for cold start: when the application is scaling from zero, the first forwarded request may arrive before the pod is ready. The retry policy ensures the request is eventually delivered without returning an error to the client. |
+| `demo-app.yaml` | `Deployment` + `Service` | Deploys a lightweight Node.js HTTP server that returns a JSON response with the handling pod's name, a timestamp, and the request body. This allows you to verify that every request was processed and no request was lost during scale-from-zero. |
 
-At first, the worker Function is scaled down.
+## Test the application 
 
-1. List HPA for the Function and check that the current replica count is zero:
+Initially, the application Pod is scaled down to zero.
 
- ```bash
-kubectl get hpa
-NAME                               REFERENCE                     TARGETS             MINPODS   MAXPODS   REPLICAS   AGE
-keda-hpa-worker-fn-scaled-object   Function/scalable-worker-fn   <unknown>/2 (avg)   1         5         0          27h
-
- ```
-
-2. List Pods by Function name label and check that you see only the build job's Pod. No runtime Pod is up.
-
- ```bash
-kubectl get pods -l serverless.kyma-project.io/function-name=scalable-worker-fn -w
-NAME                                   READY   STATUS      RESTARTS   AGE
-scalable-worker-fn-build-7s4rf-wjhvt   0/1     Completed   0          2m16s
- ```
-
-3. Generate a load (even a single request) and check that the non-zero request rate targeting the worker Function triggers scaling up of the worker Function's runtime Pods.
-
- Call the HTTP proxy Function once:
-
- ```bash
- curl -H "Content-Type: application/json" -X POST -d '{"foo":"bar"}' https://incoming.{your_cluster_domain}
- ```
-
-The message is pushed to Kyma Eventing.
-It takes time to scale up a Function from zero. But no message is lost as Eventing retries delivery of the message to the subscriber until a running worker Pod eventually consumes it.
-
-4. Observe worker Function scaling up from zero. You can notice it by watching Function Pods or HPA.
+1. List HPA for the demo application and check that the current replica count is zero:
 
 ```bash
-kubectl get pods -l serverless.kyma-project.io/function-name=scalable-worker-fn -w 
-NAME                                   READY   STATUS      RESTARTS   AGE
-scalable-worker-fn-build-k94qz-ntjmn   0/1     Completed   0          32s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Pending     0          0s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Pending     0          0s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Init:0/1    0          0s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Init:0/1    0          0s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Init:0/1    0          1s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     PodInitializing   0          2s
-scalable-worker-fn-2n269-6f6d5f675-t6nwr   0/2     Running           0          7s
+NAME                 REFERENCE              TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+keda-hpa-http-echo   Deployment/http-echo   <unknown>/10 (avg)   1         10        0          5m46s
 ```
+
+2. Verify that the application has zero replicas:
 
 ```bash
-kubectl get hpa -w                                                        
-NAME                               REFERENCE                     TARGETS             MINPODS   MAXPODS   REPLICAS   AGE
-keda-hpa-worker-fn-scaled-object   Function/scalable-worker-fn   <unknown>/2 (avg)   1         5         0          27h
-keda-hpa-worker-fn-scaled-object   Function/scalable-worker-fn   0/2 (avg)           1         5         1          27h
+kubectl get pod -n  demo-app
+No resources found in demo-app namespace.
 ```
 
-Observe that the payload was eventually processed.
+3. Send a request to trigger scale-from-zero:
 
-5. Check the worker Function logs. `Processing ... {"foo":"bar"}` eventually appears:
+Call the HTTP proxy once:
 
- ```bash
-kubectl logs -l serverless.kyma-project.io/function-name=scalable-worker-fn -f
-> nodejs16-runtime@0.1.0 start
-> node server.js
+```bash
+curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://incoming.{your_cluster_domain}
+```
 
-user code loaded in 0sec 0.783514ms
-Processing ...
-{"foo":"bar"}
+The first request may take up to 30–60 seconds while the pod starts. The response confirms the request was not lost:
 
- ```
+```bash
+{
+  "timestamp": "2026-03-30T13:12:32.252Z",
+  "pod": "http-echo-abc123-xyz",
+  "body": "{\"foo\":\"bar\"}",
+  "message": "Request handled successfully by KEDA HTTP Add-on demo"
+}
+```
 
- If the traffic stops, the worker Function is scaled down back to zero replicas (after a configurable cooldown period).
+4. Observe the demo application scaling up from zero. You can notice it by watching application Pods or HPA.
 
-6. If you generate a much higher load, for example,> 2 req/sec - as configured in the threshold value of the scaledObject, you will observe scaling up to more replicas. One replica must be added for each additional 2req/sec measured.
+```bash 
+kubectl get pod -n  demo-app -w
+NAME                         READY   STATUS    RESTARTS   AGE
+http-echo-677d479d69-sjd95   0/2     Pending   0          0s
+http-echo-677d479d69-sjd95   0/2     Pending   0          0s
+http-echo-677d479d69-sjd95   0/2     Init:0/2   0          0s
+http-echo-677d479d69-sjd95   0/2     Init:0/2   0          1s
+http-echo-677d479d69-sjd95   0/2     Init:1/2   0          2s
+http-echo-677d479d69-sjd95   0/2     Init:1/2   0          3s
+http-echo-677d479d69-sjd95   0/2     PodInitializing   0          4s
+http-echo-677d479d69-sjd95   0/2     PodInitializing   0          4s
+http-echo-677d479d69-sjd95   1/2     Running           0          5s
+http-echo-677d479d69-sjd95   2/2     Running           0          21s
+```
+
+```bash hpa
+kubectl get hpa -n demo-app -w
+NAME                 REFERENCE              TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+keda-hpa-http-echo   Deployment/http-echo   <unknown>/10 (avg)   1         10        0          6m3s
+keda-hpa-http-echo   Deployment/http-echo   1/10 (avg)           1         10        1          6m30s
+```
+
+
+Eventually, if there is no traffic no pods should be running (after a configurable cooldown period)
+
+```bash
+kubectl get pod -n  demo-app
+No resources found in demo-app namespace.
+```
+
+## Clean up
+
+```bash
+kubectl delete namespace demo-app
+helm uninstall http-add-on -n http-add-on
+kubectl delete namespace http-add-on
+```

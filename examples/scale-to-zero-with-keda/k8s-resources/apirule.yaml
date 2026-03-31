@@ -5,7 +5,7 @@ metadata:
   namespace: demo-app
 spec:
   hosts:
-  - "http-echo-keda.<YOUR_DOMAIN>"
+  - "https://http-echo-keda.<YOUR_DOMAIN>"
   gateway: kyma-system/kyma-gateway
   rules:
   - path: /*

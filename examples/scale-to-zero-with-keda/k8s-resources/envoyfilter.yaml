@@ -13,7 +13,7 @@ spec:
       context: GATEWAY
       routeConfiguration:
         vhost:
-          name: "http-echo-keda.<YOUR_DOMAIN>"
+          name: "https://http-echo-keda.<YOUR_DOMAIN>"
           route:
             name: ""
     patch:
