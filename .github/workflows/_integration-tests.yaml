@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       image:
-        description: 'The image to test'
+        description: "The image to test"
         required: true
         type: string
 
@@ -13,7 +13,7 @@ jobs:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -28,7 +28,7 @@ jobs:
     if: ${{ !startsWith(github.event_name, 'pull_request') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: compute github commit sha
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -36,14 +36,14 @@ jobs:
         id: create-btp-resources
         with:
           btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
-          btp_backend_url: '${{ secrets.BTP_BACKEND_URL}}'
-          btp_user: '${{ secrets.BTP_BOT_USER}}'
-          btp_password: '${{ secrets.BTP_BOT_PASSWORD}}'
-          btp_global_account: '${{ secrets.BTP_GLOBAL_ACCOUNT }}'
-          btp_idp_tenant: '${{ secrets.BTP_CUSTOM_IAS_TENANT }}'
-          btp_subaccount_region: '${{ secrets.BTP_SUBACCOUNT_REGION }}'
-          btp_kyma_region: '${{ secrets.BTP_KYMA_REGION }}'
-          btp_kyma_plan: '${{ secrets.BTP_KYMA_PLAN }}'
+          btp_backend_url: "${{ secrets.BTP_BACKEND_URL}}"
+          btp_user: "${{ secrets.BTP_BOT_USER}}"
+          btp_password: "${{ secrets.BTP_BOT_PASSWORD}}"
+          btp_global_account: "${{ secrets.BTP_GLOBAL_ACCOUNT }}"
+          btp_idp_tenant: "${{ secrets.BTP_CUSTOM_IAS_TENANT }}"
+          btp_subaccount_region: "${{ secrets.BTP_SUBACCOUNT_REGION }}"
+          btp_kyma_region: "${{ secrets.BTP_KYMA_REGION }}"
+          btp_kyma_plan: "${{ secrets.BTP_KYMA_PLAN }}"
 
       - name: Run Keda Manager's integration test
         run: |
@@ -60,3 +60,24 @@ jobs:
           btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
           btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
           btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+
+  rbac-integration-test:
+    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
+      - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
+      - name: deploy keda
+        run: |
+          kubectl create namespace kyma-system || true
+          make deploy
+        env:
+          IMG: ${{ inputs.image }}
+      - name: run rbac tests
+        uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
+        with:
+          config: ${{ github.workspace }}/test/rbac/config.yaml

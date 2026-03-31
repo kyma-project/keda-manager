@@ -1,0 +1,65 @@
+# permissions for end users to view kedas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    kyma-project.io/module: keda
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: keda-view-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: keda
+  name: kyma-keda-view
+rules:
+- apiGroups:
+  - operator.kyma-project.io
+  resources:
+  - kedas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.kyma-project.io
+  resources:
+  - kedas/status
+  verbs:
+  - get
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  - scaledjobs
+  - triggerauthentications
+  - clustertriggerauthentications
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects/status
+  - scaledjobs/status
+  - triggerauthentications/status
+  - clustertriggerauthentications/status
+  verbs:
+  - get
+- apiGroups:
+  - eventing.keda.sh
+  resources:
+  - cloudeventsources
+  - clustercloudeventsources
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - eventing.keda.sh
+  resources:
+  - cloudeventsources/status
+  - clustercloudeventsources/status
+  verbs:
+  - get
+

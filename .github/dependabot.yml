@@ -2,6 +2,13 @@
 
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "actions"
+      include: "scope"
   - package-ecosystem: "gomod"
     directory: "/"
     labels:

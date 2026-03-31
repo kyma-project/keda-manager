@@ -8,7 +8,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
       - uses: golangci/golangci-lint-action@v9
         with:

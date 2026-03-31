@@ -8,7 +8,7 @@ on:
         default: ""
         required: true
       latest_release:
-        description: 'Latest release'
+        description: "Latest release"
         type: boolean
         default: false
 
@@ -19,17 +19,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.BOT_TOKEN }}
           fetch-depth: 0
 
       - name: Bump kustomize
-        run: | 
+        run: |
           ./.github/scripts/upgrade-operator-kustomize.sh
         env:
-            IMG: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.event.inputs.name }}
-            MODULE_VERSION: ${{ github.event.inputs.name }}
+          IMG: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.event.inputs.name }}
+          MODULE_VERSION: ${{ github.event.inputs.name }}
 
       - name: Bump sec-scanners-config.yaml
         run: ./.github/scripts/upgrade-sec-scanners-config.sh
@@ -51,11 +51,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.BOT_TOKEN }}
           fetch-depth: 0
-          ref: ${{ github.ref_name }}  # Checkout to latest branch changes
+          ref: ${{ github.ref_name }} # Checkout to latest branch changes
       - name: Create tag
         run: |
           git tag ${{ github.event.inputs.name }}
