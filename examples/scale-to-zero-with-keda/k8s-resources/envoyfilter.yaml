@@ -1,0 +1,26 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: http-echo-keda-retry
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+  - applyTo: HTTP_ROUTE
+    match:
+      context: GATEWAY
+      routeConfiguration:
+        vhost:
+          name: "http-echo-keda.<YOUR_DOMAIN>"
+          route:
+            name: ""
+    patch:
+      operation: MERGE
+      value:
+        route:
+          retry_policy:
+            retry_on: "5xx,connect-failure,reset,refused-stream"
+            num_retries: 100
+            per_try_timeout: 3s
