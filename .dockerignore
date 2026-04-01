@@ -10,3 +10,4 @@
 !keda-networkpolicies.yaml
 !go.sum
 !go.mod
+!keda-http-add-on.yaml
