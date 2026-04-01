@@ -11,6 +11,21 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+func httpAddOnObj() unstructured.Unstructured {
+	return unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Namespace",
+			"metadata": map[string]interface{}{
+				"name": "keda-http-add-on",
+				"labels": map[string]interface{}{
+					httpAddOnComponentLabel: httpAddOnComponentValue,
+				},
+			},
+		},
+	}
+}
+
 func Test_httpAddOnEnabled(t *testing.T) {
 	t.Run("returns true when annotation is present and enabled", func(t *testing.T) {
 		instance := &v1alpha1.Keda{
@@ -49,6 +64,29 @@ func Test_httpAddOnEnabled(t *testing.T) {
 	})
 }
 
+func Test_httpAddOnObjs(t *testing.T) {
+	t.Run("returns only objects with the http-add-on component label", func(t *testing.T) {
+		addOn := httpAddOnObj()
+		other := unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "apps/v1",
+				"kind":       "Deployment",
+				"metadata": map[string]interface{}{
+					"name": "keda-operator",
+				},
+			},
+		}
+		result := httpAddOnObjs([]unstructured.Unstructured{addOn, other})
+		require.Len(t, result, 1)
+		require.Equal(t, "keda-http-add-on", result[0].GetName())
+	})
+
+	t.Run("returns empty slice when no objects match", func(t *testing.T) {
+		result := httpAddOnObjs([]unstructured.Unstructured{})
+		require.Empty(t, result)
+	})
+}
+
 func Test_sFnHttpAddOnDecision(t *testing.T) {
 	t.Run("switches to sFnApplyHttpAddOn when annotation is enabled", func(t *testing.T) {
 		s := &systemState{
@@ -60,19 +98,15 @@ func Test_sFnHttpAddOnDecision(t *testing.T) {
 				},
 			},
 		}
-		m := &fsm{}
-		next, result, err := sFnHttpAddOnDecision(context.Background(), m, s)
+		next, result, err := sFnHttpAddOnDecision(context.Background(), &fsm{}, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, next)
 	})
 
 	t.Run("switches to sFnDeleteHttpAddOn when annotation is absent", func(t *testing.T) {
-		s := &systemState{
-			instance: v1alpha1.Keda{},
-		}
-		m := &fsm{}
-		next, result, err := sFnHttpAddOnDecision(context.Background(), m, s)
+		s := &systemState{instance: v1alpha1.Keda{}}
+		next, result, err := sFnHttpAddOnDecision(context.Background(), &fsm{}, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, next)
@@ -80,7 +114,7 @@ func Test_sFnHttpAddOnDecision(t *testing.T) {
 }
 
 func Test_sFnApplyHttpAddOn_emptyObjs(t *testing.T) {
-	t.Run("stops with no requeue when HttpAddOnObjs is empty", func(t *testing.T) {
+	t.Run("sets unknown condition when no http-add-on objects in Objs", func(t *testing.T) {
 		s := &systemState{
 			instance: v1alpha1.Keda{
 				ObjectMeta: metav1.ObjectMeta{
@@ -90,17 +124,12 @@ func Test_sFnApplyHttpAddOn_emptyObjs(t *testing.T) {
 				},
 			},
 		}
-		m := &fsm{
-			Cfg: Cfg{
-				HttpAddOnObjs: nil,
-			},
-		}
+		m := &fsm{Cfg: Cfg{Objs: nil}}
 		next, result, err := sFnApplyHttpAddOn(context.Background(), m, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		// next should be the sFnUpdateStatus function (stopWithNoRequeue)
 		require.NotNil(t, next)
-		// The condition should be set to unknown
+
 		found := false
 		for _, c := range s.instance.Status.Conditions {
 			if c.Type == string(v1alpha1.ConditionTypeHttpAddOnInstalled) {
@@ -114,24 +143,8 @@ func Test_sFnApplyHttpAddOn_emptyObjs(t *testing.T) {
 
 func Test_sFnDeleteHttpAddOn_noCondition(t *testing.T) {
 	t.Run("stops with no requeue when HttpAddOnInstalled condition is not present", func(t *testing.T) {
-		s := &systemState{
-			instance: v1alpha1.Keda{},
-		}
-		m := &fsm{
-			Cfg: Cfg{
-				HttpAddOnObjs: []unstructured.Unstructured{
-					{
-						Object: map[string]interface{}{
-							"apiVersion": "v1",
-							"kind":       "Namespace",
-							"metadata": map[string]interface{}{
-								"name": "keda-http-add-on",
-							},
-						},
-					},
-				},
-			},
-		}
+		s := &systemState{instance: v1alpha1.Keda{}}
+		m := &fsm{Cfg: Cfg{Objs: []unstructured.Unstructured{httpAddOnObj()}}}
 		next, result, err := sFnDeleteHttpAddOn(context.Background(), m, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
@@ -140,15 +153,9 @@ func Test_sFnDeleteHttpAddOn_noCondition(t *testing.T) {
 }
 
 func Test_sFnDeleteHttpAddOn_emptyObjs(t *testing.T) {
-	t.Run("stops with no requeue when HttpAddOnObjs is empty", func(t *testing.T) {
-		s := &systemState{
-			instance: v1alpha1.Keda{},
-		}
-		m := &fsm{
-			Cfg: Cfg{
-				HttpAddOnObjs: nil,
-			},
-		}
+	t.Run("stops with no requeue when no http-add-on objects in Objs", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{}}
+		m := &fsm{Cfg: Cfg{Objs: nil}}
 		next, result, err := sFnDeleteHttpAddOn(context.Background(), m, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
@@ -156,15 +163,6 @@ func Test_sFnDeleteHttpAddOn_emptyObjs(t *testing.T) {
 	})
 }
 
-func makeFsmWithNoK8s(httpAddOnObjs []unstructured.Unstructured) *fsm {
-	return &fsm{
-		Cfg: Cfg{
-			HttpAddOnObjs: httpAddOnObjs,
-		},
-	}
-}
-
-// Verify that sFnHttpAddOnDecision returns distinct stateFn pointers for the two branches
 func Test_sFnHttpAddOnDecision_branches(t *testing.T) {
 	enabledState := &systemState{
 		instance: v1alpha1.Keda{
@@ -175,26 +173,19 @@ func Test_sFnHttpAddOnDecision_branches(t *testing.T) {
 			},
 		},
 	}
-	disabledState := &systemState{
-		instance: v1alpha1.Keda{},
-	}
-
-	m := makeFsmWithNoK8s(nil)
+	disabledState := &systemState{instance: v1alpha1.Keda{}}
+	m := &fsm{Cfg: Cfg{Objs: nil}}
 
 	applyNext, _, _ := sFnHttpAddOnDecision(context.Background(), m, enabledState)
 	deleteNext, _, _ := sFnHttpAddOnDecision(context.Background(), m, disabledState)
-
-	// Verify they are different functions by calling them (they should both handle gracefully)
-	// We just verify both are non-nil and different
 	require.NotNil(t, applyNext)
 	require.NotNil(t, deleteNext)
 
-	// Call them both to confirm they don't panic with empty objs/no conditions
 	s2 := &systemState{instance: v1alpha1.Keda{}}
 	applyResult, applyCtrlResult, applyErr := applyNext(context.Background(), m, s2)
 	require.NoError(t, applyErr)
 	require.Nil(t, applyCtrlResult)
-	require.NotNil(t, applyResult) // sFnUpdateStatus wrapping
+	require.NotNil(t, applyResult)
 
 	s3 := &systemState{instance: v1alpha1.Keda{}}
 	deleteResult, deleteCtrlResult, deleteErr := deleteNext(context.Background(), m, s3)

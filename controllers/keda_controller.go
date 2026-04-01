@@ -138,10 +138,6 @@ func (r *kedaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	if err := registerWatchDistinct(r.HttpAddOnObjs, watchFn); err != nil {
-		return err
-	}
-
 	return b.Complete(r)
 }
 
@@ -176,13 +172,12 @@ func (r *kedaReconciler) retriggerAllKedaCRs(ctx context.Context, e event.Delete
 	}
 }
 
-func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured, httpAddOnObjs []unstructured.Unstructured) KedaReconciler {
+func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {
 	return &kedaReconciler{
 		log: log,
 		Cfg: reconciler.Cfg{
-			Finalizer:     v1alpha1.Finalizer,
-			Objs:          o,
-			HttpAddOnObjs: httpAddOnObjs,
+			Finalizer: v1alpha1.Finalizer,
+			Objs:      o,
 		},
 		K8s: reconciler.K8s{
 			APIServerIP:   os.Getenv("KUBERNETES_PORT_443_TCP_ADDR"),

@@ -29,6 +29,7 @@ WORKDIR /
 COPY --chown=65532:65532 --from=builder /app/manager .
 COPY --chown=65532:65532 --from=builder /app/keda.yaml .
 COPY --chown=65532:65532 --from=builder /app/keda-networkpolicies.yaml .
+COPY --chown=65532:65532 --from=builder /app/keda-http-add-on.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

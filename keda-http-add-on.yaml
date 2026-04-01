@@ -6,6 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -15,6 +16,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -24,6 +26,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -33,6 +36,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -41,6 +45,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 rules:
   - apiGroups: ["http.keda.sh"]
     resources: ["httpscaledobjects", "httpscaledobjects/status", "httpscaledobjects/finalizers"]
@@ -62,6 +67,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -78,6 +84,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 rules:
   - apiGroups: ["http.keda.sh"]
     resources: ["httpscaledobjects"]
@@ -93,6 +100,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -109,6 +117,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 rules:
   - apiGroups: ["http.keda.sh"]
     resources: ["httpscaledobjects"]
@@ -127,6 +136,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -146,6 +156,7 @@ metadata:
     app.kubernetes.io/name: http-add-on-operator
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   replicas: 1
   selector:
@@ -212,6 +223,7 @@ metadata:
     app.kubernetes.io/name: http-add-on-interceptor
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   replicas: 1
   selector:
@@ -274,6 +286,7 @@ metadata:
     app.kubernetes.io/name: http-add-on-external-scaler
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   replicas: 1
   selector:
@@ -324,6 +337,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   selector:
     app: http-add-on-interceptor
@@ -340,6 +354,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   selector:
     app: http-add-on-interceptor
@@ -356,6 +371,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda-manager
     app.kubernetes.io/managed-by: keda-manager
+    keda.kyma-project.io/component: http-add-on
 spec:
   selector:
     app: http-add-on-external-scaler

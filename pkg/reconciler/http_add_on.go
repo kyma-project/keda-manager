@@ -8,6 +8,7 @@ import (
 	"github.com/kyma-project/keda-manager/pkg/annotation"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,6 +17,8 @@ import (
 const (
 	httpAddOnAnnotationKey     = "keda.kyma-project.io/http-add-on"
 	httpAddOnAnnotationEnabled = "enabled"
+	httpAddOnComponentLabel    = "keda.kyma-project.io/component"
+	httpAddOnComponentValue    = "http-add-on"
 )
 
 func httpAddOnEnabled(instance *v1alpha1.Keda) bool {
@@ -26,6 +29,20 @@ func httpAddOnEnabled(instance *v1alpha1.Keda) bool {
 	return annotations[httpAddOnAnnotationKey] == httpAddOnAnnotationEnabled
 }
 
+func isHttpAddOnObj(u unstructured.Unstructured) bool {
+	return u.GetLabels()[httpAddOnComponentLabel] == httpAddOnComponentValue
+}
+
+func httpAddOnObjs(objs []unstructured.Unstructured) []unstructured.Unstructured {
+	var result []unstructured.Unstructured
+	for _, obj := range objs {
+		if isHttpAddOnObj(obj) {
+			result = append(result, obj)
+		}
+	}
+	return result
+}
+
 func sFnHttpAddOnDecision(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	if httpAddOnEnabled(&s.instance) {
 		return switchState(sFnApplyHttpAddOn)
@@ -34,7 +51,8 @@ func sFnHttpAddOnDecision(_ context.Context, _ *fsm, s *systemState) (stateFn, *
 }
 
 func sFnApplyHttpAddOn(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	if len(r.HttpAddOnObjs) == 0 {
+	objs := httpAddOnObjs(r.Objs)
+	if len(objs) == 0 {
 		s.instance.Status.Conditions = append(s.instance.Status.Conditions, metav1.Condition{
 			Type:               string(v1alpha1.ConditionTypeHttpAddOnInstalled),
 			Status:             metav1.ConditionUnknown,
@@ -46,7 +64,7 @@ func sFnApplyHttpAddOn(ctx context.Context, r *fsm, s *systemState) (stateFn, *c
 	}
 
 	var installErr error
-	for _, obj := range r.HttpAddOnObjs {
+	for _, obj := range objs {
 		obj = annotation.AddDoNotEditDisclaimer(obj)
 		obj.SetLabels(setCommonLabels(obj.GetLabels()))
 
@@ -78,7 +96,8 @@ func sFnApplyHttpAddOn(ctx context.Context, r *fsm, s *systemState) (stateFn, *c
 }
 
 func sFnDeleteHttpAddOn(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	if len(r.HttpAddOnObjs) == 0 {
+	objs := httpAddOnObjs(r.Objs)
+	if len(objs) == 0 {
 		return stopWithNoRequeue()
 	}
 
@@ -88,7 +107,7 @@ func sFnDeleteHttpAddOn(ctx context.Context, r *fsm, s *systemState) (stateFn, *
 	}
 
 	var deletionErr error
-	for _, obj := range r.HttpAddOnObjs {
+	for _, obj := range objs {
 		err := r.Delete(ctx, &obj)
 		if client.IgnoreNotFound(err) != nil {
 			r.log.With("err", err).Error("http-add-on delete error")

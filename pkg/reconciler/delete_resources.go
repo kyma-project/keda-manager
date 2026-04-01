@@ -101,8 +101,8 @@ func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filt
 	}
 
 	// clean up http-add-on resources if any were deployed
-	if len(r.HttpAddOnObjs) > 0 {
-		_ = deleteResources(ctx, r, r.HttpAddOnObjs, nil)
+	if addOnObjs := httpAddOnObjs(r.Objs); len(addOnObjs) > 0 {
+		_ = deleteResources(ctx, r, addOnObjs, nil)
 	}
 
 	condition := meta.FindStatusCondition(s.instance.Status.Conditions, string(v1alpha1.ConditionTypeDeleted))
