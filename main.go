@@ -152,11 +152,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	httpAddOnData, err := resources.LoadFromPaths("keda-http-add-on.yaml")
+	if err != nil {
+		fmt.Printf("unable to load http-add-on data (http-add-on will be unavailable): %v\n", err)
+		httpAddOnData = nil
+	}
+
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
 		logWithCtx,
 		data,
+		httpAddOnData,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		fmt.Printf("unable to create controller: %v\n", err)

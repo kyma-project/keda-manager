@@ -32,6 +32,9 @@ type Cfg struct {
 	// the objects are module component parts; objects are applied
 	// on the cluster one by one with given order
 	Objs []unstructured.Unstructured
+	// HttpAddOnObjs are the http-add-on component parts; applied/deleted based
+	// on the presence of the http-add-on annotation on the Keda CR
+	HttpAddOnObjs []unstructured.Unstructured
 }
 
 var (

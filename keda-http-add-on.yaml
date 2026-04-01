@@ -1,0 +1,365 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: http-add-on-operator
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: http-add-on-interceptor
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: http-add-on-scaler
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: http-add-on-operator
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+rules:
+  - apiGroups: ["http.keda.sh"]
+    resources: ["httpscaledobjects", "httpscaledobjects/status", "httpscaledobjects/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/status"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: http-add-on-operator
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: http-add-on-operator
+subjects:
+  - kind: ServiceAccount
+    name: http-add-on-operator
+    namespace: keda-http-add-on
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: http-add-on-interceptor
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+rules:
+  - apiGroups: ["http.keda.sh"]
+    resources: ["httpscaledobjects"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: http-add-on-interceptor
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: http-add-on-interceptor
+subjects:
+  - kind: ServiceAccount
+    name: http-add-on-interceptor
+    namespace: keda-http-add-on
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: http-add-on-scaler
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+rules:
+  - apiGroups: ["http.keda.sh"]
+    resources: ["httpscaledobjects"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects", "scaledobjects/status"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: http-add-on-scaler
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: http-add-on-scaler
+subjects:
+  - kind: ServiceAccount
+    name: http-add-on-scaler
+    namespace: keda-http-add-on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-add-on-operator
+  namespace: keda-http-add-on
+  labels:
+    app: http-add-on-operator
+    app.kubernetes.io/name: http-add-on-operator
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-add-on-operator
+  template:
+    metadata:
+      labels:
+        app: http-add-on-operator
+        app.kubernetes.io/name: http-add-on-operator
+        app.kubernetes.io/part-of: keda-manager
+        app.kubernetes.io/managed-by: keda-manager
+        sidecar.istio.io/inject: "true"
+      annotations:
+        traffic.sidecar.istio.io/excludeInboundPorts: "9090"
+    spec:
+      serviceAccountName: http-add-on-operator
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: operator
+          image: ghcr.io/kedacore/http-add-on-operator:0.9.0
+          imagePullPolicy: Always
+          env:
+            - name: KEDA_HTTP_OPERATOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KEDA_HTTP_OPERATOR_INTERCEPTOR_SERVICE_NAME
+              value: "http-add-on-interceptor-proxy"
+            - name: KEDA_HTTP_OPERATOR_INTERCEPTOR_ADMIN_SERVICE_NAME
+              value: "http-add-on-interceptor-admin"
+            - name: KEDA_HTTP_OPERATOR_SCALER_SERVICE_NAME
+              value: "http-add-on-external-scaler"
+            - name: KEDA_HTTP_OPERATOR_SCALER_PORT
+              value: "9090"
+            - name: KEDA_CONDITION_WAIT_TIMEOUT
+              value: "120s"
+          ports:
+            - containerPort: 8080
+              name: metrics
+            - containerPort: 9090
+              name: grpc
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-add-on-interceptor
+  namespace: keda-http-add-on
+  labels:
+    app: http-add-on-interceptor
+    app.kubernetes.io/name: http-add-on-interceptor
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-add-on-interceptor
+  template:
+    metadata:
+      labels:
+        app: http-add-on-interceptor
+        app.kubernetes.io/name: http-add-on-interceptor
+        app.kubernetes.io/part-of: keda-manager
+        app.kubernetes.io/managed-by: keda-manager
+        sidecar.istio.io/inject: "true"
+      annotations:
+        traffic.sidecar.istio.io/excludeInboundPorts: "9090"
+    spec:
+      serviceAccountName: http-add-on-interceptor
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: interceptor
+          image: ghcr.io/kedacore/http-add-on-interceptor:0.9.0
+          imagePullPolicy: Always
+          env:
+            - name: KEDA_HTTP_INTERCEPTOR_SCALER_SERVICE
+              value: "http-add-on-external-scaler"
+            - name: KEDA_HTTP_INTERCEPTOR_SCALER_PORT
+              value: "9090"
+            - name: KEDA_HTTP_INTERCEPTOR_PROXY_PORT
+              value: "8080"
+            - name: KEDA_HTTP_INTERCEPTOR_ADMIN_PORT
+              value: "9091"
+          ports:
+            - containerPort: 8080
+              name: proxy
+            - containerPort: 9090
+              name: grpc
+            - containerPort: 9091
+              name: admin
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-add-on-external-scaler
+  namespace: keda-http-add-on
+  labels:
+    app: http-add-on-external-scaler
+    app.kubernetes.io/name: http-add-on-external-scaler
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-add-on-external-scaler
+  template:
+    metadata:
+      labels:
+        app: http-add-on-external-scaler
+        app.kubernetes.io/name: http-add-on-external-scaler
+        app.kubernetes.io/part-of: keda-manager
+        app.kubernetes.io/managed-by: keda-manager
+        sidecar.istio.io/inject: "true"
+      annotations:
+        traffic.sidecar.istio.io/excludeInboundPorts: "9090"
+    spec:
+      serviceAccountName: http-add-on-scaler
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: scaler
+          image: ghcr.io/kedacore/http-add-on-scaler:0.9.0
+          imagePullPolicy: Always
+          env:
+            - name: KEDA_HTTP_SCALER_PORT
+              value: "9090"
+          ports:
+            - containerPort: 9090
+              name: grpc
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-add-on-interceptor-proxy
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  selector:
+    app: http-add-on-interceptor
+  ports:
+    - name: proxy
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-add-on-interceptor-admin
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  selector:
+    app: http-add-on-interceptor
+  ports:
+    - name: admin
+      port: 9091
+      targetPort: 9091
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-add-on-external-scaler
+  namespace: keda-http-add-on
+  labels:
+    app.kubernetes.io/part-of: keda-manager
+    app.kubernetes.io/managed-by: keda-manager
+spec:
+  selector:
+    app: http-add-on-external-scaler
+  ports:
+    - name: grpc
+      port: 9090
+      targetPort: 9090

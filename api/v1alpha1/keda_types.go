@@ -56,9 +56,14 @@ const (
 	ConditionReasonDeletionErr              = ConditionReason("DeletionErr")
 	ConditionReasonDeleted                  = ConditionReason("Deleted")
 
-	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
-	ConditionTypeInstalled         = ConditionType("Installed")
-	ConditionTypeDeleted           = ConditionType("Deleted")
+	ConditionTypeDeploymentFailure  = ConditionType("DeploymentFailure")
+	ConditionTypeInstalled          = ConditionType("Installed")
+	ConditionTypeDeleted            = ConditionType("Deleted")
+	ConditionTypeHttpAddOnInstalled = ConditionType("HttpAddOnInstalled")
+
+	ConditionReasonHttpAddOnInstalled    = ConditionReason("HttpAddOnInstalled")
+	ConditionReasonHttpAddOnNotInstalled = ConditionReason("HttpAddOnNotInstalled")
+	ConditionReasonHttpAddOnInstallErr   = ConditionReason("HttpAddOnInstallErr")
 
 	CommonLogLevelDebug = LogLevel("debug")
 	CommonLogLevelInfo  = LogLevel("info")
