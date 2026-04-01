@@ -1,5 +1,3 @@
-<!-- loiod9c391c44a564a4390f445beb9d6cf0a -->
-
 # Network Policies
 
 Learn about the network policies for the Keda module.
