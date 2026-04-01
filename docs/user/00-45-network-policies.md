@@ -2,6 +2,8 @@
 
 Learn about the network policies for the Keda module.
 
+## Overview
+
 The Keda module defines network policies to ensure communication within the Kubernetes cluster, particularly in environments where a deny-all network policy is applied.
 
 When a cluster-wide deny-all network policy is enforced, which blocks all ingress and egress traffic by default, the Keda module network policies explicitly allow only the necessary communication paths to ensure the module functions correctly.
