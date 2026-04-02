@@ -40,7 +40,7 @@ helm repo add kedacore https://kedacore.github.io/charts
 helm repo update
 ```
 
-Create namespace with Istio sidecar injection enabled:
+2. Create a namespace with Istio sidecar injection enabled:
 ```bash
 kubectl create namespace http-add-on
 kubectl label namespace http-add-on istio-injection=enabled
