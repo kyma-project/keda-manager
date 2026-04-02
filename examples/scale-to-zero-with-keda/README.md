@@ -156,7 +156,7 @@ keda-hpa-http-echo   Deployment/http-echo   1/10 (avg)           1         10   
 ```
 
 
-Eventually, if there is no traffic no pods should be running (after a configurable cooldown period)
+Eventually, if there is no traffic, no Pods should be running after a configurable cooldown period
 
 ```bash
 kubectl get pod -n  demo-app
