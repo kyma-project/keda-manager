@@ -32,7 +32,6 @@ It realises the following scenario:
 
 ## Procedure
 
-### 1. Install the `http-add-on`
 
 Create a dedicated namespace and install the add-on via Helm:
 
