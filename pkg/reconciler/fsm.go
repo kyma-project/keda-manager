@@ -32,6 +32,9 @@ type Cfg struct {
 	// the objects are module component parts; objects are applied
 	// on the cluster one by one with given order
 	Objs []unstructured.Unstructured
+	// AddonObjs holds the HTTP add-on resources fetched at runtime.
+	// They are tracked here so they can be deleted when the addon is disabled or the CR is deleted.
+	AddonObjs []unstructured.Unstructured
 }
 
 var (
