@@ -30,7 +30,7 @@ It realises the following scenario:
 - [Keda, Istio and API Gateway modules installed](https://kyma-project.io/02-get-started/01-quick-install.html#steps)
 
 
-## Installation
+## Procedure
 
 ### 1. Install the `http-add-on`
 
