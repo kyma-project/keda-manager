@@ -1,6 +1,8 @@
 # ClusterRoles
 
-The Keda module includes several ClusterRoles that are used to manage permissions for the KEDA operator and to aggregate permissions for end users. This document describes all ClusterRoles bundled with the Keda module.
+Learn about ClusterRoles in the Keda module.
+
+The Keda module includes several ClusterRoles that are used to manage permissions for the Keda operator and to aggregate permissions for end users.
 
 ## Keda Edit ClusterRole
 
