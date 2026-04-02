@@ -7,7 +7,7 @@ It uses:
 
 - [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) to intercept, queue, and count incoming HTTP requests — enabling scale-to-zero and scale-from-zero without lost requests,
 - [KEDA](https://keda.sh/) to drive the workload's scaling based on request rate metrics provided by the HTTP Add-on,
-- A demo application ([hashicorp/http-echo](https://hub.docker.com/r/hashicorp/http-echo)) that returns request-specific information (request headers, pod name, timestamp) to verify that no requests are lost during scaling,
+- A demo application ([hashicorp/http-echo](https://hub.docker.com/r/hashicorp/http-echo)) that returns request-specific information (request headers, Pod name, timestamp) to verify that no requests are lost during scaling,
 - Istio service mesh to provide mTLS encryption between all components and to expose the application via API Gateway,
 - API Gateway (APIRule v2) to route external HTTPS traffic to the HTTP Add-on's Interceptor.
 
