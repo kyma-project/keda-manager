@@ -45,25 +45,21 @@ helm repo update
 kubectl create namespace http-add-on
 kubectl label namespace http-add-on istio-injection=enabled
 ```
-Install the http-add-on:
+3. Install the http-add-on:
 ```bash
 helm install http-add-on kedacore/keda-add-ons-http \
   --namespace http-add-on
   ```
 
-###  2. Configure Istio compatibility
 
-  The add-on components use gRPC on port 9090 for internal communication. Istio sidecar intercepts this traffic and breaks gRPC health checks, causing `CrashLoopBackOff`. Exclude port 9090 from sidecar interception on all add-on deployments:
-  - keda-add-ons-http-controller-manager
-  - keda-add-ons-http-external-scaler
-  - keda-add-ons-http-interceptor
+4. Exclude port 9090 from sidecar interception on `keda-add-ons-http-controller-manager`, `keda-add-ons-http-external-scaler`, and `keda-add-ons-http-interceptor`:
 
   ```bash
   kubectl patch deployment <http-add-on-deployment> -n http-add-on \
   --type=merge \
   -p '{"spec":{"template":{"metadata":{"annotations":{"traffic.sidecar.istio.io/excludeInboundPorts":"9090"}}}}}'
   ```
- Wait until all pods are running the Istio sidecar (2/2):
+ 5. Wait until all Pods are running the Istio sidecar (2/2):
  
  ```bash
  kubectl get pods -n http-add-on
@@ -77,15 +73,14 @@ keda-add-ons-http-interceptor-5ffc68f88d-gn96w         2/2     Running   0      
 keda-add-ons-http-interceptor-5ffc68f88d-tp2zf         2/2     Running   0             1h
  ```
 
-###  3. Deploy the example resources
-Edit the `k8s-resources/apirule.yaml`, `k8s-resources/httpscaledobject.yaml` and `k8s-resources/envoyfilter.yaml` files to fill in the hosts value.
+6. Edit the `k8s-resources/apirule.yaml`, `k8s-resources/httpscaledobject.yaml`, and `k8s-resources/envoyfilter.yaml` files to fill in the hosts value.
 
-Apply the example resources from `./k8s-resources` directory:
+7. Apply the example resources from the `./k8s-resources` directory:
 
 ```bash
 kubectl apply -f ./k8s-resources
 ```
-### 4. Key resources explained
+### Key Resources
 
 | Resource | Kind | Description |
 |---|---|---|
@@ -94,7 +89,7 @@ kubectl apply -f ./k8s-resources
 | `envoyfilter.yaml` | `EnvoyFilter` | Configures the Istio Ingress Gateway to automatically retry requests that fail with `5xx`, `connect-failure`, or `reset` — up to 100 times with a 3-second per-try timeout. This is critical for cold start: when the application is scaling from zero, the first forwarded request may arrive before the Pod is ready. The retry policy ensures the request is eventually delivered without returning an error to the client. |
 | `demo-app.yaml` | `Deployment` + `Service` | Deploys a lightweight Node.js HTTP server that returns a JSON response with the handling Pod's name, a timestamp, and the request body. This allows you to verify that every request was processed and no request was lost during scale-from-zero. |
 
-## Test the application 
+## Test the Application 
 
 Initially, the application Pod is scaled down to zero.
 
