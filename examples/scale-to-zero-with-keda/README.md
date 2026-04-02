@@ -34,7 +34,7 @@ It realises the following scenario:
 
 
 
-Add Helm repository:
+1. Use the following command to add the Helm repository:
 ```bash
 helm repo add kedacore https://kedacore.github.io/charts
 helm repo update
