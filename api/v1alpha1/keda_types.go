@@ -57,11 +57,11 @@ const (
 	ConditionReasonDeleted                  = ConditionReason("Deleted")
 
 	// Addon-specific condition reasons
-	ConditionReasonAddonInstalled   = ConditionReason("AddonInstalled")
-	ConditionReasonAddonDeleted     = ConditionReason("AddonDeleted")
-	ConditionReasonAddonInstallErr  = ConditionReason("AddonInstallErr")
-	ConditionReasonAddonDisabled    = ConditionReason("AddonDisabled")
-	ConditionReasonAddonVersionErr  = ConditionReason("AddonVersionErr")
+	ConditionReasonAddonInstalled  = ConditionReason("AddonInstalled")
+	ConditionReasonAddonDeleted    = ConditionReason("AddonDeleted")
+	ConditionReasonAddonInstallErr = ConditionReason("AddonInstallErr")
+	ConditionReasonAddonDisabled   = ConditionReason("AddonDisabled")
+	ConditionReasonAddonVersionErr = ConditionReason("AddonVersionErr")
 
 	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
 	ConditionTypeInstalled         = ConditionType("Installed")
@@ -69,9 +69,9 @@ const (
 	ConditionTypeAddon             = ConditionType("Addon")
 
 	// AddonState values for Status.Addon
-	AddonStateInstalled   = "Installed"
+	AddonStateInstalled    = "Installed"
 	AddonStateNotInstalled = "NotInstalled"
-	AddonStateError       = "Error"
+	AddonStateError        = "Error"
 
 	CommonLogLevelDebug = LogLevel("debug")
 	CommonLogLevelInfo  = LogLevel("info")
@@ -442,10 +442,11 @@ func (k *Keda) IsServedEmpty() bool {
 // UpdateAddonStatus sets the addon status field and an Addon condition.
 func (k *Keda) UpdateAddonStatus(state string, reason ConditionReason, msg string) {
 	k.Status.Addon = state
-	condStatus := metav1.ConditionTrue
-	if state == AddonStateError {
-		condStatus = metav1.ConditionFalse
-	} else if state == AddonStateNotInstalled {
+	var condStatus metav1.ConditionStatus
+	switch state {
+	case AddonStateInstalled:
+		condStatus = metav1.ConditionTrue
+	default:
 		condStatus = metav1.ConditionFalse
 	}
 	condition := metav1.Condition{
@@ -459,12 +460,12 @@ func (k *Keda) UpdateAddonStatus(state string, reason ConditionReason, msg strin
 }
 
 type Status struct {
-	State       string             `json:"state"`
-	Served      string             `json:"served"`
-	KedaVersion string             `json:"kedaVersion,omitempty"`
+	State       string `json:"state"`
+	Served      string `json:"served"`
+	KedaVersion string `json:"kedaVersion,omitempty"`
 	// Addon reflects the current state of the HTTP add-on: Installed, NotInstalled, or Error.
 	// +optional
-	Addon        string             `json:"addon,omitempty"`
+	Addon string `json:"addon,omitempty"`
 	// AddonVersion is the last successfully installed HTTP add-on version.
 	// +optional
 	AddonVersion string             `json:"addonVersion,omitempty"`

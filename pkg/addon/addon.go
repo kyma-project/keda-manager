@@ -96,9 +96,3 @@ func FetchResources(version string) ([]unstructured.Unstructured, error) {
 
 	return objs, nil
 }
-
-
-
-
-
-
