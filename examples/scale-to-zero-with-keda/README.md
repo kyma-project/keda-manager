@@ -120,7 +120,7 @@ Call the HTTP proxy once:
 curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://incoming.{your_cluster_domain}
 ```
 
-The first request may take up to 30–60 seconds while the pod starts. The response confirms the request was not lost:
+The first request may take up to 30–60 seconds while the Pod starts. The response confirms the request was not lost:
 
 ```bash
 {
