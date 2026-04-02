@@ -1,10 +1,10 @@
-# Cluster Roles
+# ClusterRoles
 
 The Keda module includes several ClusterRoles that are used to manage permissions for the KEDA operator and to aggregate permissions for end users. This document describes all ClusterRoles bundled with the Keda module.
 
 ## Keda Edit ClusterRole
 
-The `kyma-keda-edit` ClusterRole allows users to edit KEDA resources.
+With the `kyma-keda-edit` ClusterRole, you can edit the KEDA resources. For the available options, see the following table:
 
 | API Group | Resources | Verbs |
 |-----------|-----------|-------|
@@ -17,7 +17,7 @@ The `kyma-keda-edit` ClusterRole allows users to edit KEDA resources.
 
 ## Keda View ClusterRole
 
-The `kyma-keda-view` ClusterRole allows users to view KEDA resources.
+With the `kyma-keda-view` ClusterRole, you can view KEDA resources. For the available options, see the following table:
 
 | API Group | Resources | Verbs |
 |-----------|-----------|-------|
@@ -30,10 +30,10 @@ The `kyma-keda-view` ClusterRole allows users to view KEDA resources.
 
 ## Role Aggregation
 
-The Keda module uses Kubernetes [role aggregation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles) to automatically extend the default `edit` and `view` ClusterRoles with KEDA-specific permissions.
+The Keda module uses the Kubernetes [role aggregation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles) to automatically extend the default `edit` and `view` ClusterRoles with KEDA-specific permissions.
 
 - **kyma-keda-edit**: Aggregated to `edit` ClusterRole
 - **kyma-keda-view**: Aggregated to `view` ClusterRole
 
-This means that users who are granted the default Kubernetes `edit` or `view` ClusterRoles automatically receive the corresponding KEDA permissions without requiring additional role bindings.
+This means that if you have the default Kubernetes `edit` or `view` ClusterRoles, you automatically receive the corresponding KEDA permissions without requiring additional role bindings.
 
