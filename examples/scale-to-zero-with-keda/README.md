@@ -59,6 +59,10 @@ helm install http-add-on kedacore/keda-add-ons-http \
   --type=merge \
   -p '{"spec":{"template":{"metadata":{"annotations":{"traffic.sidecar.istio.io/excludeInboundPorts":"9090"}}}}}'
   ```
+
+> [!NOTE]
+> The add-on components use gRPC on port 9090 for internal communication. Istio sidecar intercepts this traffic and breaks gRPC health checks, causing CrashLoopBackOff.
+
  5. Wait until all Pods are running the Istio sidecar (2/2):
  
  ```bash
