@@ -33,7 +33,6 @@ It realises the following scenario:
 ## Procedure
 
 
-Create a dedicated namespace and install the add-on via Helm:
 
 Add Helm repository:
 ```bash
