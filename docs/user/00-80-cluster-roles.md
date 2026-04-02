@@ -8,12 +8,12 @@ With the `kyma-keda-edit` ClusterRole, you can edit the KEDA resources. For the 
 
 | API Group | Resources | Verbs |
 |-----------|-----------|-------|
-| operator.kyma-project.io | kedas | create, delete, get, list, patch, update, watch |
-| operator.kyma-project.io | kedas/status | get |
-| keda.sh | scaledobjects, scaledjobs, triggerauthentications, clustertriggerauthentications | create, delete, get, list, patch, update, watch |
-| keda.sh | scaledobjects/status, scaledjobs/status, triggerauthentications/status, clustertriggerauthentications/status | get |
-| eventing.keda.sh | cloudeventsources, clustercloudeventsources | create, delete, get, list, patch, update, watch |
-| eventing.keda.sh | cloudeventsources/status, clustercloudeventsources/status | get |
+| `operator.kyma-project.io` | `kedas` | `create, delete, get, list, patch, update, watch` |
+| `operator.kyma-project.io` | `kedas/status` | `get` |
+| `keda.sh` | `scaledobjects, scaledjobs, triggerauthentications, clustertriggerauthentications` | `create, delete, get, list, patch, update, watch` |
+| `keda.sh` | `scaledobjects/status, scaledjobs/status, triggerauthentications/status, clustertriggerauthentications/status` | `get` |
+| `eventing.keda.sh` | `cloudeventsources, clustercloudeventsources` | `create, delete, get, list, patch, update, watch` |
+| `eventing.keda.sh` | `cloudeventsources/status, clustercloudeventsources/status` | `get` |
 
 ## Keda View ClusterRole
 
@@ -21,12 +21,12 @@ With the `kyma-keda-view` ClusterRole, you can view KEDA resources. For the avai
 
 | API Group | Resources | Verbs |
 |-----------|-----------|-------|
-| operator.kyma-project.io | kedas | get, list, watch |
-| operator.kyma-project.io | kedas/status | get |
-| keda.sh | scaledobjects, scaledjobs, triggerauthentications, clustertriggerauthentications | get, list, watch |
-| keda.sh | scaledobjects/status, scaledjobs/status, triggerauthentications/status, clustertriggerauthentications/status | get |
-| eventing.keda.sh | cloudeventsources, clustercloudeventsources | get, list, watch |
-| eventing.keda.sh | cloudeventsources/status, clustercloudeventsources/status | get |
+| `operator.kyma-project.io` | `kedas` | `get, list, watch` |
+| `operator.kyma-project.io` | `kedas/status` | `get` |
+| `keda.sh` | `scaledobjects, scaledjobs, triggerauthentications, clustertriggerauthentications` | `get, list, watch` |
+| `keda.sh` | `scaledobjects/status, scaledjobs/status, triggerauthentications/status, clustertriggerauthentications/status` | `get` |
+| `eventing.keda.sh` | `cloudeventsources, clustercloudeventsources` | `get, list, watch` |
+| `eventing.keda.sh` | `cloudeventsources/status, clustercloudeventsources/status` | `get` |
 
 ## Role Aggregation
 
