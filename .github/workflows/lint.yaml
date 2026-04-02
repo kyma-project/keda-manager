@@ -12,5 +12,5 @@ jobs:
       - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
       - uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.7
+          version: latest
           working-directory: "."
