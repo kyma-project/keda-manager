@@ -1,0 +1,17 @@
+apiVersion: gateway.kyma-project.io/v2
+kind: APIRule
+metadata:
+  name: http-echo-keda
+  namespace: demo-app
+spec:
+  hosts:
+  - "https://http-echo-keda.<YOUR_DOMAIN>"
+  gateway: kyma-system/kyma-gateway
+  rules:
+  - path: /*
+    methods: [ "GET", "POST", "PUT", "DELETE" ]
+    noAuth: true
+  service:
+    name: keda-add-ons-http-interceptor-proxy
+    namespace: http-add-on
+    port: 8080
