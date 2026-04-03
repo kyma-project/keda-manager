@@ -24,7 +24,7 @@ When a cluster-wide deny-all network policy is enforced, which blocks all ingres
 | `kyma-project.io--keda-operator-metrics-apiserver-allow-to-all` | Allows unrestricted outbound traffic from the KEDA Metrics API Server Pod. This is required to allow the metrics API server to communicate with any service to serve metrics for scaling purposes. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
 | `kyma-project.io--keda-operator-metrics-apiserver-metrics` | Allows ingress to the metrics endpoint on port 8080 \(TCP\) from Pods labeled `networking.kyma-project.io/metrics-scraping: allowed` in the `kyma-system` namespace. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
 | `kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator` | Allows ingress to the KEDA Metrics API Server Pod from the KEDA Operator Pod. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
-| `kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver` | Allows ingress to the KEDA Metrics API Server Pod on port 6443 \(TCP\) from any source. This allows the Kubernetes API server to aggregate custom metrics via the metrics API server. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
+| `kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver` | Allows ingress to the KEDA Metrics API Server Pod on port 6443 \(TCP\) from any source. This allows the Kubernetes API server to aggregate custom metrics using the metrics API server. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
 
 ## Verify Status
 
