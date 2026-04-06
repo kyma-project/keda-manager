@@ -2,6 +2,8 @@
 package addon
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,6 +26,22 @@ const (
 // versionRe validates a semver-like version without a leading "v".
 var versionRe = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+`)
 
+// NewHTTPClient returns an *http.Client that trusts the system CA pool.
+func NewHTTPClient() (*http.Client, error) {
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load system CA pool: %w", err)
+	}
+	return &http.Client{
+		Timeout: httpTimeout,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: pool,
+			},
+		},
+	}, nil
+}
+
 // ValidateVersion trims a leading "v"/"V" and returns an error if the result
 // is not a valid semver string.
 func ValidateVersion(version string) (string, error) {
@@ -36,8 +54,7 @@ func ValidateVersion(version string) (string, error) {
 
 // LatestVersion queries the GitHub tags API and returns the latest tag name
 // with the leading "v" stripped.
-func LatestVersion() (string, error) {
-	client := &http.Client{Timeout: httpTimeout}
+func LatestVersion(client *http.Client) (string, error) {
 	resp, err := client.Get(tagsURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch tags: %w", err)
@@ -62,17 +79,15 @@ func LatestVersion() (string, error) {
 	return tag, nil
 }
 
-// FetchResources downloads the http-add-on manifest for the given version,
-// parses it into unstructured objects, and stamps every object with the addon
-// common label so they can be identified and deleted later.
-func FetchResources(version string) ([]unstructured.Unstructured, error) {
+// FetchResources downloads the http-add-on manifest for the given version
+// and parses it into unstructured objects.
+func FetchResources(client *http.Client, version string) ([]unstructured.Unstructured, error) {
 	version, err := ValidateVersion(version)
 	if err != nil {
 		return nil, err
 	}
 
 	url := fmt.Sprintf(releaseURL, version, version)
-	client := &http.Client{Timeout: httpTimeout}
 
 	resp, err := client.Get(url)
 	if err != nil {

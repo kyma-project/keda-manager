@@ -46,7 +46,7 @@ func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.R
 
 // sFnResolveAddonVersion fetches the latest tag from GitHub and then applies it.
 func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	version, err := addon.LatestVersion()
+	version, err := addon.LatestVersion(r.HTTPClient)
 	if err != nil {
 		r.log.With("err", err).Error("failed to resolve latest addon version")
 		s.instance.UpdateAddonStatus(
@@ -70,7 +70,7 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	// Version changed → delete the old manifest's resources before applying the new one.
 	if previousVersion != "" && previousVersion != version {
 		r.log.Infof("addon version changed %s → %s, removing old resources first", previousVersion, version)
-		oldObjs, err := addon.FetchResources(previousVersion)
+		oldObjs, err := addon.FetchResources(r.HTTPClient, previousVersion)
 		if err != nil {
 			r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup, proceeding with apply anyway")
 		} else {
@@ -84,7 +84,7 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	}
 
 	r.log.Infof("fetching HTTP add-on resources for version %s", version)
-	objs, err := addon.FetchResources(version)
+	objs, err := addon.FetchResources(r.HTTPClient, version)
 	if err != nil {
 		r.log.With("err", err).Error("failed to fetch addon resources")
 		s.instance.UpdateAddonStatus(
@@ -151,7 +151,7 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 
 		r.log.Infof("AddonObjs empty after restart, re-fetching manifest for version %s to delete", lastVersion)
 		var fetchErr error
-		objs, fetchErr = addon.FetchResources(lastVersion)
+		objs, fetchErr = addon.FetchResources(r.HTTPClient, lastVersion)
 		if fetchErr != nil {
 			r.log.With("err", fetchErr).Error("failed to re-fetch addon manifest for deletion")
 			s.instance.UpdateAddonStatus(

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -35,6 +36,9 @@ type Cfg struct {
 	// AddonObjs holds the HTTP add-on resources fetched at runtime.
 	// They are tracked here so they can be deleted when the addon is disabled or the CR is deleted.
 	AddonObjs []unstructured.Unstructured
+	// HTTPClient is used for fetching addon manifests from GitHub.
+	// It should be configured with the appropriate TLS trust store.
+	HTTPClient *http.Client
 }
 
 var (
