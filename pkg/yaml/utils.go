@@ -23,6 +23,11 @@ func LoadData(r io.Reader) ([]unstructured.Unstructured, error) {
 			return nil, err
 		}
 
+		// Skip empty documents (e.g. blank --- separators in multi-doc YAML).
+		if len(obj) == 0 {
+			continue
+		}
+
 		u := unstructured.Unstructured{Object: obj}
 		if u.GetObjectKind().GroupVersionKind().Kind == "CustomResourceDefinition" {
 			results = append([]unstructured.Unstructured{u}, results...)
