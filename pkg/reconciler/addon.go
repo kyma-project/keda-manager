@@ -95,6 +95,10 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		return stopWithNoRequeue()
 	}
 
+	// Append NetworkPolicies so the add-on components can reach the API server
+	// and communicate with each other even when a default-deny policy is in place.
+	objs = append(objs, addon.NetworkPolicies()...)
+
 	var applyErr error
 	for i := range objs {
 		obj := &objs[i]
