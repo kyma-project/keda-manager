@@ -5,5 +5,4 @@ export default [
   { text: 'Keda CR Conditions', link: './05-01-conditions' },
   { text: 'Keda Logging Configuration', link: './06-70-configuring-logging' },
   { text: 'Network Policies', link: './00-45-network-policies' },
-  { text: 'Cluster Roles', link: './00-80-cluster-roles' },
 ];
