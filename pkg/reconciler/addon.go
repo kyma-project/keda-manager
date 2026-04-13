@@ -99,6 +99,11 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	// and communicate with each other even when a default-deny policy is in place.
 	objs = append(objs, addon.NetworkPolicies()...)
 
+	// Append RBAC resources so the add-on components have the cluster-level
+	// permissions they need (e.g. watching ScaledObjects, EndpointSlices,
+	// HTTPScaledObjects).
+	objs = append(objs, addon.RBACResources()...)
+
 	var applyErr error
 	for i := range objs {
 		obj := &objs[i]
