@@ -16,6 +16,9 @@ jobs:
   gitleaks:
     uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@main
 
+  check-fips-image-versions:
+    uses: kyma-project/keda-manager/.github/workflows/_check-fips-image-versions.yaml@main
+
   builds:
     uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
 
