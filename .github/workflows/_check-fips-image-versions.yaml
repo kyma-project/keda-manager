@@ -17,7 +17,7 @@ jobs:
           # Extracts the image version (e.g. "2.18.3") from the env value (a full image URL ending with :<version>)
           extract_version() {
             yq '.spec.template.spec.containers[0].env[] | select(.name == "'"$1"'") | .value' "$FILE" \
-              | grep -oE ':[0-9]+(\.[0-9]+)*' | tr -d ':'
+              | grep -oE ':[0-9]+(\.[0-9]+)*' | tail -1 | tr -d ':'
           }
 
           # Compares versions of a non-FIPS/FIPS image pair and reports the result
