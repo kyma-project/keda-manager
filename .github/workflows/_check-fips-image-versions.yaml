@@ -30,16 +30,16 @@ jobs:
             v_fips=$(extract_version "$name_fips")
 
             if [ -z "$v_non_fips" ] || [ -z "$v_fips" ]; then
-              echo "ERROR: Could not extract version for $name_non_fips ($v_non_fips) or $name_fips ($v_fips)"
+              echo "ERROR: Could not extract versions from $name_non_fips or $name_fips"
               return 1
             fi
 
             if [ "$v_non_fips" != "$v_fips" ]; then
-              echo "ERROR: $name_non_fips ($v_non_fips) != $name_fips ($v_fips)"
+              echo "ERROR: $name_non_fips — non-FIPS version ($v_non_fips) != FIPS version ($v_fips)"
               return 1
             fi
 
-            echo "OK: $name_non_fips == $name_fips ($v_non_fips)"
+            echo "OK: $name_non_fips — $v_non_fips"
           }
 
           # Collect all *_FIPS env names from the file to catch any future additions automatically
