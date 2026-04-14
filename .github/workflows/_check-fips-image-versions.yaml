@@ -20,8 +20,6 @@ jobs:
               | grep -oE ':[0-9]+(\.[0-9]+)*' | tr -d ':'
           }
 
-          failed=0
-
           # Compares versions of a non-FIPS/FIPS image pair and reports the result
           check_pair() {
             local name_non_fips=$1
@@ -46,6 +44,8 @@ jobs:
 
           # Collect all *_FIPS env names from the file to catch any future additions automatically
           fips_names=$(yq '.spec.template.spec.containers[0].env[] | select(.name == "*_FIPS") | .name' "$FILE")
+
+          failed=0
 
           # Ensure the known required FIPS envs are present — fail if someone accidentally removes one
           for required in IMAGE_KEDA_OPERATOR_FIPS IMAGE_KEDA_METRICS_APISERVER_FIPS IMAGE_KEDA_ADMISSION_WEBHOOKS_FIPS; do
