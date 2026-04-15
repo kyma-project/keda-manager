@@ -1,0 +1,64 @@
+name: check-fips-image-versions
+
+on:
+  workflow_call:
+
+jobs:
+  check-fips-image-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check FIPS and non-FIPS Keda image versions are in sync
+        run: |
+          set -e
+
+          FILE="config/manager/manager.yaml"
+
+          # Extracts the image version (e.g. "2.18.3") from the env value (a full image URL ending with :<version>)
+          extract_version() {
+            yq '.spec.template.spec.containers[0].env[] | select(.name == "'"$1"'") | .value' "$FILE" \
+              | grep -oE ':[0-9]+(\.[0-9]+)*' | tail -1 | tr -d ':'
+          }
+
+          # Compares versions of a non-FIPS/FIPS image pair and reports the result
+          check_pair() {
+            local name_non_fips=$1
+            local name_fips=$2
+
+            local v_non_fips v_fips
+            v_non_fips=$(extract_version "$name_non_fips")
+            v_fips=$(extract_version "$name_fips")
+
+            if [ -z "$v_non_fips" ] || [ -z "$v_fips" ]; then
+              echo "ERROR: Could not extract versions from $name_non_fips or $name_fips"
+              return 1
+            fi
+
+            if [ "$v_non_fips" != "$v_fips" ]; then
+              echo "ERROR: $name_non_fips — non-FIPS version ($v_non_fips) != FIPS version ($v_fips)"
+              return 1
+            fi
+
+            echo "OK: $name_non_fips — $v_non_fips"
+          }
+
+          # Collect all *_FIPS env names from the file to catch any future additions automatically
+          fips_names=$(yq '.spec.template.spec.containers[0].env[] | select(.name == "*_FIPS") | .name' "$FILE")
+
+          failed=0
+
+          # Ensure the known required FIPS envs are present — fail if someone accidentally removes one
+          for required in IMAGE_KEDA_OPERATOR_FIPS IMAGE_KEDA_METRICS_APISERVER_FIPS IMAGE_KEDA_ADMISSION_WEBHOOKS_FIPS; do
+            if ! echo "$fips_names" | grep -qx "$required"; then
+              echo "ERROR: Required env $required not found in $FILE"
+              failed=1
+            fi
+          done
+
+          # For each FIPS env, derive the non-FIPS counterpart by stripping the _FIPS suffix and compare versions
+          for fips_name in $fips_names; do
+            non_fips_name="${fips_name%_FIPS}"
+            check_pair "$non_fips_name" "$fips_name" || failed=1
+          done
+
+          exit $failed
