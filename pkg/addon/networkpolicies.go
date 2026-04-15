@@ -273,4 +273,3 @@ func NetworkPolicies() []unstructured.Unstructured {
 
 	return policies
 }
-
