@@ -18,6 +18,8 @@ jobs:
 
   check-fips-image-versions:
     uses: kyma-project/keda-manager/.github/workflows/_check-fips-image-versions.yaml@main
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
 
   builds:
     uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
