@@ -19,6 +19,7 @@ import (
 const (
 	tagsURL    = "https://api.github.com/repos/kedacore/http-add-on/tags"
 	releaseURL = "https://github.com/kedacore/http-add-on/releases/download/v%s/keda-add-ons-http-%s.yaml"
+	crdURL     = "https://github.com/kedacore/http-add-on/releases/download/v%s/keda-add-ons-http-%s-crds.yaml"
 
 	httpTimeout = 30 * time.Second
 )
@@ -79,34 +80,48 @@ func LatestVersion(client *http.Client) (string, error) {
 	return tag, nil
 }
 
-// FetchResources downloads the http-add-on manifest for the given version
-// and parses it into unstructured objects.
+// FetchResources downloads the http-add-on CRDs and manifest for the given
+// version and parses them into unstructured objects. The CRDs are prepended so
+// they are applied before the rest of the resources.
 func FetchResources(client *http.Client, version string) ([]unstructured.Unstructured, error) {
 	version, err := ValidateVersion(version)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf(releaseURL, version, version)
+	crdObjs, err := fetchURL(client, fmt.Sprintf(crdURL, version, version), version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch addon CRDs: %w", err)
+	}
 
+	objs, err := fetchURL(client, fmt.Sprintf(releaseURL, version, version), version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch addon manifest: %w", err)
+	}
+
+	return append(crdObjs, objs...), nil
+}
+
+// fetchURL downloads a single URL and parses it into unstructured objects.
+func fetchURL(client *http.Client, url, version string) ([]unstructured.Unstructured, error) {
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download addon manifest for version %s: %w", version, err)
+		return nil, fmt.Errorf("failed to download %s: %w", url, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("addon manifest download returned HTTP %d for version %s", resp.StatusCode, version)
+		return nil, fmt.Errorf("download of %s returned HTTP %d for version %s", url, resp.StatusCode, version)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read addon manifest: %w", err)
+		return nil, fmt.Errorf("failed to read response from %s: %w", url, err)
 	}
 
 	objs, err := yaml.LoadData(strings.NewReader(string(body)))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse addon manifest: %w", err)
+		return nil, fmt.Errorf("failed to parse response from %s: %w", url, err)
 	}
 
 	return objs, nil
