@@ -7,6 +7,9 @@ import (
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -61,11 +64,68 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 	return switchState(sFnApplyAddon)
 }
 
+// ensureNamespace creates the target namespace if it does not exist and labels it
+// with istio-injection=enabled so that Istio sidecars are injected into add-on pods.
+func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+			Labels: map[string]string{
+				"istio-injection": "enabled",
+			},
+		},
+	}
+	if err := r.Create(ctx, ns); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			// Namespace exists — ensure the istio label is present.
+			existing := &corev1.Namespace{}
+			if getErr := r.Get(ctx, client.ObjectKeyFromObject(ns), existing); getErr != nil {
+				return fmt.Errorf("failed to get existing namespace %s: %w", namespace, getErr)
+			}
+			if existing.Labels == nil {
+				existing.Labels = map[string]string{}
+			}
+			if existing.Labels["istio-injection"] != "enabled" {
+				existing.Labels["istio-injection"] = "enabled"
+				if updateErr := r.Update(ctx, existing); updateErr != nil {
+					return fmt.Errorf("failed to label namespace %s with istio-injection: %w", namespace, updateErr)
+				}
+			}
+			return nil
+		}
+		return fmt.Errorf("failed to create namespace %s: %w", namespace, err)
+	}
+	r.log.Infof("created namespace %s with istio-injection=enabled", namespace)
+	return nil
+}
+
+// overrideNamespace sets the namespace on all namespaced resources to the target namespace.
+// Cluster-scoped resources (those without a namespace in the manifest) are left unchanged.
+func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
+	for i := range objs {
+		if objs[i].GetNamespace() != "" {
+			objs[i].SetNamespace(namespace)
+		}
+	}
+}
+
 // sFnApplyAddon downloads and applies the add-on resources for the version stored in spec.addon.version.
 // If the version changed since the last install, it first removes the old version's resources.
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	version := s.instance.Spec.Addon.Version
 	previousVersion := s.instance.Status.AddonVersion
+	targetNS := s.instance.Spec.Addon.EffectiveNamespace()
+
+	// Ensure the target namespace exists and is labelled for Istio sidecar injection.
+	if err := ensureNamespace(ctx, r, targetNS); err != nil {
+		r.log.With("err", err).Error("failed to ensure addon namespace")
+		s.instance.UpdateAddonStatus(
+			v1alpha1.AddonStateError,
+			v1alpha1.ConditionReasonAddonInstallErr,
+			err.Error(),
+		)
+		return stopWithNoRequeue()
+	}
 
 	// Version changed → delete the old manifest's resources before applying the new one.
 	if previousVersion != "" && previousVersion != version {
@@ -74,6 +134,7 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		if err != nil {
 			r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup, proceeding with apply anyway")
 		} else {
+			overrideNamespace(oldObjs, targetNS)
 			for i := range oldObjs {
 				obj := oldObjs[i]
 				if err := r.Delete(ctx, &obj); client.IgnoreNotFound(err) != nil {
@@ -95,9 +156,12 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		return stopWithNoRequeue()
 	}
 
+	// Override namespace on all namespaced resources to the target namespace.
+	overrideNamespace(objs, targetNS)
+
 	// Append NetworkPolicies so the add-on components can reach the API server
 	// and communicate with each other even when a default-deny policy is in place.
-	objs = append(objs, addon.NetworkPolicies()...)
+	objs = append(objs, addon.NetworkPolicies(targetNS)...)
 
 	var applyErr error
 	for i := range objs {
@@ -165,6 +229,10 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 			)
 			return stopWithNoRequeue()
 		}
+
+		// Override namespace on re-fetched resources so we delete from the correct namespace.
+		targetNS := s.instance.Spec.Addon.EffectiveNamespace()
+		overrideNamespace(objs, targetNS)
 	}
 
 	var delErr error

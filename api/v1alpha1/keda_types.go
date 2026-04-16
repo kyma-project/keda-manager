@@ -230,6 +230,9 @@ type PodAnnotations struct {
 	AdmissionWebhook map[string]string `json:"admissionWebhook,omitempty"`
 }
 
+// DefaultAddonNamespace is the default namespace for the HTTP add-on when none is specified.
+const DefaultAddonNamespace = "keda"
+
 // AddonCfg holds configuration for the KEDA HTTP add-on.
 // When Enabled is true a specific Version (e.g. "0.13.0") must be provided.
 // When Enabled is false (or the field is omitted) the add-on resources are deleted from the cluster.
@@ -241,6 +244,19 @@ type AddonCfg struct {
 	// +kubebuilder:validation:Pattern=`^[0-9]+\.[0-9]+\.[0-9]+.*$`
 	// +optional
 	Version string `json:"version,omitempty"`
+	// Namespace is the target namespace where the HTTP add-on will be installed.
+	// When omitted or empty the default namespace "keda" is used.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// EffectiveNamespace returns the namespace to use for addon installation.
+// If Namespace is empty, it returns DefaultAddonNamespace.
+func (a *AddonCfg) EffectiveNamespace() string {
+	if a == nil || a.Namespace == "" {
+		return DefaultAddonNamespace
+	}
+	return a.Namespace
 }
 
 // KedaSpec defines the desired state of Keda

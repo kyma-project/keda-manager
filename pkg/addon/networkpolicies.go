@@ -4,14 +4,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// addonNamespace is the namespace where the http-add-on components are deployed.
-const addonNamespace = "keda"
-
 // NetworkPolicies returns the NetworkPolicy objects required for the http-add-on
 // components (scaler, interceptor, operator) to function correctly.
 // These policies allow egress to the Kubernetes API server and DNS, plus the
-// required inter-component traffic within the keda namespace.
-func NetworkPolicies() []unstructured.Unstructured {
+// required inter-component traffic within the given namespace.
+func NetworkPolicies(namespace string) []unstructured.Unstructured {
 	components := []struct {
 		name      string
 		component string
@@ -59,7 +56,7 @@ func NetworkPolicies() []unstructured.Unstructured {
 				"kind":       "NetworkPolicy",
 				"metadata": map[string]interface{}{
 					"name":      c.name + "-allow-to-apiserver",
-					"namespace": addonNamespace,
+					"namespace": namespace,
 					"labels": map[string]interface{}{
 						"app.kubernetes.io/component": c.component,
 						"app.kubernetes.io/name":      "http-add-on",
@@ -96,7 +93,7 @@ func NetworkPolicies() []unstructured.Unstructured {
 				"kind":       "NetworkPolicy",
 				"metadata": map[string]interface{}{
 					"name":      c.name + "-allow-to-dns",
-					"namespace": addonNamespace,
+					"namespace": namespace,
 					"labels": map[string]interface{}{
 						"app.kubernetes.io/component": c.component,
 						"app.kubernetes.io/name":      "http-add-on",
@@ -143,7 +140,7 @@ func NetworkPolicies() []unstructured.Unstructured {
 			"kind":       "NetworkPolicy",
 			"metadata": map[string]interface{}{
 				"name":      "keda-add-ons-http-scaler-allow-to-interceptor",
-				"namespace": addonNamespace,
+				"namespace": namespace,
 				"labels": map[string]interface{}{
 					"app.kubernetes.io/component": "scaler",
 					"app.kubernetes.io/name":      "http-add-on",
@@ -193,7 +190,7 @@ func NetworkPolicies() []unstructured.Unstructured {
 			"kind":       "NetworkPolicy",
 			"metadata": map[string]interface{}{
 				"name":      "keda-add-ons-http-operator-allow-to-scaler",
-				"namespace": addonNamespace,
+				"namespace": namespace,
 				"labels": map[string]interface{}{
 					"app.kubernetes.io/component": "operator",
 					"app.kubernetes.io/name":      "http-add-on",
@@ -243,7 +240,7 @@ func NetworkPolicies() []unstructured.Unstructured {
 			"kind":       "NetworkPolicy",
 			"metadata": map[string]interface{}{
 				"name":      "keda-add-ons-http-interceptor-allow-egress",
-				"namespace": addonNamespace,
+				"namespace": namespace,
 				"labels": map[string]interface{}{
 					"app.kubernetes.io/component": "interceptor",
 					"app.kubernetes.io/name":      "http-add-on",

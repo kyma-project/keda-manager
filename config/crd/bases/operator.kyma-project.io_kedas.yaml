@@ -59,6 +59,11 @@ spec:
                   enabled:
                     default: false
                     type: boolean
+                  namespace:
+                    description: |-
+                      Namespace is the target namespace where the HTTP add-on will be installed.
+                      When omitted or empty the default namespace "keda" is used.
+                    type: string
                   version:
                     description: |-
                       Version is the http-add-on release tag without the leading "v", e.g. "0.13.0".
