@@ -262,10 +262,151 @@ func NetworkPolicies(namespace string) []unstructured.Unstructured {
 		},
 	}
 
+	// ── Ingress policies ──────────────────────────────────────────────────
+	// These are required when a default-deny NetworkPolicy is present in the
+	// namespace; without them inter-component traffic is blocked.
+
+	// Allow ingress to interceptor admin port (9090) from scaler pods.
+	// The scaler pings the interceptor-admin endpoint to fetch request queue
+	// counts — this is the traffic that causes the "there isn't any valid
+	// interceptor endpoint" error when blocked.
+	interceptorIngressFromScalerPolicy := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "networking.k8s.io/v1",
+			"kind":       "NetworkPolicy",
+			"metadata": map[string]interface{}{
+				"name":      "keda-add-ons-http-interceptor-allow-from-scaler",
+				"namespace": namespace,
+				"labels": map[string]interface{}{
+					"app.kubernetes.io/component": "interceptor",
+					"app.kubernetes.io/name":      "http-add-on",
+					"app.kubernetes.io/part-of":   "keda",
+				},
+			},
+			"spec": map[string]interface{}{
+				"podSelector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"app.kubernetes.io/component": "add-on",
+						"app.kubernetes.io/instance":  "interceptor",
+						"app.kubernetes.io/name":      "http",
+						"app.kubernetes.io/part-of":   "keda",
+					},
+				},
+				"policyTypes": []interface{}{"Ingress"},
+				"ingress": []interface{}{
+					map[string]interface{}{
+						"ports": []interface{}{
+							map[string]interface{}{
+								"port":     int64(9090),
+								"protocol": "TCP",
+							},
+						},
+						"from": []interface{}{
+							map[string]interface{}{
+								"podSelector": map[string]interface{}{
+									"matchLabels": map[string]interface{}{
+										"app.kubernetes.io/component": "add-on",
+										"app.kubernetes.io/instance":  "external-scaler",
+										"app.kubernetes.io/name":      "http",
+										"app.kubernetes.io/part-of":   "keda",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Allow ingress to interceptor proxy port (8080) from any pod.
+	// The interceptor is a reverse proxy that receives HTTP requests from
+	// workloads/ingress and forwards them to the target service.
+	interceptorIngressProxyPolicy := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "networking.k8s.io/v1",
+			"kind":       "NetworkPolicy",
+			"metadata": map[string]interface{}{
+				"name":      "keda-add-ons-http-interceptor-allow-ingress-proxy",
+				"namespace": namespace,
+				"labels": map[string]interface{}{
+					"app.kubernetes.io/component": "interceptor",
+					"app.kubernetes.io/name":      "http-add-on",
+					"app.kubernetes.io/part-of":   "keda",
+				},
+			},
+			"spec": map[string]interface{}{
+				"podSelector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"app.kubernetes.io/component": "add-on",
+						"app.kubernetes.io/instance":  "interceptor",
+						"app.kubernetes.io/name":      "http",
+						"app.kubernetes.io/part-of":   "keda",
+					},
+				},
+				"policyTypes": []interface{}{"Ingress"},
+				"ingress": []interface{}{
+					map[string]interface{}{
+						"ports": []interface{}{
+							map[string]interface{}{
+								"port":     int64(8080),
+								"protocol": "TCP",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Allow ingress to scaler gRPC port (9090) from any pod.
+	// The KEDA operator (which may run in a different namespace such as
+	// keda-system) connects to the external-scaler gRPC endpoint to query
+	// scaling metrics.
+	scalerIngressPolicy := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "networking.k8s.io/v1",
+			"kind":       "NetworkPolicy",
+			"metadata": map[string]interface{}{
+				"name":      "keda-add-ons-http-scaler-allow-ingress",
+				"namespace": namespace,
+				"labels": map[string]interface{}{
+					"app.kubernetes.io/component": "scaler",
+					"app.kubernetes.io/name":      "http-add-on",
+					"app.kubernetes.io/part-of":   "keda",
+				},
+			},
+			"spec": map[string]interface{}{
+				"podSelector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"app.kubernetes.io/component": "add-on",
+						"app.kubernetes.io/instance":  "external-scaler",
+						"app.kubernetes.io/name":      "http",
+						"app.kubernetes.io/part-of":   "keda",
+					},
+				},
+				"policyTypes": []interface{}{"Ingress"},
+				"ingress": []interface{}{
+					map[string]interface{}{
+						"ports": []interface{}{
+							map[string]interface{}{
+								"port":     int64(9090),
+								"protocol": "TCP",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	policies = append(policies,
 		scalerToInterceptorPolicy,
 		operatorToScalerPolicy,
 		interceptorEgressPolicy,
+		interceptorIngressFromScalerPolicy,
+		interceptorIngressProxyPolicy,
+		scalerIngressPolicy,
 	)
 
 	return policies
