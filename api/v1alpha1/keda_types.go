@@ -484,8 +484,11 @@ type Status struct {
 	Addon string `json:"addon,omitempty"`
 	// AddonVersion is the last successfully installed HTTP add-on version.
 	// +optional
-	AddonVersion string             `json:"addonVersion,omitempty"`
-	Conditions   []metav1.Condition `json:"conditions,omitempty"`
+	AddonVersion string `json:"addonVersion,omitempty"`
+	// AddonNamespace is the namespace where the HTTP add-on was last installed.
+	// +optional
+	AddonNamespace string             `json:"addonNamespace,omitempty"`
+	Conditions     []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

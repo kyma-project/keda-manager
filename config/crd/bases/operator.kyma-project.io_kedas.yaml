@@ -522,6 +522,10 @@ spec:
                 description: 'Addon reflects the current state of the HTTP add-on:
                   Installed, NotInstalled, or Error.'
                 type: string
+              addonNamespace:
+                description: AddonNamespace is the namespace where the HTTP add-on
+                  was last installed.
+                type: string
               addonVersion:
                 description: AddonVersion is the last successfully installed HTTP
                   add-on version.

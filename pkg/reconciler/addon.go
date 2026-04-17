@@ -99,21 +99,82 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	return nil
 }
 
-// overrideNamespace sets the namespace on all namespaced resources to the target namespace.
-// Cluster-scoped resources (those without a namespace in the manifest) are left unchanged.
+// overrideNamespace sets the namespace on all namespaced resources to the target
+// namespace. For cluster-scoped resources (ClusterRoleBinding, ClusterRole) it
+// patches subjects[].namespace so that ServiceAccount references point to the
+// correct namespace.
 func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 	for i := range objs {
+		// Namespaced resources — override the metadata.namespace.
 		if objs[i].GetNamespace() != "" {
 			objs[i].SetNamespace(namespace)
+		}
+
+		// ClusterRoleBindings / RoleBindings — patch subjects[].namespace.
+		kind := objs[i].GetKind()
+		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
+			patchSubjectsNamespace(&objs[i], namespace)
+		}
+	}
+}
+
+// patchSubjectsNamespace updates every subject's namespace field to the given
+// namespace for ServiceAccount subjects.
+func patchSubjectsNamespace(obj *unstructured.Unstructured, namespace string) {
+	subjects, found, err := unstructured.NestedSlice(obj.Object, "subjects")
+	if err != nil || !found {
+		return
+	}
+
+	changed := false
+	for j, raw := range subjects {
+		subj, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		subjKind, _, _ := unstructured.NestedString(subj, "kind")
+		if subjKind != "ServiceAccount" {
+			continue
+		}
+		existingNS, _, _ := unstructured.NestedString(subj, "namespace")
+		if existingNS != "" && existingNS != namespace {
+			subj["namespace"] = namespace
+			subjects[j] = subj
+			changed = true
+		}
+	}
+	if changed {
+		_ = unstructured.SetNestedSlice(obj.Object, subjects, "subjects")
+	}
+}
+
+// deleteOldAddonResources fetches the manifest for the given version, overrides
+// namespaces to oldNS, and deletes each resource. It also deletes the
+// NetworkPolicy objects that were added by us.
+func deleteOldAddonResources(ctx context.Context, r *fsm, version, oldNS string) {
+	oldObjs, err := addon.FetchResources(r.HTTPClient, version)
+	if err != nil {
+		r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup, proceeding with apply anyway")
+		return
+	}
+	overrideNamespace(oldObjs, oldNS)
+	// Also delete NetworkPolicies that we appended.
+	oldObjs = append(oldObjs, addon.NetworkPolicies(oldNS)...)
+
+	for i := range oldObjs {
+		obj := oldObjs[i]
+		if err := r.Delete(ctx, &obj); client.IgnoreNotFound(err) != nil {
+			r.log.With("err", err).With("name", obj.GetName()).Warn("failed to delete old addon resource")
 		}
 	}
 }
 
 // sFnApplyAddon downloads and applies the add-on resources for the version stored in spec.addon.version.
-// If the version changed since the last install, it first removes the old version's resources.
+// If the version or namespace changed since the last install, it first removes the old resources.
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	version := s.instance.Spec.Addon.Version
 	previousVersion := s.instance.Status.AddonVersion
+	previousNS := s.instance.Status.AddonNamespace
 	targetNS := s.instance.Spec.Addon.EffectiveNamespace()
 
 	// Ensure the target namespace exists and is labelled for Istio sidecar injection.
@@ -127,21 +188,14 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		return stopWithNoRequeue()
 	}
 
-	// Version changed → delete the old manifest's resources before applying the new one.
-	if previousVersion != "" && previousVersion != version {
+	// Namespace changed → delete old resources from old namespace first.
+	if previousNS != "" && previousNS != targetNS && previousVersion != "" {
+		r.log.Infof("addon namespace changed %s → %s, removing old resources from %s", previousNS, targetNS, previousNS)
+		deleteOldAddonResources(ctx, r, previousVersion, previousNS)
+	} else if previousVersion != "" && previousVersion != version {
+		// Version changed (same namespace) → delete old manifest's resources.
 		r.log.Infof("addon version changed %s → %s, removing old resources first", previousVersion, version)
-		oldObjs, err := addon.FetchResources(r.HTTPClient, previousVersion)
-		if err != nil {
-			r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup, proceeding with apply anyway")
-		} else {
-			overrideNamespace(oldObjs, targetNS)
-			for i := range oldObjs {
-				obj := oldObjs[i]
-				if err := r.Delete(ctx, &obj); client.IgnoreNotFound(err) != nil {
-					r.log.With("err", err).With("name", obj.GetName()).Warn("failed to delete old addon resource")
-				}
-			}
-		}
+		deleteOldAddonResources(ctx, r, previousVersion, targetNS)
 	}
 
 	r.log.Infof("fetching HTTP add-on resources for version %s", version)
@@ -156,7 +210,7 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		return stopWithNoRequeue()
 	}
 
-	// Override namespace on all namespaced resources to the target namespace.
+	// Override namespace on all resources (namespaced + ClusterRoleBinding subjects).
 	overrideNamespace(objs, targetNS)
 
 	// Append NetworkPolicies so the add-on components can reach the API server
@@ -189,9 +243,10 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	s.instance.UpdateAddonStatus(
 		v1alpha1.AddonStateInstalled,
 		v1alpha1.ConditionReasonAddonInstalled,
-		fmt.Sprintf("HTTP add-on v%s installed", version),
+		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS),
 	)
 	s.instance.Status.AddonVersion = version
+	s.instance.Status.AddonNamespace = targetNS
 	return stopWithNoRequeue()
 }
 
@@ -217,7 +272,13 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 			return stopWithNoRequeue()
 		}
 
-		r.log.Infof("AddonObjs empty after restart, re-fetching manifest for version %s to delete", lastVersion)
+		// Use the namespace recorded in status (where the addon was actually installed).
+		lastNS := s.instance.Status.AddonNamespace
+		if lastNS == "" {
+			lastNS = v1alpha1.DefaultAddonNamespace
+		}
+
+		r.log.Infof("AddonObjs empty after restart, re-fetching manifest for version %s to delete from namespace %s", lastVersion, lastNS)
 		var fetchErr error
 		objs, fetchErr = addon.FetchResources(r.HTTPClient, lastVersion)
 		if fetchErr != nil {
@@ -231,8 +292,9 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		}
 
 		// Override namespace on re-fetched resources so we delete from the correct namespace.
-		targetNS := s.instance.Spec.Addon.EffectiveNamespace()
-		overrideNamespace(objs, targetNS)
+		overrideNamespace(objs, lastNS)
+		// Also include NetworkPolicies for deletion.
+		objs = append(objs, addon.NetworkPolicies(lastNS)...)
 	}
 
 	var delErr error
@@ -260,6 +322,7 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		"HTTP add-on removed",
 	)
 	s.instance.Status.AddonVersion = ""
+	s.instance.Status.AddonNamespace = ""
 	return stopWithNoRequeue()
 }
 
