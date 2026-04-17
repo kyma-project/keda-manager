@@ -99,10 +99,19 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	return nil
 }
 
+// namespaceEnvVars is the set of environment variable names in the HTTP add-on
+// Deployments that contain a hardcoded namespace reference and must be patched
+// when the add-on is installed into a non-default namespace.
+var namespaceEnvVars = map[string]struct{}{
+	"KEDA_HTTP_SCALER_TARGET_ADMIN_NAMESPACE": {},
+	"KEDA_HTTP_OPERATOR_NAMESPACE":            {},
+}
+
 // overrideNamespace sets the namespace on all namespaced resources to the target
 // namespace. For cluster-scoped resources (ClusterRoleBinding, ClusterRole) it
 // patches subjects[].namespace so that ServiceAccount references point to the
-// correct namespace.
+// correct namespace. For Deployments it also patches environment variables that
+// contain hardcoded namespace references (e.g. KEDA_HTTP_SCALER_TARGET_ADMIN_NAMESPACE).
 func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 	for i := range objs {
 		// Namespaced resources — override the metadata.namespace.
@@ -115,6 +124,57 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
 			patchSubjectsNamespace(&objs[i], namespace)
 		}
+
+		// Deployments — patch env vars that reference the namespace.
+		if kind == "Deployment" {
+			patchDeploymentEnvNamespace(&objs[i], namespace)
+		}
+	}
+}
+
+// patchDeploymentEnvNamespace walks all containers in a Deployment and overrides
+// environment variables whose names are in namespaceEnvVars to point to the
+// given namespace. This is required because the upstream HTTP add-on manifest
+// hardcodes the namespace "keda" in env vars like KEDA_HTTP_SCALER_TARGET_ADMIN_NAMESPACE.
+func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace string) {
+	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	if err != nil || !found {
+		return
+	}
+
+	changed := false
+	for ci, rawC := range containers {
+		container, ok := rawC.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		envRaw, exists := container["env"]
+		if !exists {
+			continue
+		}
+		envList, ok := envRaw.([]interface{})
+		if !ok {
+			continue
+		}
+		for ei, rawE := range envList {
+			envVar, ok := rawE.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			name, _ := envVar["name"].(string)
+			if _, match := namespaceEnvVars[name]; match {
+				if envVar["value"] != namespace {
+					envVar["value"] = namespace
+					envList[ei] = envVar
+					changed = true
+				}
+			}
+		}
+		container["env"] = envList
+		containers[ci] = container
+	}
+	if changed {
+		_ = unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers")
 	}
 }
 
