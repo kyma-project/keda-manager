@@ -77,7 +77,14 @@ keda-add-ons-http-interceptor-5ffc68f88d-gn96w         2/2     Running   0      
 keda-add-ons-http-interceptor-5ffc68f88d-tp2zf         2/2     Running   0             1h
  ```
 
-6. Edit the `k8s-resources/apirule.yaml`, `k8s-resources/httpscaledobject.yaml`, and `k8s-resources/envoyfilter.yaml` files to fill in the hosts value.
+6. Edit the `k8s-resources/apirule.yaml`, `k8s-resources/httpscaledobject.yaml`, and `k8s-resources/envoyfilter.yaml` files to fill in the hosts value and namespace in `k8s-resources/apirule.yaml` for `http-add-on`. 
+
+Use the following command to get the cluster domain:
+
+```bash
+kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}'
+```
+
 
 7. Apply the example resources from the `./k8s-resources` directory:
 
@@ -116,7 +123,7 @@ No resources found in demo-app namespace.
 Call the HTTP proxy once:
 
 ```bash
-curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://incoming.{your_cluster_domain}
+curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://http-echo-keda.{your_cluster_domain}/
 ```
 
 The first request may take up to 30–60 seconds while the Pod starts. The response confirms the request was not lost:
