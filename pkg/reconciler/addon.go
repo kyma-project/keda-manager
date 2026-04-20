@@ -99,24 +99,13 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	return nil
 }
 
-// istioExcludePortsDeployments is the set of HTTP add-on Deployment names that
-// require the Istio sidecar exclude-inbound-ports annotation so that gRPC on
-// port 9090 is not intercepted (which would break health checks).
-var istioExcludePortsDeployments = map[string]struct{}{
-	"keda-add-ons-http-interceptor": {},
-	"keda-add-ons-http-operator":    {},
-	"keda-add-ons-http-scaler":      {},
-}
-
 const istioExcludeInboundPortsAnnotation = "traffic.sidecar.istio.io/excludeInboundPorts"
 const istioExcludeInboundPortsValue = "9090"
 
-// patchDeploymentIstioAnnotation adds the Istio excludeInboundPorts annotation
-// to a Deployment if its name is in istioExcludePortsDeployments.
+// patchDeploymentIstioAnnotation adds the Istio excludeInboundPorts="9090"
+// annotation to every addon Deployment so that the Istio sidecar does not
+// intercept gRPC traffic on port 9090, which would break health checks.
 func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
-	if _, ok := istioExcludePortsDeployments[obj.GetName()]; !ok {
-		return
-	}
 	annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 	if annotations == nil {
 		annotations = map[string]string{}
