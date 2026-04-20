@@ -99,6 +99,35 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	return nil
 }
 
+// istioExcludePortsDeployments is the set of HTTP add-on Deployment names that
+// require the Istio sidecar exclude-inbound-ports annotation so that gRPC on
+// port 9090 is not intercepted (which would break health checks).
+var istioExcludePortsDeployments = map[string]struct{}{
+	"keda-add-ons-http-interceptor": {},
+	"keda-add-ons-http-operator":    {},
+	"keda-add-ons-http-scaler":      {},
+}
+
+const istioExcludeInboundPortsAnnotation = "traffic.sidecar.istio.io/excludeInboundPorts"
+const istioExcludeInboundPortsValue = "9090"
+
+// patchDeploymentIstioAnnotation adds the Istio excludeInboundPorts annotation
+// to a Deployment if its name is in istioExcludePortsDeployments.
+func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
+	if _, ok := istioExcludePortsDeployments[obj.GetName()]; !ok {
+		return
+	}
+	annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	if annotations[istioExcludeInboundPortsAnnotation] == istioExcludeInboundPortsValue {
+		return
+	}
+	annotations[istioExcludeInboundPortsAnnotation] = istioExcludeInboundPortsValue
+	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
+}
+
 // namespaceEnvVars is the set of environment variable names in the HTTP add-on
 // Deployments that contain a hardcoded namespace reference and must be patched
 // when the add-on is installed into a non-default namespace.
@@ -125,9 +154,10 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 			patchSubjectsNamespace(&objs[i], namespace)
 		}
 
-		// Deployments — patch env vars that reference the namespace.
+		// Deployments — patch env vars that reference the namespace and add Istio annotation.
 		if kind == "Deployment" {
 			patchDeploymentEnvNamespace(&objs[i], namespace)
+			patchDeploymentIstioAnnotation(&objs[i])
 		}
 	}
 }
