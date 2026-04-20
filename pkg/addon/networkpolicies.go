@@ -130,7 +130,47 @@ func NetworkPolicies(namespace string) []unstructured.Unstructured {
 			},
 		}
 
-		policies = append(policies, apiServerPolicy, dnsPolicy)
+		// Allow egress to istiod (xDS configuration pull on port 15012).
+		// Without this the Istio sidecar proxy cannot connect to the control
+		// plane, its /healthz/ready endpoint on port 15021 never becomes
+		// available, and the pod is stuck in Init forever.
+		istiodPolicy := unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "networking.k8s.io/v1",
+				"kind":       "NetworkPolicy",
+				"metadata": map[string]interface{}{
+					"name":      c.name + "-allow-to-istiod",
+					"namespace": namespace,
+					"labels": map[string]interface{}{
+						"app.kubernetes.io/component": c.component,
+						"app.kubernetes.io/name":      "http-add-on",
+						"app.kubernetes.io/part-of":   "keda",
+					},
+				},
+				"spec": map[string]interface{}{
+					"podSelector": map[string]interface{}{
+						"matchLabels": c.selector,
+					},
+					"policyTypes": []interface{}{"Egress"},
+					"egress": []interface{}{
+						map[string]interface{}{
+							"ports": []interface{}{
+								map[string]interface{}{
+									"port":     int64(15012),
+									"protocol": "TCP",
+								},
+								map[string]interface{}{
+									"port":     int64(15014),
+									"protocol": "TCP",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		policies = append(policies, apiServerPolicy, dnsPolicy, istiodPolicy)
 	}
 
 	// Allow scaler → interceptor-admin (gRPC) traffic
