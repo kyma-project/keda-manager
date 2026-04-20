@@ -5,7 +5,7 @@ metadata:
   namespace: demo-app
 spec:
   hosts:
-  - "https://http-echo-keda.<YOUR_DOMAIN>"
+  - "http-echo-keda.<YOUR_DOMAIN>"
   gateway: kyma-system/kyma-gateway
   rules:
   - path: /*
@@ -13,5 +13,5 @@ spec:
     noAuth: true
   service:
     name: keda-add-ons-http-interceptor-proxy
-    namespace: http-add-on
+    namespace: <HTTP-ADD-ON-NAMESPACE>
     port: 8080
