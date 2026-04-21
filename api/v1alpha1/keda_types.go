@@ -56,22 +56,32 @@ const (
 	ConditionReasonDeletionErr              = ConditionReason("DeletionErr")
 	ConditionReasonDeleted                  = ConditionReason("Deleted")
 
-	// Addon-specific condition reasons
+	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
+	ConditionTypeInstalled         = ConditionType("Installed")
+	ConditionTypeDeleted           = ConditionType("Deleted")
+	ConditionTypeAddon             = ConditionType("Addon")
+
+	// Addon condition reasons (reported via conditions[], no new status fields).
 	ConditionReasonAddonInstalled  = ConditionReason("AddonInstalled")
 	ConditionReasonAddonDeleted    = ConditionReason("AddonDeleted")
 	ConditionReasonAddonInstallErr = ConditionReason("AddonInstallErr")
 	ConditionReasonAddonDisabled   = ConditionReason("AddonDisabled")
 	ConditionReasonAddonVersionErr = ConditionReason("AddonVersionErr")
 
-	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
-	ConditionTypeInstalled         = ConditionType("Installed")
-	ConditionTypeDeleted           = ConditionType("Deleted")
-	ConditionTypeAddon             = ConditionType("Addon")
+	// Addon annotation keys used to configure the HTTP add-on via CR annotations.
+	// Example usage:
+	//   metadata:
+	//     annotations:
+	//       keda.kyma-project.io/addon-enabled: "true"
+	//       keda.kyma-project.io/addon-version: "0.13.0"
+	//       keda.kyma-project.io/addon-namespace: "keda"
+	AnnotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
+	AnnotationAddonVersion   = "keda.kyma-project.io/addon-version"
+	AnnotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
 
-	// AddonState values for Status.Addon
-	AddonStateInstalled    = "Installed"
-	AddonStateNotInstalled = "NotInstalled"
-	AddonStateError        = "Error"
+	// Internal tracking annotations set by the controller to remember what was last installed.
+	AnnotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
+	AnnotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
 
 	CommonLogLevelDebug = LogLevel("debug")
 	CommonLogLevelInfo  = LogLevel("info")
@@ -233,32 +243,6 @@ type PodAnnotations struct {
 // DefaultAddonNamespace is the default namespace for the HTTP add-on when none is specified.
 const DefaultAddonNamespace = "keda"
 
-// AddonCfg holds configuration for the KEDA HTTP add-on.
-// When Enabled is true a specific Version (e.g. "0.13.0") must be provided.
-// When Enabled is false (or the field is omitted) the add-on resources are deleted from the cluster.
-type AddonCfg struct {
-	// +kubebuilder:default=false
-	Enabled bool `json:"enabled"`
-	// Version is the http-add-on release tag without the leading "v", e.g. "0.13.0".
-	// Required when Enabled is true.
-	// +kubebuilder:validation:Pattern=`^[0-9]+\.[0-9]+\.[0-9]+.*$`
-	// +optional
-	Version string `json:"version,omitempty"`
-	// Namespace is the target namespace where the HTTP add-on will be installed.
-	// When omitted or empty the default namespace "keda" is used.
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
-}
-
-// EffectiveNamespace returns the namespace to use for addon installation.
-// If Namespace is empty, it returns DefaultAddonNamespace.
-func (a *AddonCfg) EffectiveNamespace() string {
-	if a == nil || a.Namespace == "" {
-		return DefaultAddonNamespace
-	}
-	return a.Namespace
-}
-
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
 	Istio          *Istio          `json:"istio,omitempty"`
@@ -266,9 +250,6 @@ type KedaSpec struct {
 	Resources      *Resources      `json:"resources,omitempty"`
 	Env            EnvVars         `json:"env,omitempty"`
 	PodAnnotations *PodAnnotations `json:"podAnnotations,omitempty"`
-	// Addon configures the optional KEDA HTTP add-on. Omitting this field or setting enabled:false disables the add-on.
-	// +optional
-	Addon *AddonCfg `json:"addon,omitempty"`
 }
 
 type EnvVars []corev1.EnvVar
@@ -455,19 +436,12 @@ func (k *Keda) IsServedEmpty() bool {
 	return k.Status.Served == ""
 }
 
-// UpdateAddonStatus sets the addon status field and an Addon condition.
-func (k *Keda) UpdateAddonStatus(state string, reason ConditionReason, msg string) {
-	k.Status.Addon = state
-	var condStatus metav1.ConditionStatus
-	switch state {
-	case AddonStateInstalled:
-		condStatus = metav1.ConditionTrue
-	default:
-		condStatus = metav1.ConditionFalse
-	}
+// SetAddonCondition records the addon state as a condition in the existing conditions[] slice.
+// No new Status fields are introduced — this is safe for beta/non-breaking API.
+func (k *Keda) SetAddonCondition(status metav1.ConditionStatus, reason ConditionReason, msg string) {
 	condition := metav1.Condition{
 		Type:               string(ConditionTypeAddon),
-		Status:             condStatus,
+		Status:             status,
 		LastTransitionTime: metav1.Now(),
 		Reason:             string(reason),
 		Message:            msg,
@@ -476,19 +450,10 @@ func (k *Keda) UpdateAddonStatus(state string, reason ConditionReason, msg strin
 }
 
 type Status struct {
-	State       string `json:"state"`
-	Served      string `json:"served"`
-	KedaVersion string `json:"kedaVersion,omitempty"`
-	// Addon reflects the current state of the HTTP add-on: Installed, NotInstalled, or Error.
-	// +optional
-	Addon string `json:"addon,omitempty"`
-	// AddonVersion is the last successfully installed HTTP add-on version.
-	// +optional
-	AddonVersion string `json:"addonVersion,omitempty"`
-	// AddonNamespace is the namespace where the HTTP add-on was last installed.
-	// +optional
-	AddonNamespace string             `json:"addonNamespace,omitempty"`
-	Conditions     []metav1.Condition `json:"conditions,omitempty"`
+	State       string             `json:"state"`
+	Served      string             `json:"served"`
+	KedaVersion string             `json:"kedaVersion,omitempty"`
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

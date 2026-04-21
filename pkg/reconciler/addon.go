@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
@@ -16,34 +17,70 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// sFnHandleAddon is entered after sFnVerify. It decides whether to apply or
-// delete the HTTP add-on based on spec.addon.
-func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	addonCfg := s.instance.Spec.Addon
+// addonCfg holds the addon configuration read from the Keda CR annotations.
+type addonCfg struct {
+	enabled   bool
+	version   string
+	namespace string
+}
 
-	// Add-on disabled (nil, or enabled=false) → delete any existing addon resources.
-	if addonCfg == nil || !addonCfg.Enabled {
+func readAddonCfg(instance *v1alpha1.Keda) addonCfg {
+	ann := instance.GetAnnotations()
+	cfg := addonCfg{}
+	if ann == nil {
+		return cfg
+	}
+	cfg.enabled = strings.EqualFold(ann[v1alpha1.AnnotationAddonEnabled], "true")
+	cfg.version = ann[v1alpha1.AnnotationAddonVersion]
+	cfg.namespace = ann[v1alpha1.AnnotationAddonNamespace]
+	return cfg
+}
+
+func (a addonCfg) effectiveNamespace() string {
+	if a.namespace == "" {
+		return v1alpha1.DefaultAddonNamespace
+	}
+	return a.namespace
+}
+
+// setAnnotation updates (or removes when value is empty) an annotation on the Keda CR in-memory.
+func setAnnotation(instance *v1alpha1.Keda, key, value string) {
+	ann := instance.GetAnnotations()
+	if ann == nil {
+		ann = map[string]string{}
+	}
+	if value == "" {
+		delete(ann, key)
+	} else {
+		ann[key] = value
+	}
+	instance.SetAnnotations(ann)
+}
+
+// sFnHandleAddon is entered after sFnVerify. It decides whether to apply or
+// delete the HTTP add-on based on annotations on the Keda CR.
+func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+	cfg := readAddonCfg(&s.instance)
+
+	// Add-on disabled (annotation absent or "false") → delete any existing addon resources.
+	if !cfg.enabled {
 		return switchState(sFnDeleteAddon)
 	}
 
-	version := addonCfg.Version
+	version := cfg.version
 	// No version specified → resolve the latest one at runtime.
 	if version == "" {
 		return switchState(sFnResolveAddonVersion)
 	}
 
-	version, err := addon.ValidateVersion(version)
+	cleanVersion, err := addon.ValidateVersion(version)
 	if err != nil {
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonVersionErr,
-			err.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
-	// Store the clean version back so sFnApplyAddon can read it.
-	s.instance.Spec.Addon.Version = version
+	// Store the clean (trimmed) version back in the annotation so sFnApplyAddon can read it.
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, cleanVersion)
 	return switchState(sFnApplyAddon)
 }
 
@@ -52,15 +89,11 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 	version, err := addon.LatestVersion(r.HTTPClient)
 	if err != nil {
 		r.log.With("err", err).Error("failed to resolve latest addon version")
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonVersionErr,
-			err.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
 		return stopWithNoRequeue()
 	}
 	r.log.Infof("resolved latest HTTP add-on version: %s", version)
-	s.instance.Spec.Addon.Version = version
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, version)
 	return switchState(sFnApplyAddon)
 }
 
@@ -248,22 +281,25 @@ func deleteOldAddonResources(ctx context.Context, r *fsm, version, oldNS string)
 	}
 }
 
-// sFnApplyAddon downloads and applies the add-on resources for the version stored in spec.addon.version.
+// sFnApplyAddon downloads and applies the add-on resources for the version stored in the annotation.
 // If the version or namespace changed since the last install, it first removes the old resources.
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	version := s.instance.Spec.Addon.Version
-	previousVersion := s.instance.Status.AddonVersion
-	previousNS := s.instance.Status.AddonNamespace
-	targetNS := s.instance.Spec.Addon.EffectiveNamespace()
+	cfg := readAddonCfg(&s.instance)
+	version := cfg.version
+	targetNS := cfg.effectiveNamespace()
+
+	ann := s.instance.GetAnnotations()
+	previousVersion := ""
+	previousNS := ""
+	if ann != nil {
+		previousVersion = ann[v1alpha1.AnnotationAddonInstalledVersion]
+		previousNS = ann[v1alpha1.AnnotationAddonInstalledNamespace]
+	}
 
 	// Ensure the target namespace exists and is labelled for Istio sidecar injection.
 	if err := ensureNamespace(ctx, r, targetNS); err != nil {
 		r.log.With("err", err).Error("failed to ensure addon namespace")
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonInstallErr,
-			err.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
@@ -281,19 +317,11 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	objs, err := addon.FetchResources(r.HTTPClient, version)
 	if err != nil {
 		r.log.With("err", err).Error("failed to fetch addon resources")
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonInstallErr,
-			err.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
-	// Override namespace on all resources (namespaced + ClusterRoleBinding subjects).
 	overrideNamespace(objs, targetNS)
-
-	// Append NetworkPolicies so the add-on components can reach the API server
-	// and communicate with each other even when a default-deny policy is in place.
 	objs = append(objs, addon.NetworkPolicies(targetNS)...)
 
 	var applyErr error
@@ -310,51 +338,41 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	}
 
 	if applyErr != nil {
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonInstallErr,
-			applyErr.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, applyErr.Error())
 		return stopWithNoRequeue()
 	}
 
 	r.AddonObjs = objs
-	s.instance.UpdateAddonStatus(
-		v1alpha1.AddonStateInstalled,
-		v1alpha1.ConditionReasonAddonInstalled,
-		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS),
-	)
-	s.instance.Status.AddonVersion = version
-	s.instance.Status.AddonNamespace = targetNS
+	// Record what was successfully installed in tracking annotations.
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, version)
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, targetNS)
+	s.instance.SetAddonCondition(metav1.ConditionTrue, v1alpha1.ConditionReasonAddonInstalled,
+		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS))
+	r.log.Infof("HTTP add-on v%s installed in namespace %s", version, targetNS)
 	return stopWithNoRequeue()
 }
 
 // sFnDeleteAddon removes all cluster resources that belong to the add-on.
 // If AddonObjs is empty (e.g. after a controller restart) it re-fetches the
-// manifest for the last known version so it can still delete the resources.
+// manifest for the last known version recorded in the tracking annotation so it can still delete.
 func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	objs := r.AddonObjs
 
-	// AddonObjs is empty after a controller restart. Re-fetch from the last
-	// known version recorded in the status so we can still delete.
-	if len(objs) == 0 {
-		lastVersion := s.instance.Status.AddonVersion
-		if lastVersion == "" || s.instance.Status.Addon != v1alpha1.AddonStateInstalled {
-			// Nothing was ever installed or already cleaned up.
-			if s.instance.Status.Addon != v1alpha1.AddonStateNotInstalled {
-				s.instance.UpdateAddonStatus(
-					v1alpha1.AddonStateNotInstalled,
-					v1alpha1.ConditionReasonAddonDisabled,
-					"HTTP add-on is disabled",
-				)
-			}
-			return stopWithNoRequeue()
+	ann := s.instance.GetAnnotations()
+	lastVersion := ""
+	lastNS := v1alpha1.DefaultAddonNamespace
+	if ann != nil {
+		lastVersion = ann[v1alpha1.AnnotationAddonInstalledVersion]
+		if ns := ann[v1alpha1.AnnotationAddonInstalledNamespace]; ns != "" {
+			lastNS = ns
 		}
+	}
 
-		// Use the namespace recorded in status (where the addon was actually installed).
-		lastNS := s.instance.Status.AddonNamespace
-		if lastNS == "" {
-			lastNS = v1alpha1.DefaultAddonNamespace
+	if len(objs) == 0 {
+		if lastVersion == "" {
+			// Nothing was ever installed or already cleaned up.
+			s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDisabled, "HTTP add-on is disabled")
+			return stopWithNoRequeue()
 		}
 
 		r.log.Infof("AddonObjs empty after restart, re-fetching manifest for version %s to delete from namespace %s", lastVersion, lastNS)
@@ -362,17 +380,11 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		objs, fetchErr = addon.FetchResources(r.HTTPClient, lastVersion)
 		if fetchErr != nil {
 			r.log.With("err", fetchErr).Error("failed to re-fetch addon manifest for deletion")
-			s.instance.UpdateAddonStatus(
-				v1alpha1.AddonStateError,
-				v1alpha1.ConditionReasonAddonInstallErr,
-				fetchErr.Error(),
-			)
+			s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, fetchErr.Error())
 			return stopWithNoRequeue()
 		}
 
-		// Override namespace on re-fetched resources so we delete from the correct namespace.
 		overrideNamespace(objs, lastNS)
-		// Also include NetworkPolicies for deletion.
 		objs = append(objs, addon.NetworkPolicies(lastNS)...)
 	}
 
@@ -386,22 +398,16 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 	}
 
 	if delErr != nil {
-		s.instance.UpdateAddonStatus(
-			v1alpha1.AddonStateError,
-			v1alpha1.ConditionReasonAddonInstallErr,
-			delErr.Error(),
-		)
+		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, delErr.Error())
 		return stopWithNoRequeue()
 	}
 
 	r.AddonObjs = nil
-	s.instance.UpdateAddonStatus(
-		v1alpha1.AddonStateNotInstalled,
-		v1alpha1.ConditionReasonAddonDeleted,
-		"HTTP add-on removed",
-	)
-	s.instance.Status.AddonVersion = ""
-	s.instance.Status.AddonNamespace = ""
+	// Clear tracking annotations.
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, "")
+	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, "")
+	s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDeleted, "HTTP add-on removed")
+	r.log.Info("HTTP add-on removed")
 	return stopWithNoRequeue()
 }
 
