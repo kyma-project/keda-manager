@@ -190,7 +190,6 @@ rules:
   verbs:
   - create
   - delete
-  - get
   - list
   - patch
   - update
@@ -253,10 +252,8 @@ rules:
   - rolebindings
   - roles
   verbs:
-  - bind
   - create
   - delete
-  - escalate
   - list
   - patch
   - update
