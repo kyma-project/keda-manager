@@ -2,9 +2,8 @@ module github.com/kyma-project/keda-manager
 
 go 1.26.0
 
-// keda v2.19.0 has a quirk in its go.mod where k8s.io/client-go is listed as v1.5.2
-// but replaced internally to v0.34.3. That replace doesn't propagate to consumers,
-// so we redirect the bogus v1.5.2 to our desired version here.
+// keda v2.19.0 also lists k8s.io/client-go as v1.5.2 in its require block (replaced internally
+// to v0.34.3). That replace doesn't propagate, so redirect the bogus v1.5.2 here.
 replace k8s.io/client-go v1.5.2 => k8s.io/client-go v0.35.4
 
 require (
@@ -26,7 +25,7 @@ require (
 	k8s.io/apimachinery v0.35.4
 	k8s.io/client-go v1.5.2
 	k8s.io/utils v0.0.0-20260108192941-914a6e750570
-	sigs.k8s.io/controller-runtime v0.23.1
+	sigs.k8s.io/controller-runtime v0.22.5
 )
 
 require (
