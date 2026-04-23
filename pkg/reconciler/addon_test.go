@@ -266,4 +266,3 @@ func TestSFnHandleAddon(t *testing.T) {
 		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[v1alpha1.AnnotationAddonVersion])
 	})
 }
-

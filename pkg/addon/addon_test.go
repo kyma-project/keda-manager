@@ -205,4 +205,3 @@ func searchString(s, substr string) bool {
 	}
 	return false
 }
-
