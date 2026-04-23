@@ -410,7 +410,6 @@ func (k *Keda) IsServedEmpty() bool {
 	return k.Status.Served == ""
 }
 
-
 type Status struct {
 	State       string             `json:"state"`
 	Served      string             `json:"served"`
