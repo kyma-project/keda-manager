@@ -27,7 +27,7 @@ const (
 // versionRe validates a semver-like version without a leading "v".
 var versionRe = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+`)
 
-// NewHTTPClient returns an *http.Client that trusts the system CA pool.
+// NewHTTPClient returns an *http.Client that explicitly loads system CAs so TLS works in minimal (distroless) containers.
 func NewHTTPClient() (*http.Client, error) {
 	pool, err := x509.SystemCertPool()
 	if err != nil {
