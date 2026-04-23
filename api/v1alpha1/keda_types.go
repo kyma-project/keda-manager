@@ -59,29 +59,6 @@ const (
 	ConditionTypeDeploymentFailure = ConditionType("DeploymentFailure")
 	ConditionTypeInstalled         = ConditionType("Installed")
 	ConditionTypeDeleted           = ConditionType("Deleted")
-	ConditionTypeAddon             = ConditionType("Addon")
-
-	// Addon condition reasons (reported via conditions[], no new status fields).
-	ConditionReasonAddonInstalled  = ConditionReason("AddonInstalled")
-	ConditionReasonAddonDeleted    = ConditionReason("AddonDeleted")
-	ConditionReasonAddonInstallErr = ConditionReason("AddonInstallErr")
-	ConditionReasonAddonDisabled   = ConditionReason("AddonDisabled")
-	ConditionReasonAddonVersionErr = ConditionReason("AddonVersionErr")
-
-	// Addon annotation keys used to configure the HTTP add-on via CR annotations.
-	// Example usage:
-	//   metadata:
-	//     annotations:
-	//       keda.kyma-project.io/addon-enabled: "true"
-	//       keda.kyma-project.io/addon-version: "0.13.0"
-	//       keda.kyma-project.io/addon-namespace: "keda"
-	AnnotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
-	AnnotationAddonVersion   = "keda.kyma-project.io/addon-version"
-	AnnotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
-
-	// Internal tracking annotations set by the controller to remember what was last installed.
-	AnnotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
-	AnnotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
 
 	CommonLogLevelDebug = LogLevel("debug")
 	CommonLogLevelInfo  = LogLevel("info")
@@ -239,9 +216,6 @@ type PodAnnotations struct {
 	MetricsServer    map[string]string `json:"metricServer,omitempty"`
 	AdmissionWebhook map[string]string `json:"admissionWebhook,omitempty"`
 }
-
-// DefaultAddonNamespace is the default namespace for the HTTP add-on when none is specified.
-const DefaultAddonNamespace = "keda"
 
 // KedaSpec defines the desired state of Keda
 type KedaSpec struct {
@@ -436,18 +410,6 @@ func (k *Keda) IsServedEmpty() bool {
 	return k.Status.Served == ""
 }
 
-// SetAddonCondition records the addon state as a condition in the existing conditions[] slice.
-// No new Status fields are introduced — this is safe for beta/non-breaking API.
-func (k *Keda) SetAddonCondition(status metav1.ConditionStatus, reason ConditionReason, msg string) {
-	condition := metav1.Condition{
-		Type:               string(ConditionTypeAddon),
-		Status:             status,
-		LastTransitionTime: metav1.Now(),
-		Reason:             string(reason),
-		Message:            msg,
-	}
-	meta.SetStatusCondition(&k.Status.Conditions, condition)
-}
 
 type Status struct {
 	State       string             `json:"state"`

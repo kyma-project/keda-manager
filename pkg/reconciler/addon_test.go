@@ -21,20 +21,20 @@ func TestReadAddonCfg(t *testing.T) {
 		{
 			"enabled with version and namespace",
 			map[string]string{
-				v1alpha1.AnnotationAddonEnabled:   "true",
-				v1alpha1.AnnotationAddonVersion:   "0.13.0",
-				v1alpha1.AnnotationAddonNamespace: "custom-ns",
+				annotationAddonEnabled:   "true",
+				annotationAddonVersion:   "0.13.0",
+				annotationAddonNamespace: "custom-ns",
 			},
 			addonCfg{enabled: true, version: "0.13.0", namespace: "custom-ns"},
 		},
 		{
 			"enabled case insensitive",
-			map[string]string{v1alpha1.AnnotationAddonEnabled: "True"},
+			map[string]string{annotationAddonEnabled: "True"},
 			addonCfg{enabled: true},
 		},
 		{
 			"disabled explicitly",
-			map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
+			map[string]string{annotationAddonEnabled: "false"},
 			addonCfg{enabled: false},
 		},
 	}
@@ -48,7 +48,7 @@ func TestReadAddonCfg(t *testing.T) {
 
 func TestEffectiveNamespace(t *testing.T) {
 	t.Run("returns default when empty", func(t *testing.T) {
-		require.Equal(t, v1alpha1.DefaultAddonNamespace, addonCfg{}.effectiveNamespace())
+		require.Equal(t, defaultAddonNamespace, addonCfg{}.effectiveNamespace())
 	})
 	t.Run("returns custom namespace", func(t *testing.T) {
 		require.Equal(t, "my-ns", addonCfg{namespace: "my-ns"}.effectiveNamespace())
@@ -225,7 +225,7 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 func TestSFnHandleAddon(t *testing.T) {
 	t.Run("disabled addon switches to delete", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
+			Annotations: map[string]string{annotationAddonEnabled: "false"},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
@@ -234,7 +234,7 @@ func TestSFnHandleAddon(t *testing.T) {
 	})
 	t.Run("enabled without version switches to resolve", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "true"},
+			Annotations: map[string]string{annotationAddonEnabled: "true"},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
@@ -244,8 +244,8 @@ func TestSFnHandleAddon(t *testing.T) {
 	t.Run("invalid version sets error condition", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				v1alpha1.AnnotationAddonEnabled: "true",
-				v1alpha1.AnnotationAddonVersion: "not-a-semver",
+				annotationAddonEnabled: "true",
+				annotationAddonVersion: "not-a-semver",
 			},
 		}}}
 		_, _, err := sFnHandleAddon(context.TODO(), nil, s)
@@ -255,14 +255,14 @@ func TestSFnHandleAddon(t *testing.T) {
 	t.Run("valid version switches to apply", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				v1alpha1.AnnotationAddonEnabled: "true",
-				v1alpha1.AnnotationAddonVersion: "0.13.0",
+				annotationAddonEnabled: "true",
+				annotationAddonVersion: "0.13.0",
 			},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, fn)
-		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[v1alpha1.AnnotationAddonVersion])
+		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[annotationAddonVersion])
 	})
 }

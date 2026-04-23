@@ -9,6 +9,7 @@ import (
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -16,6 +17,37 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+const (
+	conditionTypeAddon = "Addon"
+
+	conditionReasonAddonInstalled  = "AddonInstalled"
+	conditionReasonAddonDeleted    = "AddonDeleted"
+	conditionReasonAddonInstallErr = "AddonInstallErr"
+	conditionReasonAddonDisabled   = "AddonDisabled"
+	conditionReasonAddonVersionErr = "AddonVersionErr"
+
+	annotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
+	annotationAddonVersion   = "keda.kyma-project.io/addon-version"
+	annotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
+
+	annotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
+	annotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
+
+	defaultAddonNamespace = "keda"
+)
+
+// setAddonCondition sets an addon-specific condition on the Keda CR status.
+func setAddonCondition(instance *v1alpha1.Keda, status metav1.ConditionStatus, reason, msg string) {
+	condition := metav1.Condition{
+		Type:               conditionTypeAddon,
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
+		Reason:             reason,
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&instance.Status.Conditions, condition)
+}
 
 // addonCfg holds the addon configuration read from the Keda CR annotations.
 type addonCfg struct {
@@ -30,15 +62,15 @@ func readAddonCfg(instance *v1alpha1.Keda) addonCfg {
 		return addonCfg{}
 	}
 	return addonCfg{
-		enabled:   strings.EqualFold(ann[v1alpha1.AnnotationAddonEnabled], "true"),
-		version:   ann[v1alpha1.AnnotationAddonVersion],
-		namespace: ann[v1alpha1.AnnotationAddonNamespace],
+		enabled:   strings.EqualFold(ann[annotationAddonEnabled], "true"),
+		version:   ann[annotationAddonVersion],
+		namespace: ann[annotationAddonNamespace],
 	}
 }
 
 func (a addonCfg) effectiveNamespace() string {
 	if a.namespace == "" {
-		return v1alpha1.DefaultAddonNamespace
+		return defaultAddonNamespace
 	}
 	return a.namespace
 }
@@ -254,11 +286,11 @@ func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.R
 
 	cleanVersion, err := addon.ValidateVersion(version)
 	if err != nil {
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonVersionErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, cleanVersion)
+	setAnnotation(&s.instance, annotationAddonVersion, cleanVersion)
 	return switchState(sFnApplyAddon)
 }
 
@@ -267,11 +299,11 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 	version, err := addon.LatestVersion(r.HTTPClient)
 	if err != nil {
 		r.log.With("err", err).Error("failed to resolve latest addon version")
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonVersionErr, err.Error())
 		return stopWithNoRequeue()
 	}
 	r.log.Infof("resolved latest HTTP add-on version: %s", version)
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, version)
+	setAnnotation(&s.instance, annotationAddonVersion, version)
 	return switchState(sFnApplyAddon)
 }
 
@@ -285,13 +317,13 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	ann := s.instance.GetAnnotations()
 	prevVersion, prevNS := "", ""
 	if ann != nil {
-		prevVersion = ann[v1alpha1.AnnotationAddonInstalledVersion]
-		prevNS = ann[v1alpha1.AnnotationAddonInstalledNamespace]
+		prevVersion = ann[annotationAddonInstalledVersion]
+		prevNS = ann[annotationAddonInstalledNamespace]
 	}
 
 	if err := ensureNamespace(ctx, r, targetNS); err != nil {
 		r.log.With("err", err).Error("failed to ensure addon namespace")
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonInstallErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
@@ -310,19 +342,19 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	objs, err := fetchAddonObjs(r, version, targetNS)
 	if err != nil {
 		r.log.With("err", err).Error("failed to fetch addon resources")
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonInstallErr, err.Error())
 		return stopWithNoRequeue()
 	}
 
 	if applyErr := applyObjects(ctx, r, objs); applyErr != nil {
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, applyErr.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonInstallErr, applyErr.Error())
 		return stopWithNoRequeue()
 	}
 
 	r.AddonObjs = objs
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, version)
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, targetNS)
-	s.instance.SetAddonCondition(metav1.ConditionTrue, v1alpha1.ConditionReasonAddonInstalled,
+	setAnnotation(&s.instance, annotationAddonInstalledVersion, version)
+	setAnnotation(&s.instance, annotationAddonInstalledNamespace, targetNS)
+	setAddonCondition(&s.instance, metav1.ConditionTrue, conditionReasonAddonInstalled,
 		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS))
 	r.log.Infof("HTTP add-on v%s installed in namespace %s", version, targetNS)
 	return stopWithNoRequeue()
@@ -334,17 +366,17 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 	objs := r.AddonObjs
 
 	ann := s.instance.GetAnnotations()
-	lastVersion, lastNS := "", v1alpha1.DefaultAddonNamespace
+	lastVersion, lastNS := "", defaultAddonNamespace
 	if ann != nil {
-		lastVersion = ann[v1alpha1.AnnotationAddonInstalledVersion]
-		if ns := ann[v1alpha1.AnnotationAddonInstalledNamespace]; ns != "" {
+		lastVersion = ann[annotationAddonInstalledVersion]
+		if ns := ann[annotationAddonInstalledNamespace]; ns != "" {
 			lastNS = ns
 		}
 	}
 
 	if len(objs) == 0 {
 		if lastVersion == "" {
-			s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDisabled, "HTTP add-on is disabled")
+			setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonDisabled, "HTTP add-on is disabled")
 			return stopWithNoRequeue()
 		}
 
@@ -353,20 +385,20 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		objs, err = fetchAddonObjs(r, lastVersion, lastNS)
 		if err != nil {
 			r.log.With("err", err).Error("failed to re-fetch addon manifest for deletion")
-			s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
+			setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonInstallErr, err.Error())
 			return stopWithNoRequeue()
 		}
 	}
 
 	if delErr := deleteObjects(ctx, r, objs); delErr != nil {
-		s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, delErr.Error())
+		setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonInstallErr, delErr.Error())
 		return stopWithNoRequeue()
 	}
 
 	r.AddonObjs = nil
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, "")
-	setAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, "")
-	s.instance.SetAddonCondition(metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDeleted, "HTTP add-on removed")
+	setAnnotation(&s.instance, annotationAddonInstalledVersion, "")
+	setAnnotation(&s.instance, annotationAddonInstalledNamespace, "")
+	setAddonCondition(&s.instance, metav1.ConditionFalse, conditionReasonAddonDeleted, "HTTP add-on removed")
 	r.log.Info("HTTP add-on removed")
 	return stopWithNoRequeue()
 }
