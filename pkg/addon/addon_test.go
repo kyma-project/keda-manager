@@ -46,7 +46,7 @@ func TestLatestVersion(t *testing.T) {
 		}
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(tags)
+			_ = json.NewEncoder(w).Encode(tags)
 		}))
 		defer srv.Close()
 
@@ -71,7 +71,7 @@ func TestLatestVersion(t *testing.T) {
 	t.Run("error on empty tags", func(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode([]struct{}{})
+			_ = json.NewEncoder(w).Encode([]struct{}{})
 		}))
 		defer srv.Close()
 
@@ -127,9 +127,9 @@ metadata:
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch {
 			case contains(r.URL.Path, "crds"):
-				w.Write([]byte(crdYAML))
+				_, _ = w.Write([]byte(crdYAML))
 			default:
-				w.Write([]byte(manifestYAML))
+				_, _ = w.Write([]byte(manifestYAML))
 			}
 		}))
 		defer srv.Close()

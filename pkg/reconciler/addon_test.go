@@ -1,6 +1,7 @@
 package reconciler
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -226,7 +227,7 @@ func TestSFnHandleAddon(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
 		}}}
-		fn, result, err := sFnHandleAddon(nil, nil, s)
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, fn)
@@ -235,7 +236,7 @@ func TestSFnHandleAddon(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "true"},
 		}}}
-		fn, result, err := sFnHandleAddon(nil, nil, s)
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, fn)
@@ -247,7 +248,7 @@ func TestSFnHandleAddon(t *testing.T) {
 				v1alpha1.AnnotationAddonVersion: "not-a-semver",
 			},
 		}}}
-		_, _, err := sFnHandleAddon(nil, nil, s)
+		_, _, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.NotEmpty(t, s.instance.Status.Conditions)
 	})
@@ -258,7 +259,7 @@ func TestSFnHandleAddon(t *testing.T) {
 				v1alpha1.AnnotationAddonVersion: "0.13.0",
 			},
 		}}}
-		fn, result, err := sFnHandleAddon(nil, nil, s)
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, fn)
