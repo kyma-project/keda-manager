@@ -29,6 +29,10 @@ WORKDIR /
 COPY --chown=65532:65532 --from=builder /app/manager .
 COPY --chown=65532:65532 --from=builder /app/keda.yaml .
 COPY --chown=65532:65532 --from=builder /app/keda-networkpolicies.yaml .
+COPY --chown=65532:65532 --from=builder /app/keda-addon-networkpolicies.yaml .
+# Copy the CA bundle from the builder so the manager can verify TLS certificates
+# when fetching addon manifests from GitHub.
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
