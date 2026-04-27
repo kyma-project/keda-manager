@@ -8,5 +8,6 @@
 !controllers
 !keda.yaml
 !keda-networkpolicies.yaml
+!keda-addon-networkpolicies.yaml
 !go.sum
 !go.mod
