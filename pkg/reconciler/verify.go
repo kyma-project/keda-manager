@@ -68,17 +68,16 @@ func sFnVerify(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result
 	// remove possible previous DeploymentFailure condition
 	s.instance.RemoveCondition(v1alpha1.ConditionTypeDeploymentFailure)
 
-	if s.instance.Status.State == "Ready" {
-		return stopWithNoRequeue()
-	}
-
 	s.instance.Status.KedaVersion = kedaVersion
 	s.instance.UpdateStateReady(
 		v1alpha1.ConditionTypeInstalled,
 		v1alpha1.ConditionReasonVerified,
 		"keda-operator and keda-operator-metrics-server ready",
 	)
-	return stopWithNoRequeue()
+
+	// After keda is verified ready, handle the HTTP add-on.
+	// The addon state is independent and does not affect the overall keda state.
+	return switchState(sFnHandleAddon)
 }
 
 func hasDeployReplicaFailure(deployment appsv1.Deployment) bool {

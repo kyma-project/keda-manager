@@ -1,0 +1,411 @@
+##
+# NetworkPolicies for the KEDA HTTP add-on components
+# (scaler, interceptor, operator)
+##
+
+# ── Scaler: allow egress to API server ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-scaler-allow-to-apiserver
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: scaler
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: external-scaler
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+# ── Scaler: allow egress to DNS ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-scaler-allow-to-dns
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: scaler
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: external-scaler
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+---
+# ── Scaler: allow egress to istiod ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-scaler-allow-to-istiod
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: scaler
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: external-scaler
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 15012
+      protocol: TCP
+    - port: 15014
+      protocol: TCP
+---
+# ── Interceptor: allow egress to API server ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-to-apiserver
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+# ── Interceptor: allow egress to DNS ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-to-dns
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+---
+# ── Interceptor: allow egress to istiod ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-to-istiod
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 15012
+      protocol: TCP
+    - port: 15014
+      protocol: TCP
+---
+# ── Operator: allow egress to API server ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-operator-allow-to-apiserver
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: operator
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 6443
+      protocol: TCP
+---
+# ── Operator: allow egress to DNS ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-operator-allow-to-dns
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: operator
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+---
+# ── Operator: allow egress to istiod ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-operator-allow-to-istiod
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: operator
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 15012
+      protocol: TCP
+    - port: 15014
+      protocol: TCP
+---
+# ── Scaler → Interceptor (gRPC admin) ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-scaler-allow-to-interceptor
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: scaler
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: external-scaler
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 9090
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: add-on
+          app.kubernetes.io/instance: interceptor
+          app.kubernetes.io/name: http
+          app.kubernetes.io/part-of: keda
+---
+# ── KEDA operator → Scaler (external scaler gRPC) ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-operator-allow-to-scaler
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: operator
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 9090
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: add-on
+          app.kubernetes.io/instance: external-scaler
+          app.kubernetes.io/name: http
+          app.kubernetes.io/part-of: keda
+---
+# ── Interceptor: allow all egress (proxy to workloads) ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-egress
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Egress
+  egress:
+  - {}
+---
+# ── Interceptor: allow ingress from scaler on admin port 9090 ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-from-scaler
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Ingress
+  ingress:
+  - ports:
+    - port: 9090
+      protocol: TCP
+    from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: add-on
+          app.kubernetes.io/instance: external-scaler
+          app.kubernetes.io/name: http
+          app.kubernetes.io/part-of: keda
+---
+# ── Interceptor: allow ingress on proxy port 8080 ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-interceptor-allow-ingress-proxy
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: interceptor
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: interceptor
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Ingress
+  ingress:
+  - ports:
+    - port: 8080
+      protocol: TCP
+---
+# ── Scaler: allow ingress on gRPC port 9090 ──
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keda-add-ons-http-scaler-allow-ingress
+  namespace: kyma-system
+  labels:
+    app.kubernetes.io/component: scaler
+    app.kubernetes.io/name: http-add-on
+    app.kubernetes.io/part-of: keda
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: add-on
+      app.kubernetes.io/instance: external-scaler
+      app.kubernetes.io/name: http
+      app.kubernetes.io/part-of: keda
+  policyTypes:
+  - Ingress
+  ingress:
+  - ports:
+    - port: 9090
+      protocol: TCP
+

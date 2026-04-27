@@ -81,3 +81,35 @@ jobs:
         uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
         with:
           config: ${{ github.workspace }}/test/rbac/config.yaml
+      - name: enable addon and verify pods
+        run: |
+          # Enable the HTTP add-on via annotation on the Keda CR
+          kubectl annotate keda default -n kyma-system \
+            keda.kyma-project.io/addon-enabled=true \
+            keda.kyma-project.io/addon-version=0.13.0 \
+            --overwrite
+
+          # Wait for addon deployments to become available in the keda namespace
+          echo "Waiting for addon namespace and deployments..."
+          for i in $(seq 1 30); do
+            DEPLOYS=$(kubectl get deploy -n keda --no-headers 2>/dev/null | wc -l)
+            if [ "$DEPLOYS" -gt 0 ]; then
+              break
+            fi
+            echo "  attempt $i: no deployments yet in namespace keda"
+            sleep 10
+          done
+
+          kubectl wait --for=condition=Available deployment --all -n keda --timeout=180s
+
+          # Verify all addon pods are Running and Ready
+          kubectl wait --for=condition=Ready pod --all -n keda --timeout=120s
+
+          # Verify the Addon condition on the Keda CR
+          kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}' | grep -q "True"
+          echo "Addon integration test passed"
+
+          # Disable the addon
+          kubectl annotate keda default -n kyma-system \
+            keda.kyma-project.io/addon-enabled=false \
+            --overwrite

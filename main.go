@@ -45,6 +45,7 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
+	"github.com/kyma-project/keda-manager/pkg/addon"
 	"github.com/kyma-project/keda-manager/pkg/resources"
 	"github.com/kyma-project/manager-toolkit/logging/config"
 	//+kubebuilder:scaffold:imports
@@ -152,11 +153,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	httpClient, err := addon.NewHTTPClient()
+	if err != nil {
+		fmt.Printf("unable to create HTTP client: %v\n", err)
+		os.Exit(1)
+	}
+
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
 		logWithCtx,
 		data,
+		httpClient,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		fmt.Printf("unable to create controller: %v\n", err)
