@@ -21,7 +21,9 @@ import (
 	"crypto/fips140"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-logr/zapr"
 	"github.com/kyma-project/keda-manager/pkg/logging"
@@ -45,7 +47,6 @@ import (
 
 	operatorv1alpha1 "github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/controllers"
-	"github.com/kyma-project/keda-manager/pkg/addon"
 	"github.com/kyma-project/keda-manager/pkg/resources"
 	"github.com/kyma-project/manager-toolkit/logging/config"
 	//+kubebuilder:scaffold:imports
@@ -153,11 +154,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	httpClient, err := addon.NewHTTPClient()
-	if err != nil {
-		fmt.Printf("unable to create HTTP client: %v\n", err)
-		os.Exit(1)
-	}
+	httpClient := &http.Client{Timeout: 30 * time.Second}
 
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),

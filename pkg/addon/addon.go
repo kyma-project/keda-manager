@@ -5,12 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/kyma-project/keda-manager/pkg/yaml"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -20,28 +21,10 @@ const (
 	tagsURL    = "https://api.github.com/repos/kedacore/http-add-on/tags"
 	releaseURL = "https://github.com/kedacore/http-add-on/releases/download/v%s/keda-add-ons-http-%s.yaml"
 	crdURL     = "https://github.com/kedacore/http-add-on/releases/download/v%s/keda-add-ons-http-%s-crds.yaml"
-
-	httpTimeout = 30 * time.Second
 )
 
 // versionRe validates a semver-like version without a leading "v".
 var versionRe = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+`)
-
-// NewHTTPClient returns an *http.Client that explicitly loads system CAs so TLS works in minimal (distroless) containers.
-func NewHTTPClient() (*http.Client, error) {
-	pool, err := x509.SystemCertPool()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load system CA pool: %w", err)
-	}
-	return &http.Client{
-		Timeout: httpTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs: pool,
-			},
-		},
-	}, nil
-}
 
 // ValidateVersion trims a leading "v"/"V" and returns an error if the result
 // is not a valid semver string.
@@ -102,26 +85,46 @@ func FetchResources(client *http.Client, version string) ([]unstructured.Unstruc
 	return append(crdObjs, objs...), nil
 }
 
+// isTLSError checks if the error is related to TLS certificate verification.
+func isTLSError(err error) bool {
+	var certErr *tls.CertificateVerificationError
+	if errors.As(err, &certErr) {
+		return true
+	}
+	var unknownAuthErr x509.UnknownAuthorityError
+	if errors.As(err, &unknownAuthErr) {
+		return true
+	}
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		return isTLSError(urlErr.Err)
+	}
+	return false
+}
+
 // fetchURL downloads a single URL and parses it into unstructured objects.
-func fetchURL(client *http.Client, url, version string) ([]unstructured.Unstructured, error) {
-	resp, err := client.Get(url)
+func fetchURL(client *http.Client, rawURL, version string) ([]unstructured.Unstructured, error) {
+	resp, err := client.Get(rawURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download %s: %w", url, err)
+		if isTLSError(err) {
+			return nil, fmt.Errorf("TLS certificate verification failed for %s: %w (ensure CA certificates are available in the container image)", rawURL, err)
+		}
+		return nil, fmt.Errorf("failed to download %s: %w", rawURL, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("download of %s returned HTTP %d for version %s", url, resp.StatusCode, version)
+		return nil, fmt.Errorf("download of %s returned HTTP %d for version %s", rawURL, resp.StatusCode, version)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response from %s: %w", url, err)
+		return nil, fmt.Errorf("failed to read response from %s: %w", rawURL, err)
 	}
 
 	objs, err := yaml.LoadData(strings.NewReader(string(body)))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse response from %s: %w", url, err)
+		return nil, fmt.Errorf("failed to parse response from %s: %w", rawURL, err)
 	}
 
 	return objs, nil
