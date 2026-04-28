@@ -13,6 +13,7 @@ metadata:
     app.kubernetes.io/component: scaler
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-apiserver
 spec:
   podSelector:
     matchLabels:
@@ -39,6 +40,7 @@ metadata:
     app.kubernetes.io/component: scaler
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-dns
 spec:
   podSelector:
     matchLabels:
@@ -68,6 +70,7 @@ metadata:
     app.kubernetes.io/component: scaler
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-istiod
 spec:
   podSelector:
     matchLabels:
@@ -94,6 +97,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-apiserver
 spec:
   podSelector:
     matchLabels:
@@ -120,6 +124,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-dns
 spec:
   podSelector:
     matchLabels:
@@ -149,6 +154,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-istiod
 spec:
   podSelector:
     matchLabels:
@@ -175,6 +181,7 @@ metadata:
     app.kubernetes.io/component: operator
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-apiserver
 spec:
   podSelector:
     matchLabels:
@@ -201,6 +208,7 @@ metadata:
     app.kubernetes.io/component: operator
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-dns
 spec:
   podSelector:
     matchLabels:
@@ -230,6 +238,7 @@ metadata:
     app.kubernetes.io/component: operator
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-istiod
 spec:
   podSelector:
     matchLabels:
@@ -256,6 +265,7 @@ metadata:
     app.kubernetes.io/component: scaler
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-interceptor
 spec:
   podSelector:
     matchLabels:
@@ -287,6 +297,7 @@ metadata:
     app.kubernetes.io/component: operator
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-to-scaler
 spec:
   podSelector:
     matchLabels:
@@ -318,6 +329,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-egress-to-workloads
 spec:
   podSelector:
     matchLabels:
@@ -340,6 +352,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-from-scaler
 spec:
   podSelector:
     matchLabels:
@@ -371,6 +384,7 @@ metadata:
     app.kubernetes.io/component: interceptor
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-ingress-proxy
 spec:
   podSelector:
     matchLabels:
@@ -385,7 +399,7 @@ spec:
     - port: 8080
       protocol: TCP
 ---
-# ── Scaler: allow ingress on gRPC port 9090 ──
+# ── Scaler: allow ingress on gRPC port 9090 from KEDA operator ──
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -395,6 +409,7 @@ metadata:
     app.kubernetes.io/component: scaler
     app.kubernetes.io/name: http-add-on
     app.kubernetes.io/part-of: keda
+    purpose: allow-ingress-from-keda-operator
 spec:
   podSelector:
     matchLabels:
@@ -408,4 +423,7 @@ spec:
   - ports:
     - port: 9090
       protocol: TCP
-
+    from:
+    - podSelector:
+        matchLabels:
+          app: keda-operator
