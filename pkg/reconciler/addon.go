@@ -16,8 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// ensureNamespace creates the target namespace if it does not exist and labels
-// it with istio-injection=enabled.
 func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -33,7 +31,6 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	if !apierrors.IsAlreadyExists(err) {
 		return fmt.Errorf("failed to create namespace %s: %w", namespace, err)
 	}
-
 	existing := &corev1.Namespace{}
 	if getErr := r.Get(ctx, client.ObjectKeyFromObject(ns), existing); getErr != nil {
 		return fmt.Errorf("failed to get existing namespace %s: %w", namespace, getErr)
@@ -60,15 +57,12 @@ var namespaceEnvVars = map[string]struct{}{
 	"KEDA_HTTP_OPERATOR_NAMESPACE":            {},
 }
 
-// overrideNamespace sets the namespace on all namespaced resources, patches
-// subjects[].namespace on bindings, and patches Deployment env vars and Istio annotations.
 func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 	for i := range objs {
 		obj := &objs[i]
 		if obj.GetNamespace() != "" {
 			obj.SetNamespace(namespace)
 		}
-
 		switch obj.GetKind() {
 		case "ClusterRoleBinding", "RoleBinding":
 			patchSubjectsNamespace(obj, namespace)
@@ -79,8 +73,6 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 	}
 }
 
-// patchDeploymentIstioAnnotation adds excludeInboundPorts="9090" so Istio
-// does not intercept gRPC traffic on that port.
 func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
 	annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 	if annotations == nil {
@@ -93,14 +85,11 @@ func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
 }
 
-// patchDeploymentEnvNamespace overrides namespace-referencing env vars in all
-// containers of a Deployment.
 func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace string) {
 	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
 	if err != nil || !found {
 		return
 	}
-
 	changed := false
 	for ci, rawC := range containers {
 		container, ok := rawC.(map[string]interface{})
@@ -131,13 +120,11 @@ func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace strin
 	}
 }
 
-// patchSubjectsNamespace updates ServiceAccount subject namespaces in bindings.
 func patchSubjectsNamespace(obj *unstructured.Unstructured, namespace string) {
 	subjects, found, err := unstructured.NestedSlice(obj.Object, "subjects")
 	if err != nil || !found {
 		return
 	}
-
 	changed := false
 	for j, raw := range subjects {
 		subj, ok := raw.(map[string]interface{})
@@ -158,8 +145,6 @@ func patchSubjectsNamespace(obj *unstructured.Unstructured, namespace string) {
 	}
 }
 
-// fetchAddonObjs downloads the add-on manifest, overrides namespaces, and
-// appends network policies.
 func fetchAddonObjs(r *fsm, version, namespace string) ([]unstructured.Unstructured, error) {
 	objs, err := addon.FetchResources(r.HTTPClient, version)
 	if err != nil {
@@ -170,7 +155,6 @@ func fetchAddonObjs(r *fsm, version, namespace string) ([]unstructured.Unstructu
 	return objs, nil
 }
 
-// applyObjects server-side-applies every object and returns a joined error.
 func applyObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured) error {
 	var applyErr error
 	for i := range objs {
@@ -185,7 +169,6 @@ func applyObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured)
 	return applyErr
 }
 
-// deleteObjects deletes every object, ignoring NotFound errors.
 func deleteObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured) error {
 	var delErr error
 	for i := range objs {
@@ -197,31 +180,24 @@ func deleteObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured
 	return delErr
 }
 
-// sFnHandleAddon decides whether to apply or delete the HTTP add-on based on
-// annotations on the Keda CR.
 func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
-
 	if !cfg.Enabled {
 		return switchState(sFnDeleteAddon)
 	}
-
 	version := cfg.Version
 	if version == "" {
 		return switchState(sFnResolveAddonVersion)
 	}
-
 	cleanVersion, err := addon.ValidateVersion(version)
 	if err != nil {
 		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
 		return stopWithNoRequeue()
 	}
-
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, cleanVersion)
 	return switchState(sFnApplyAddon)
 }
 
-// sFnResolveAddonVersion fetches the latest tag from GitHub and then applies it.
 func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	version, err := addon.LatestVersion(r.HTTPClient)
 	if err != nil {
@@ -234,8 +210,6 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 	return switchState(sFnApplyAddon)
 }
 
-// sFnApplyAddon downloads and applies the add-on resources. If the version or
-// namespace changed since the last install it first removes the old resources.
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
 	version := cfg.Version
@@ -257,10 +231,10 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	if prevVersion != "" {
 		switch {
 		case prevNS != "" && prevNS != targetNS:
-			r.log.Infof("addon namespace changed %s → %s, removing old resources", prevNS, targetNS)
+			r.log.Infof("addon namespace changed %s -> %s, removing old resources", prevNS, targetNS)
 			cleanupOldAddon(ctx, r, prevVersion, prevNS)
 		case prevVersion != version:
-			r.log.Infof("addon version changed %s → %s, removing old resources", prevVersion, version)
+			r.log.Infof("addon version changed %s -> %s, removing old resources", prevVersion, version)
 			cleanupOldAddon(ctx, r, prevVersion, targetNS)
 		}
 	}
@@ -283,12 +257,16 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, targetNS)
 	v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionTrue, v1alpha1.ConditionReasonAddonInstalled,
 		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS))
+
+	// Persist annotations so next reconcile knows the installed version/namespace.
+	if err := r.Update(ctx, &s.instance); err != nil {
+		r.log.With("err", err).Error("failed to persist addon annotations after install")
+	}
+
 	r.log.Infof("HTTP add-on v%s installed in namespace %s", version, targetNS)
 	return stopWithNoRequeue()
 }
 
-// sFnDeleteAddon removes all cluster resources that belong to the add-on.
-// If AddonObjs is empty it re-fetches the manifest to delete.
 func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	objs := r.AddonObjs
 
@@ -306,7 +284,6 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 			v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDisabled, "HTTP add-on is disabled")
 			return stopWithNoRequeue()
 		}
-
 		r.log.Infof("re-fetching manifest for version %s to delete from namespace %s", lastVersion, lastNS)
 		var err error
 		objs, err = fetchAddonObjs(r, lastVersion, lastNS)
@@ -326,14 +303,17 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, "")
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, "")
 	v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDeleted, "HTTP add-on removed")
+
+	// Persist annotation removal on the CR.
+	if err := r.Update(ctx, &s.instance); err != nil {
+		r.log.With("err", err).Error("failed to persist addon annotations after delete")
+	}
+
 	r.log.Info("HTTP add-on removed")
 	return stopWithNoRequeue()
 }
 
-// cleanupOldAddon fetches the manifest for an old version/namespace and deletes
-// all resources. Errors are logged but not propagated.
-func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {
-	objs, err := fetchAddonObjs(r, version, namespace)
+func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {	objs, err := fetchAddonObjs(r, version, namespace)
 	if err != nil {
 		r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup")
 		return
@@ -341,7 +321,6 @@ func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {
 	_ = deleteObjects(ctx, r, objs)
 }
 
-// deleteAddonObjs is called during full Keda CR deletion to clean up addon resources.
 func deleteAddonObjs(ctx context.Context, r *fsm) error {
 	var delErr error
 	for _, obj := range r.AddonObjs {
