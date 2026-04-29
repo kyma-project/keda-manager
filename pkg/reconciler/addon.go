@@ -12,6 +12,7 @@ import (
 
 // ensureNamespace creates the target namespace if it does not exist and labels
 // it with istio-injection=enabled.
+//nolint:unused
 func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{

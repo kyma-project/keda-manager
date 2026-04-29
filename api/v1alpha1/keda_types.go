@@ -84,7 +84,7 @@ const (
 	zapEncoder      = "--zap-encoder"
 	zapTimeEncoding = "--zap-time-encoding"
 
-	conditionTypeAddon = "Addon"
+	conditionTypeAddon = "Addon" //nolint:unused
 
 	conditionReasonAddonInstalled  = "AddonInstalled"  //nolint:unused
 	conditionReasonAddonDeleted    = "AddonDeleted"    //nolint:unused
