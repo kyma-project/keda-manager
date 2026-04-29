@@ -83,6 +83,23 @@ const (
 	zapLogLevel     = "--zap-log-level"
 	zapEncoder      = "--zap-encoder"
 	zapTimeEncoding = "--zap-time-encoding"
+
+	conditionTypeAddon = "Addon"
+
+	conditionReasonAddonInstalled  = "AddonInstalled"
+	conditionReasonAddonDeleted    = "AddonDeleted"
+	conditionReasonAddonInstallErr = "AddonInstallErr"
+	conditionReasonAddonDisabled   = "AddonDisabled"
+	conditionReasonAddonVersionErr = "AddonVersionErr"
+
+	annotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
+	annotationAddonVersion   = "keda.kyma-project.io/addon-version"
+	annotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
+
+	annotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
+	annotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
+
+	defaultAddonNamespace = "kyma-system"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
@@ -428,4 +445,56 @@ type KedaList struct {
 
 func init() {
 	SchemeBuilder.Register(&Keda{}, &KedaList{})
+}
+
+// setAddonCondition sets an addon-specific condition on the Keda CR status.
+func setAddonCondition(instance *Keda, status metav1.ConditionStatus, reason, msg string) {
+	condition := metav1.Condition{
+		Type:               conditionTypeAddon,
+		Status:             status,
+		LastTransitionTime: metav1.Now(),
+		Reason:             reason,
+		Message:            msg,
+	}
+	meta.SetStatusCondition(&instance.Status.Conditions, condition)
+}
+
+// addonCfg holds the addon configuration read from the Keda CR annotations.
+type addonCfg struct {
+	enabled   bool
+	version   string
+	namespace string
+}
+
+func (a addonCfg) effectiveNamespace() string {
+	if a.namespace == "" {
+		return defaultAddonNamespace
+	}
+	return a.namespace
+}
+
+func readAddonCfg(instance *Keda) addonCfg {
+	ann := instance.GetAnnotations()
+	if ann == nil {
+		return addonCfg{}
+	}
+	return addonCfg{
+		enabled:   strings.EqualFold(ann[annotationAddonEnabled], "true"),
+		version:   ann[annotationAddonVersion],
+		namespace: ann[annotationAddonNamespace],
+	}
+}
+
+// setAnnotation updates (or removes when value is empty) an annotation on the Keda CR in-memory.
+func setAnnotation(instance *Keda, key, value string) {
+	ann := instance.GetAnnotations()
+	if ann == nil {
+		ann = map[string]string{}
+	}
+	if value == "" {
+		delete(ann, key)
+	} else {
+		ann[key] = value
+	}
+	instance.SetAnnotations(ann)
 }
