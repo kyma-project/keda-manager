@@ -182,6 +182,19 @@ rules:
   - list
   - watch
 - apiGroups:
+  - http.keda.sh
+  resources:
+  - httpscaledobjects
+  - httpscaledobjects/finalizers
+  - httpscaledobjects/status
+  verbs:
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - keda.sh
   resources:
   - clustertriggerauthentications
