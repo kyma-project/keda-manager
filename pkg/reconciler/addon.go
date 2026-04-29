@@ -31,18 +31,22 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	if !apierrors.IsAlreadyExists(err) {
 		return fmt.Errorf("failed to create namespace %s: %w", namespace, err)
 	}
+
+	// Namespace exists - use MergePatch to add label without optimistic locking conflicts.
 	existing := &corev1.Namespace{}
-	if getErr := r.Get(ctx, client.ObjectKeyFromObject(ns), existing); getErr != nil {
+	if getErr := r.Get(ctx, client.ObjectKey{Name: namespace}, existing); getErr != nil {
 		return fmt.Errorf("failed to get existing namespace %s: %w", namespace, getErr)
 	}
+	if existing.Labels != nil && existing.Labels["istio-injection"] == "enabled" {
+		return nil
+	}
+	patch := client.MergeFrom(existing.DeepCopy())
 	if existing.Labels == nil {
 		existing.Labels = map[string]string{}
 	}
-	if existing.Labels["istio-injection"] != "enabled" {
-		existing.Labels["istio-injection"] = "enabled"
-		if updateErr := r.Update(ctx, existing); updateErr != nil {
-			return fmt.Errorf("failed to label namespace %s with istio-injection: %w", namespace, updateErr)
-		}
+	existing.Labels["istio-injection"] = "enabled"
+	if patchErr := r.Patch(ctx, existing, patch); patchErr != nil {
+		return fmt.Errorf("failed to label namespace %s with istio-injection: %w", namespace, patchErr)
 	}
 	return nil
 }
