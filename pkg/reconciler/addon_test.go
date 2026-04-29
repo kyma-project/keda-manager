@@ -14,61 +14,61 @@ func TestReadAddonCfg(t *testing.T) {
 	tests := []struct {
 		name        string
 		annotations map[string]string
-		want        addonCfg
+		want        v1alpha1.AddonCfg
 	}{
-		{"nil annotations", nil, addonCfg{}},
-		{"empty annotations", map[string]string{}, addonCfg{}},
+		{"nil annotations", nil, v1alpha1.AddonCfg{}},
+		{"empty annotations", map[string]string{}, v1alpha1.AddonCfg{}},
 		{
 			"enabled with version and namespace",
 			map[string]string{
-				annotationAddonEnabled:   "true",
-				annotationAddonVersion:   "0.13.0",
-				annotationAddonNamespace: "custom-ns",
+				v1alpha1.AnnotationAddonEnabled:   "true",
+				v1alpha1.AnnotationAddonVersion:   "0.13.0",
+				v1alpha1.AnnotationAddonNamespace: "custom-ns",
 			},
-			addonCfg{enabled: true, version: "0.13.0", namespace: "custom-ns"},
+			v1alpha1.AddonCfg{Enabled: true, Version: "0.13.0", Namespace: "custom-ns"},
 		},
 		{
 			"enabled case insensitive",
-			map[string]string{annotationAddonEnabled: "True"},
-			addonCfg{enabled: true},
+			map[string]string{v1alpha1.AnnotationAddonEnabled: "True"},
+			v1alpha1.AddonCfg{Enabled: true},
 		},
 		{
 			"disabled explicitly",
-			map[string]string{annotationAddonEnabled: "false"},
-			addonCfg{enabled: false},
+			map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
+			v1alpha1.AddonCfg{Enabled: false},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: tt.annotations}}
-			require.Equal(t, tt.want, readAddonCfg(instance))
+			require.Equal(t, tt.want, v1alpha1.ReadAddonCfg(instance))
 		})
 	}
 }
 
 func TestEffectiveNamespace(t *testing.T) {
 	t.Run("returns default when empty", func(t *testing.T) {
-		require.Equal(t, defaultAddonNamespace, addonCfg{}.effectiveNamespace())
+		require.Equal(t, v1alpha1.DefaultAddonNamespace, v1alpha1.AddonCfg{}.EffectiveNamespace())
 	})
 	t.Run("returns custom namespace", func(t *testing.T) {
-		require.Equal(t, "my-ns", addonCfg{namespace: "my-ns"}.effectiveNamespace())
+		require.Equal(t, "my-ns", v1alpha1.AddonCfg{Namespace: "my-ns"}.EffectiveNamespace())
 	})
 }
 
 func TestSetAnnotation(t *testing.T) {
 	t.Run("set on nil annotations", func(t *testing.T) {
 		instance := &v1alpha1.Keda{}
-		setAnnotation(instance, "key", "value")
+		v1alpha1.SetAnnotation(instance, "key", "value")
 		require.Equal(t, "value", instance.GetAnnotations()["key"])
 	})
 	t.Run("update existing", func(t *testing.T) {
 		instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "old"}}}
-		setAnnotation(instance, "key", "new")
+		v1alpha1.SetAnnotation(instance, "key", "new")
 		require.Equal(t, "new", instance.GetAnnotations()["key"])
 	})
 	t.Run("delete when empty value", func(t *testing.T) {
 		instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "val"}}}
-		setAnnotation(instance, "key", "")
+		v1alpha1.SetAnnotation(instance, "key", "")
 		_, exists := instance.GetAnnotations()["key"]
 		require.False(t, exists)
 	})

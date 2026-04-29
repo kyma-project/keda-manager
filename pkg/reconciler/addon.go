@@ -135,6 +135,8 @@ var namespaceEnvVars = map[string]struct{}{
 
 // overrideNamespace sets the namespace on all namespaced resources, patches
 // subjects[].namespace on bindings, and patches Deployment env vars and Istio annotations.
+//
+//nolint:unparam
 func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 	for i := range objs {
 		obj := &objs[i]
