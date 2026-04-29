@@ -42,6 +42,9 @@ rules:
   verbs:
   - create
   - delete
+  - get
+  - list
+  - update
 - apiGroups:
   - '*'
   resources:
