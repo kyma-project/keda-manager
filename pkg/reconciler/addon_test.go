@@ -1,6 +1,7 @@
 package reconciler
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -218,5 +219,50 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"spec": map[string]interface{}{}}},
 		}}
 		patchDeploymentEnvNamespace(obj, "ns")
+	})
+}
+
+func TestSFnHandleAddon(t *testing.T) {
+	t.Run("disabled addon switches to delete", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+	})
+	t.Run("enabled without version switches to resolve", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "true"},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+	})
+	t.Run("invalid version sets error condition", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				v1alpha1.AnnotationAddonEnabled: "true",
+				v1alpha1.AnnotationAddonVersion: "not-a-semver",
+			},
+		}}}
+		_, _, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.NotEmpty(t, s.instance.Status.Conditions)
+	})
+	t.Run("valid version switches to apply", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				v1alpha1.AnnotationAddonEnabled: "true",
+				v1alpha1.AnnotationAddonVersion: "0.13.0",
+			},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[v1alpha1.AnnotationAddonVersion])
 	})
 }

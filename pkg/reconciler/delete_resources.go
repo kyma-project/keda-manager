@@ -94,6 +94,12 @@ func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filt
 	//ensure lease object will be removed as well
 	r.AddLeaseObjs()
 
+	// Also remove any HTTP add-on resources.
+	if err := deleteAddonObjs(ctx, r); err != nil {
+		s.instance.UpdateStateFromErr(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletionErr, err)
+		return stopWithErrorAndNoRequeue(err)
+	}
+
 	err := deleteResources(ctx, r, r.Objs, filterFunc)
 	if err != nil {
 		s.instance.UpdateStateFromErr(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletionErr, err)

@@ -5,7 +5,7 @@ package controllers
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups="",resources=services,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=external;pods;secrets;serviceaccounts,verbs=create;delete;list;patch;update;watch
-//+kubebuilder:rbac:groups="",resources=namespaces,verbs=create;delete
+//+kubebuilder:rbac:groups="",resources=namespaces,verbs=create;delete;get;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=limitranges,verbs=list;watch
 
 // API registration and extensions
@@ -38,6 +38,11 @@ package controllers
 //+kubebuilder:rbac:groups="keda.sh",resources=clustertriggerauthentications;clustertriggerauthentications/status;scaledjobs;scaledjobs/finalizers;scaledjobs/status;scaledobjects;scaledobjects/finalizers;scaledobjects/status;triggerauthentications;triggerauthentications/status,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="eventing.keda.sh",resources=cloudeventsources;cloudeventsources/status;clustercloudeventsources;clustercloudeventsources/status,verbs=list;patch;update;watch
 //+kubebuilder:rbac:groups="discovery.k8s.io",resources="endpointslices",verbs=list;watch
+
+// HTTP add-on resources – the keda-manager must hold at least the same
+// permissions it delegates to the add-on service-accounts via ClusterRoles
+// shipped in the upstream manifest (RBAC escalation prevention).
+//+kubebuilder:rbac:groups="http.keda.sh",resources=httpscaledobjects;httpscaledobjects/status;httpscaledobjects/finalizers,verbs=create;delete;list;patch;update;watch
 
 // External metrics API
 //+kubebuilder:rbac:groups=external.metrics.k8s.io,resources=externalmetrics,verbs=list;watch

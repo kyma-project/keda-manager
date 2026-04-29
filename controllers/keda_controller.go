@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"net/http"
 	"os"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -172,12 +173,13 @@ func (r *kedaReconciler) retriggerAllKedaCRs(ctx context.Context, e event.Delete
 	}
 }
 
-func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured) KedaReconciler {
+func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured, httpClient *http.Client) KedaReconciler {
 	return &kedaReconciler{
 		log: log,
 		Cfg: reconciler.Cfg{
-			Finalizer: v1alpha1.Finalizer,
-			Objs:      o,
+			Finalizer:  v1alpha1.Finalizer,
+			Objs:       o,
+			HTTPClient: httpClient,
 		},
 		K8s: reconciler.K8s{
 			APIServerIP:   os.Getenv("KUBERNETES_PORT_443_TCP_ADDR"),

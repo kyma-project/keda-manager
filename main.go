@@ -21,7 +21,9 @@ import (
 	"crypto/fips140"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-logr/zapr"
 	"github.com/kyma-project/keda-manager/pkg/logging"
@@ -152,11 +154,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+
 	kedaReconciler := controllers.NewKedaReconciler(
 		mgr.GetClient(),
 		mgr.GetEventRecorderFor("keda-manager"),
 		logWithCtx,
 		data,
+		httpClient,
 	)
 	if err = kedaReconciler.SetupWithManager(mgr); err != nil {
 		fmt.Printf("unable to create controller: %v\n", err)
