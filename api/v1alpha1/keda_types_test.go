@@ -208,61 +208,61 @@ func TestReadAddonCfg(t *testing.T) {
 	tests := []struct {
 		name        string
 		annotations map[string]string
-		want        addonCfg
+		want        AddonCfg
 	}{
-		{"nil annotations", nil, addonCfg{}},
-		{"empty annotations", map[string]string{}, addonCfg{}},
+		{"nil annotations", nil, AddonCfg{}},
+		{"empty annotations", map[string]string{}, AddonCfg{}},
 		{
 			"enabled with version and namespace",
 			map[string]string{
-				annotationAddonEnabled:   "true",
-				annotationAddonVersion:   "0.13.0",
-				annotationAddonNamespace: "custom-ns",
+				AnnotationAddonEnabled:   "true",
+				AnnotationAddonVersion:   "0.13.0",
+				AnnotationAddonNamespace: "custom-ns",
 			},
-			addonCfg{enabled: true, version: "0.13.0", namespace: "custom-ns"},
+			AddonCfg{Enabled: true, Version: "0.13.0", Namespace: "custom-ns"},
 		},
 		{
 			"enabled case insensitive",
-			map[string]string{annotationAddonEnabled: "True"},
-			addonCfg{enabled: true},
+			map[string]string{AnnotationAddonEnabled: "True"},
+			AddonCfg{Enabled: true},
 		},
 		{
 			"disabled explicitly",
-			map[string]string{annotationAddonEnabled: "false"},
-			addonCfg{enabled: false},
+			map[string]string{AnnotationAddonEnabled: "false"},
+			AddonCfg{Enabled: false},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &Keda{ObjectMeta: metav1.ObjectMeta{Annotations: tt.annotations}}
-			require.Equal(t, tt.want, readAddonCfg(instance))
+			require.Equal(t, tt.want, ReadAddonCfg(instance))
 		})
 	}
 }
 
 func TestEffectiveNamespace(t *testing.T) {
 	t.Run("returns default when empty", func(t *testing.T) {
-		require.Equal(t, defaultAddonNamespace, addonCfg{}.effectiveNamespace())
+		require.Equal(t, DefaultAddonNamespace, AddonCfg{}.EffectiveNamespace())
 	})
 	t.Run("returns custom namespace", func(t *testing.T) {
-		require.Equal(t, "my-ns", addonCfg{namespace: "my-ns"}.effectiveNamespace())
+		require.Equal(t, "my-ns", AddonCfg{Namespace: "my-ns"}.EffectiveNamespace())
 	})
 }
 
 func TestSetAnnotation(t *testing.T) {
 	t.Run("set on nil annotations", func(t *testing.T) {
 		instance := &Keda{}
-		setAnnotation(instance, "key", "value")
+		SetAnnotation(instance, "key", "value")
 		require.Equal(t, "value", instance.GetAnnotations()["key"])
 	})
 	t.Run("update existing", func(t *testing.T) {
 		instance := &Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "old"}}}
-		setAnnotation(instance, "key", "new")
+		SetAnnotation(instance, "key", "new")
 		require.Equal(t, "new", instance.GetAnnotations()["key"])
 	})
 	t.Run("delete when empty value", func(t *testing.T) {
 		instance := &Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "val"}}}
-		setAnnotation(instance, "key", "")
+		SetAnnotation(instance, "key", "")
 		_, exists := instance.GetAnnotations()["key"]
 		require.False(t, exists)
 	})
