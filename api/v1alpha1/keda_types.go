@@ -47,7 +47,6 @@ const (
 	ConditionReasonVerified                 = ConditionReason("Verified")
 	ConditionReasonDeploymentReplicaFailure = ConditionReason("DeploymentReplicaFailure")
 	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
-	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr") //nolint:unused
 	ConditionReasonVerification             = ConditionReason("Verification")
 	ConditionReasonValidationErr            = ConditionReason("ValidationErr")
 	ConditionReasonInitialized              = ConditionReason("Initialized")
