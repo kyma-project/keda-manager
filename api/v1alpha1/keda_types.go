@@ -47,7 +47,7 @@ const (
 	ConditionReasonVerified                 = ConditionReason("Verified")
 	ConditionReasonDeploymentReplicaFailure = ConditionReason("DeploymentReplicaFailure")
 	ConditionReasonApplyObjError            = ConditionReason("ApplyObjError")
-	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr")
+	ConditionReasonOrphanDeletionErr        = ConditionReason("OrphanDeletionErr") //nolint:unused
 	ConditionReasonVerification             = ConditionReason("Verification")
 	ConditionReasonValidationErr            = ConditionReason("ValidationErr")
 	ConditionReasonInitialized              = ConditionReason("Initialized")
@@ -86,18 +86,18 @@ const (
 
 	conditionTypeAddon = "Addon"
 
-	conditionReasonAddonInstalled  = "AddonInstalled"
-	conditionReasonAddonDeleted    = "AddonDeleted"
-	conditionReasonAddonInstallErr = "AddonInstallErr"
-	conditionReasonAddonDisabled   = "AddonDisabled"
-	conditionReasonAddonVersionErr = "AddonVersionErr"
+	conditionReasonAddonInstalled  = "AddonInstalled"  //nolint:unused
+	conditionReasonAddonDeleted    = "AddonDeleted"    //nolint:unused
+	conditionReasonAddonInstallErr = "AddonInstallErr" //nolint:unused
+	conditionReasonAddonDisabled   = "AddonDisabled"   //nolint:unused
+	conditionReasonAddonVersionErr = "AddonVersionErr" //nolint:unused
 
 	annotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
 	annotationAddonVersion   = "keda.kyma-project.io/addon-version"
 	annotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
 
-	annotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
-	annotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
+	annotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"   //nolint:unused
+	annotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace" //nolint:unused
 
 	defaultAddonNamespace = "kyma-system"
 )
@@ -448,6 +448,8 @@ func init() {
 }
 
 // setAddonCondition sets an addon-specific condition on the Keda CR status.
+//
+//nolint:unused
 func setAddonCondition(instance *Keda, status metav1.ConditionStatus, reason, msg string) {
 	condition := metav1.Condition{
 		Type:               conditionTypeAddon,
