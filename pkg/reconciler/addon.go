@@ -313,7 +313,8 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 	return stopWithNoRequeue()
 }
 
-func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {	objs, err := fetchAddonObjs(r, version, namespace)
+func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {
+	objs, err := fetchAddonObjs(r, version, namespace)
 	if err != nil {
 		r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup")
 		return
