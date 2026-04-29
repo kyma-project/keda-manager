@@ -1,6 +1,7 @@
 package reconciler
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
@@ -13,61 +14,61 @@ func TestReadAddonCfg(t *testing.T) {
 	tests := []struct {
 		name        string
 		annotations map[string]string
-		want        v1alpha1.AddonCfg
+		want        addonCfg
 	}{
-		{"nil annotations", nil, v1alpha1.AddonCfg{}},
-		{"empty annotations", map[string]string{}, v1alpha1.AddonCfg{}},
+		{"nil annotations", nil, addonCfg{}},
+		{"empty annotations", map[string]string{}, addonCfg{}},
 		{
 			"enabled with version and namespace",
 			map[string]string{
-				v1alpha1.AnnotationAddonEnabled:   "true",
-				v1alpha1.AnnotationAddonVersion:   "0.13.0",
-				v1alpha1.AnnotationAddonNamespace: "custom-ns",
+				annotationAddonEnabled:   "true",
+				annotationAddonVersion:   "0.13.0",
+				annotationAddonNamespace: "custom-ns",
 			},
-			v1alpha1.AddonCfg{Enabled: true, Version: "0.13.0", Namespace: "custom-ns"},
+			addonCfg{enabled: true, version: "0.13.0", namespace: "custom-ns"},
 		},
 		{
 			"enabled case insensitive",
-			map[string]string{v1alpha1.AnnotationAddonEnabled: "True"},
-			v1alpha1.AddonCfg{Enabled: true},
+			map[string]string{annotationAddonEnabled: "True"},
+			addonCfg{enabled: true},
 		},
 		{
 			"disabled explicitly",
-			map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
-			v1alpha1.AddonCfg{Enabled: false},
+			map[string]string{annotationAddonEnabled: "false"},
+			addonCfg{enabled: false},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: tt.annotations}}
-			require.Equal(t, tt.want, v1alpha1.ReadAddonCfg(instance))
+			require.Equal(t, tt.want, readAddonCfg(instance))
 		})
 	}
 }
 
 func TestEffectiveNamespace(t *testing.T) {
 	t.Run("returns default when empty", func(t *testing.T) {
-		require.Equal(t, v1alpha1.DefaultAddonNamespace, v1alpha1.AddonCfg{}.EffectiveNamespace())
+		require.Equal(t, defaultAddonNamespace, addonCfg{}.effectiveNamespace())
 	})
 	t.Run("returns custom namespace", func(t *testing.T) {
-		require.Equal(t, "my-ns", v1alpha1.AddonCfg{Namespace: "my-ns"}.EffectiveNamespace())
+		require.Equal(t, "my-ns", addonCfg{namespace: "my-ns"}.effectiveNamespace())
 	})
 }
 
 func TestSetAnnotation(t *testing.T) {
 	t.Run("set on nil annotations", func(t *testing.T) {
 		instance := &v1alpha1.Keda{}
-		v1alpha1.SetAnnotation(instance, "key", "value")
+		setAnnotation(instance, "key", "value")
 		require.Equal(t, "value", instance.GetAnnotations()["key"])
 	})
 	t.Run("update existing", func(t *testing.T) {
 		instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "old"}}}
-		v1alpha1.SetAnnotation(instance, "key", "new")
+		setAnnotation(instance, "key", "new")
 		require.Equal(t, "new", instance.GetAnnotations()["key"])
 	})
 	t.Run("delete when empty value", func(t *testing.T) {
 		instance := &v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{"key": "val"}}}
-		v1alpha1.SetAnnotation(instance, "key", "")
+		setAnnotation(instance, "key", "")
 		_, exists := instance.GetAnnotations()["key"]
 		require.False(t, exists)
 	})
@@ -218,5 +219,50 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"spec": map[string]interface{}{}}},
 		}}
 		patchDeploymentEnvNamespace(obj, "ns")
+	})
+}
+
+func TestSFnHandleAddon(t *testing.T) {
+	t.Run("disabled addon switches to delete", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{annotationAddonEnabled: "false"},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+	})
+	t.Run("enabled without version switches to resolve", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{annotationAddonEnabled: "true"},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+	})
+	t.Run("invalid version sets error condition", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotationAddonEnabled: "true",
+				annotationAddonVersion: "not-a-semver",
+			},
+		}}}
+		_, _, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.NotEmpty(t, s.instance.Status.Conditions)
+	})
+	t.Run("valid version switches to apply", func(t *testing.T) {
+		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotationAddonEnabled: "true",
+				annotationAddonVersion: "0.13.0",
+			},
+		}}}
+		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		require.NotNil(t, fn)
+		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[annotationAddonVersion])
 	})
 }
