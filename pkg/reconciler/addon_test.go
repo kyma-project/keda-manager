@@ -225,7 +225,7 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 func TestSFnHandleAddon(t *testing.T) {
 	t.Run("disabled addon switches to delete", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{annotationAddonEnabled: "false"},
+			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
@@ -234,7 +234,7 @@ func TestSFnHandleAddon(t *testing.T) {
 	})
 	t.Run("enabled without version switches to resolve", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{annotationAddonEnabled: "true"},
+			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "true"},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
@@ -244,8 +244,8 @@ func TestSFnHandleAddon(t *testing.T) {
 	t.Run("invalid version sets error condition", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotationAddonEnabled: "true",
-				annotationAddonVersion: "not-a-semver",
+				v1alpha1.AnnotationAddonEnabled: "true",
+				v1alpha1.AnnotationAddonVersion: "not-a-semver",
 			},
 		}}}
 		_, _, err := sFnHandleAddon(context.TODO(), nil, s)
@@ -255,14 +255,14 @@ func TestSFnHandleAddon(t *testing.T) {
 	t.Run("valid version switches to apply", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				annotationAddonEnabled: "true",
-				annotationAddonVersion: "0.13.0",
+				v1alpha1.AnnotationAddonEnabled: "true",
+				v1alpha1.AnnotationAddonVersion: "0.13.0",
 			},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
 		require.NotNil(t, fn)
-		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[annotationAddonVersion])
+		require.Equal(t, "0.13.0", s.instance.GetAnnotations()[v1alpha1.AnnotationAddonVersion])
 	})
 }
