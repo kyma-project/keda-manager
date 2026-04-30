@@ -6,8 +6,6 @@ include ${PROJECT_ROOT}/hack/k3d.mk
 
 ADDON_NAMESPACE ?= keda
 ADDON_VERSION ?= 0.13.0
-KEDA_CR_NAMESPACE ?= kyma-system
-KEDA_CR_NAME ?= default
 
 ##@ General
 
@@ -84,7 +82,7 @@ deploy-cluster:
 wait-for-keda-ready: ## Wait for Keda CR to reach Ready state
 	@echo "Waiting for Keda CR to be Ready..."
 	@for i in $$(seq 1 30); do \
-		STATE=$$(kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o jsonpath='{.status.state}' 2>/dev/null || echo ""); \
+		STATE=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.state}' 2>/dev/null || echo ""); \
 		if [ "$$STATE" = "Ready" ]; then \
 			echo "Keda is Ready"; \
 			exit 0; \
@@ -93,12 +91,12 @@ wait-for-keda-ready: ## Wait for Keda CR to reach Ready state
 		sleep 10; \
 	done; \
 	echo "ERROR: Keda did not become Ready within timeout"; \
-	kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o yaml; \
+	kubectl get keda default -n kyma-system -o yaml; \
 	exit 1
 
 .PHONY: enable-addon
 enable-addon: ## Enable HTTP add-on via annotations on Keda CR
-	kubectl annotate keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) \
+	kubectl annotate keda default -n kyma-system \
 		keda.kyma-project.io/addon-enabled=true \
 		keda.kyma-project.io/addon-version=$(ADDON_VERSION) \
 		keda.kyma-project.io/addon-namespace=$(ADDON_NAMESPACE) \
@@ -121,17 +119,17 @@ wait-for-addon-ready: ## Wait for addon deployments and pods to be ready
 
 .PHONY: verify-addon-condition
 verify-addon-condition: ## Verify that Addon condition is True on Keda CR
-	@ADDON_STATUS=$$(kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'); \
+	@ADDON_STATUS=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'); \
 	if [ "$$ADDON_STATUS" != "True" ]; then \
 		echo "ERROR: Addon condition status is not True, got: $$ADDON_STATUS"; \
-		kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o yaml; \
+		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
 	echo "Addon condition verified: status=True"
 
 .PHONY: disable-addon
 disable-addon: ## Disable HTTP add-on via annotation
-	kubectl annotate keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) \
+	kubectl annotate keda default -n kyma-system \
 		keda.kyma-project.io/addon-enabled=false \
 		--overwrite
 
@@ -153,10 +151,10 @@ wait-for-addon-removal: ## Wait for addon deployments to be removed
 
 .PHONY: verify-addon-deleted
 verify-addon-deleted: ## Verify that Addon condition reason is AddonDeleted
-	@ADDON_REASON=$$(kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o jsonpath='{.status.conditions[?(@.type=="Addon")].reason}'); \
+	@ADDON_REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].reason}'); \
 	if [ "$$ADDON_REASON" != "AddonDeleted" ]; then \
 		echo "ERROR: Addon condition reason is not AddonDeleted, got: $$ADDON_REASON"; \
-		kubectl get keda $(KEDA_CR_NAME) -n $(KEDA_CR_NAMESPACE) -o yaml; \
+		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
 	echo "Addon condition verified: reason=AddonDeleted"
