@@ -61,6 +61,45 @@ jobs:
           btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
           btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
 
+  btp-scale-to-zero-integration-tests:
+    if: ${{ !startsWith(github.event_name, 'pull_request') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: compute github commit sha
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - uses: kyma-project/terraform-module/.github/actions/create-sap-btp-kyma@1.0.0
+        id: create-btp-resources
+        with:
+          btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
+          btp_backend_url: "${{ secrets.BTP_BACKEND_URL}}"
+          btp_user: "${{ secrets.BTP_BOT_USER}}"
+          btp_password: "${{ secrets.BTP_BOT_PASSWORD}}"
+          btp_global_account: "${{ secrets.BTP_GLOBAL_ACCOUNT }}"
+          btp_idp_tenant: "${{ secrets.BTP_CUSTOM_IAS_TENANT }}"
+          btp_subaccount_region: "${{ secrets.BTP_SUBACCOUNT_REGION }}"
+          btp_kyma_region: "${{ secrets.BTP_KYMA_REGION }}"
+          btp_kyma_plan: "${{ secrets.BTP_KYMA_PLAN }}"
+
+      - name: Run Keda Addon BTP integration test
+        run: |
+          kubectl create namespace kyma-system || true
+          make deploy
+          make -C hack/ci http-addon-scale-to-zero
+        env:
+          IMG: ${{ inputs.image }}
+
+      - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@1.0.0
+        if: always()
+        with:
+          btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
+          btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
+          btp_user: ${{ secrets.BTP_BOT_USER}}
+          btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
+          btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
+          btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+
   rbac-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
@@ -77,10 +116,8 @@ jobs:
           make deploy
         env:
           IMG: ${{ inputs.image }}
-      - name: run rbac tests
-        uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
-        with:
-          config: ${{ github.workspace }}/test/rbac/config.yaml
+      - name: run btp addon integration tests
+        run: make -C hack/ci http-addon-scale-to-zero-on-btp
 
   http-add-on-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}

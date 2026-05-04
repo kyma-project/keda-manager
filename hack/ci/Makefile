@@ -2,6 +2,7 @@
 
 PROJECT_ROOT = ../..
 PROJECT_COMMON = ../common
+TEST_DOMAIN ?= $(shell kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}')
 
 ##@ General
 
@@ -53,6 +54,7 @@ reinstall-keda: run-on-cluster
 
 .PHONY: http-addon-integration-test
 http-addon-integration-test: ## Run full HTTP add-on integration test (enable, verify, disable, verify removal)
+	@make -C ${PROJECT_COMMON} apply-keda
 	@make -C ${PROJECT_COMMON} wait-for-keda-ready
 	@make -C ${PROJECT_COMMON} enable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-ready
@@ -61,3 +63,15 @@ http-addon-integration-test: ## Run full HTTP add-on integration test (enable, v
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
 	@make -C ${PROJECT_COMMON} verify-addon-deleted
 	@echo "HTTP add-on integration test passed"
+
+.PHONY: http-addon-scale-to-zero
+http-addon-scale-to-zero: ## Verify that HTTP add-on scales to zero on BTP
+	@make -C ${PROJECT_COMMON} apply-keda
+	@make -C ${PROJECT_COMMON} wait-for-keda-ready
+	@make -C ${PROJECT_COMMON} enable-addon
+	@make -C ${PROJECT_COMMON} wait-for-addon-ready
+	@make -C ${PROJECT_COMMON} verify-addon-condition
+	@./scale-to-zero-test.sh $(PROJECT_ROOT) $(TEST_DOMAIN)
+	@make -C ${PROJECT_COMMON} disable-addon
+	@make -C ${PROJECT_COMMON} wait-for-addon-removal
+	@make -C ${PROJECT_COMMON} verify-addon-deleted
