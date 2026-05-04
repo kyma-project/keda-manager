@@ -81,3 +81,22 @@ jobs:
         uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
         with:
           config: ${{ github.workspace }}/test/rbac/config.yaml
+
+  http-add-on-integration-test:
+    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
+      - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
+      - name: deploy keda
+        run: |
+          kubectl create namespace kyma-system || true
+          make deploy
+        env:
+          IMG: ${{ inputs.image }}
+      - name: run http add-on integration test
+        run: make -C hack/ci http-addon-integration-test

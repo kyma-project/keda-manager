@@ -48,3 +48,17 @@ reinstall-keda: run-on-cluster
 
 	# double check that serverless controller has progressed
 	@make -C ${PROJECT_COMMON} verify-keda
+
+##@ HTTP Add-on
+
+.PHONY: http-addon-integration-test
+http-addon-integration-test: ## Run full HTTP add-on integration test (enable, verify, disable, verify removal)
+	@make -C ${PROJECT_COMMON} apply-keda
+	@make -C ${PROJECT_COMMON} wait-for-keda-ready
+	@make -C ${PROJECT_COMMON} enable-addon
+	@make -C ${PROJECT_COMMON} wait-for-addon-ready
+	@make -C ${PROJECT_COMMON} verify-addon-condition
+	@make -C ${PROJECT_COMMON} disable-addon
+	@make -C ${PROJECT_COMMON} wait-for-addon-removal
+	@make -C ${PROJECT_COMMON} verify-addon-deleted
+	@echo "HTTP add-on integration test passed"
