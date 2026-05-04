@@ -53,6 +53,7 @@ reinstall-keda: run-on-cluster
 
 .PHONY: http-addon-integration-test
 http-addon-integration-test: ## Run full HTTP add-on integration test (enable, verify, disable, verify removal)
+	@make -C ${PROJECT_COMMON} apply-keda
 	@make -C ${PROJECT_COMMON} wait-for-keda-ready
 	@make -C ${PROJECT_COMMON} enable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-ready
