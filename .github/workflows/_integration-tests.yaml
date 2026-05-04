@@ -81,7 +81,6 @@ jobs:
           btp_subaccount_region: "${{ secrets.BTP_SUBACCOUNT_REGION }}"
           btp_kyma_region: "${{ secrets.BTP_KYMA_REGION }}"
           btp_kyma_plan: "${{ secrets.BTP_KYMA_PLAN }}"
-
       - name: Run Keda Addon BTP integration test
         run: |
           kubectl create namespace kyma-system || true
@@ -116,8 +115,10 @@ jobs:
           make deploy
         env:
           IMG: ${{ inputs.image }}
-      - name: run btp addon integration tests
-        run: make -C hack/ci http-addon-scale-to-zero-on-btp
+      - name: run rbac tests
+        uses: kyma-project/manager-toolkit/.github/actions/test-rbac-propagation@main
+        with:
+          config: ${{ github.workspace }}/test/rbac/config.yaml
 
   http-add-on-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
