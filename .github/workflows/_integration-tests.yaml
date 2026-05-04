@@ -88,7 +88,6 @@ jobs:
           make -C hack/ci http-addon-scale-to-zero
         env:
           IMG: ${{ inputs.image }}
-
       - uses: kyma-project/terraform-module/.github/actions/force-delete-sap-btp-subaccount@1.0.0
         if: always()
         with:
