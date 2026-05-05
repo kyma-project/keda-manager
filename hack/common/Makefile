@@ -150,12 +150,12 @@ wait-for-addon-removal: ## Wait for addon deployments to be removed
 	kubectl get deploy -n $(ADDON_NAMESPACE); \
 	exit 1
 
-.PHONY: verify-addon-deleted
-verify-addon-deleted: ## Verify that Addon condition reason is AddonDeleted
+.PHONY: verify-addon-disabled
+verify-addon-disabled: ## Verify that Addon condition reason is AddonDisabled
 	@ADDON_REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].reason}'); \
-	if [ "$$ADDON_REASON" != "AddonDeleted" ]; then \
-		echo "ERROR: Addon condition reason is not AddonDeleted, got: $$ADDON_REASON"; \
+	if [ "$$ADDON_REASON" != "AddonDisabled" ]; then \
+		echo "ERROR: Addon condition reason is not AddonDisabled, got: $$ADDON_REASON"; \
 		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
-	echo "Addon condition verified: reason=AddonDeleted"
+	echo "Addon condition verified: reason=AddonDisabled"
