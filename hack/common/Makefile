@@ -114,8 +114,9 @@ wait-for-addon-ready: ## Wait for addon deployments and pods to be ready
 		echo "  attempt $$i: $$DEPLOYS deployments (3 expected)"; \
 		sleep 10; \
 	done
-	kubectl wait --for=condition=Available deployment --all -n $(ADDON_NAMESPACE) --timeout=180s
-	kubectl wait --for=condition=Ready pod --all -n $(ADDON_NAMESPACE) --timeout=120s
+	kubectl wait --for=condition=Available deployment --all -n $(ADDON_NAMESPACE) --timeout=200s
+	kubectl wait --for=condition=Ready pod --all -n $(ADDON_NAMESPACE) --timeout=200s
+
 
 .PHONY: verify-addon-condition
 verify-addon-condition: ## Verify that Addon condition is True on Keda CR

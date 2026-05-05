@@ -5,7 +5,7 @@ metadata:
   namespace: demo-app
 spec:
   hosts:
-  - "http-echo-keda.<YOUR_DOMAIN>"
+  - "http-echo-keda.${TEST_DOMAIN}"
   gateway: kyma-system/kyma-gateway
   rules:
   - path: /*
@@ -13,5 +13,5 @@ spec:
     noAuth: true
   service:
     name: keda-add-ons-http-interceptor-proxy
-    namespace: <HTTP-ADD-ON-NAMESPACE>
+    namespace: kyma-system # The KEDA HTTP Add-on is installed in the kyma-system namespace by default
     port: 8080
