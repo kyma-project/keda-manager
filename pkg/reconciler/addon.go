@@ -262,10 +262,18 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionTrue, v1alpha1.ConditionReasonAddonInstalled,
 		fmt.Sprintf("HTTP add-on v%s installed in namespace %s", version, targetNS))
 
+	// Save desired status before r.Update, because r.Update overwrites s.instance
+	// with the server response which contains the OLD status from the server
+	// (status subresource is not updated by a regular Update call).
+	desiredStatus := s.instance.Status.DeepCopy()
+
 	// Persist annotations so next reconcile knows the installed version/namespace.
 	if err := r.Update(ctx, &s.instance); err != nil {
 		r.log.With("err", err).Error("failed to persist addon annotations after install")
 	}
+
+	// Restore desired status after Update (server response overwrites in-memory status).
+	s.instance.Status = *desiredStatus
 
 	r.log.Infof("HTTP add-on v%s installed in namespace %s", version, targetNS)
 	return stopWithNoRequeue()
@@ -308,10 +316,18 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, "")
 	v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDeleted, "HTTP add-on removed")
 
+	// Save desired status before r.Update, because r.Update overwrites s.instance
+	// with the server response which contains the OLD status from the server
+	// (status subresource is not updated by a regular Update call).
+	desiredStatus := s.instance.Status.DeepCopy()
+
 	// Persist annotation removal on the CR.
 	if err := r.Update(ctx, &s.instance); err != nil {
 		r.log.With("err", err).Error("failed to persist addon annotations after delete")
 	}
+
+	// Restore desired status after Update (server response overwrites in-memory status).
+	s.instance.Status = *desiredStatus
 
 	r.log.Info("HTTP add-on removed")
 	return stopWithNoRequeue()
