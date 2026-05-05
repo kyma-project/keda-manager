@@ -60,5 +60,5 @@ http-addon-integration-test: ## Run full HTTP add-on integration test (enable, v
 	@make -C ${PROJECT_COMMON} verify-addon-condition
 	@make -C ${PROJECT_COMMON} disable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
-	@make -C ${PROJECT_COMMON} verify-addon-deleted
+	@make -C ${PROJECT_COMMON} verify-addon-disabled
 	@echo "HTTP add-on integration test passed"
