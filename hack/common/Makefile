@@ -117,6 +117,7 @@ wait-for-addon-ready: ## Wait for addon deployments and pods to be ready
 	kubectl wait --for=condition=Available deployment --all -n $(ADDON_NAMESPACE) --timeout=200s
 	kubectl wait --for=condition=Ready pod --all -n $(ADDON_NAMESPACE) --timeout=200s
 
+
 .PHONY: verify-addon-condition
 verify-addon-condition: ## Verify that Addon condition is True on Keda CR
 	@ADDON_STATUS=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'); \
