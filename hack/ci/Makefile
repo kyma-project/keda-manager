@@ -75,11 +75,3 @@ http-addon-scale-to-zero: ## Verify that HTTP add-on scales to zero on BTP
 	@make -C ${PROJECT_COMMON} disable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
 	@make -C ${PROJECT_COMMON} verify-addon-deleted
-
-.PHONY: chleb
-chleb:
-	./scale-to-zero-test.sh $(PROJECT_ROOT) $(TEST_DOMAIN)
-
-.PHONY: chleb-local
-chleb-local:
-	./scale-to-zero-test-local.sh $(PROJECT_ROOT)
