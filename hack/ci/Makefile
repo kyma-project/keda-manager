@@ -79,3 +79,7 @@ http-addon-scale-to-zero: ## Verify that HTTP add-on scales to zero on BTP
 .PHONY: chleb
 chleb:
 	./scale-to-zero-test.sh $(PROJECT_ROOT) $(TEST_DOMAIN)
+
+.PHONY: chleb-local
+chleb-local:
+	./scale-to-zero-test-local.sh $(PROJECT_ROOT)
