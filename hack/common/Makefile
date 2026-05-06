@@ -119,14 +119,14 @@ wait-for-addon-ready: ## Wait for addon deployments and pods to be ready
 
 
 .PHONY: verify-addon-condition
-verify-addon-condition: ## Verify that Addon condition is True on Keda CR
-	@ADDON_STATUS=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'); \
+verify-addon-condition: ## Verify that AddonInstalled condition is True on Keda CR
+	@ADDON_STATUS=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="AddonInstalled")].status}'); \
 	if [ "$$ADDON_STATUS" != "True" ]; then \
-		echo "ERROR: Addon condition status is not True, got: $$ADDON_STATUS"; \
+		echo "ERROR: AddonInstalled condition status is not True, got: $$ADDON_STATUS"; \
 		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
-	echo "Addon condition verified: status=True"
+	echo "AddonInstalled condition verified: status=True"
 
 .PHONY: disable-addon
 disable-addon: ## Disable HTTP add-on via annotation
@@ -151,12 +151,11 @@ wait-for-addon-removal: ## Wait for addon deployments to be removed
 	exit 1
 
 .PHONY: verify-addon-disabled
-verify-addon-disabled: ## Verify that Addon condition reason is AddonDisabled
-	@ADDON_REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="Addon")].reason}'); \
-	if [ "$$ADDON_REASON" != "AddonDisabled" ]; then \
-		echo "ERROR: Addon condition reason is not AddonDisabled, got: $$ADDON_REASON"; \
+verify-addon-disabled: ## Verify that AddonInstalled condition reason is HTTPAddonDeleted
+	@ADDON_REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="AddonInstalled")].reason}'); \
+	if [ "$$ADDON_REASON" != "HTTPAddonDeleted" ]; then \
+		echo "ERROR: AddonInstalled condition reason is not HTTPAddonDeleted, got: $$ADDON_REASON"; \
 		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
-	echo "Addon condition verified: reason=AddonDisabled"
-
+	echo "AddonInstalled condition verified: reason=HTTPAddonDeleted"

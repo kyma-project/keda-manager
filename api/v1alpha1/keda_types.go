@@ -83,13 +83,13 @@ const (
 	zapEncoder      = "--zap-encoder"
 	zapTimeEncoding = "--zap-time-encoding"
 
-	conditionTypeAddon = "Addon"
+	conditionTypeAddon = "AddonInstalled"
 
-	ConditionReasonAddonInstalled  = "AddonInstalled"
-	ConditionReasonAddonDeleted    = "AddonDeleted"
-	ConditionReasonAddonInstallErr = "AddonInstallErr"
-	ConditionReasonAddonDisabled   = "AddonDisabled"
-	ConditionReasonAddonVersionErr = "AddonVersionErr"
+	ConditionReasonAddonInstalled  = "HTTPAddonInstalled"
+	ConditionReasonAddonDeleted    = "HTTPAddonDeleted"
+	ConditionReasonAddonInstallErr = "HTTPAddonInstallErr"
+	ConditionReasonAddonDisabled   = "HTTPAddonDisabled"
+	ConditionReasonAddonVersionErr = "HTTPAddonVersionErr"
 
 	AnnotationAddonEnabled        = "keda.kyma-project.io/addon-enabled"
 	AnnotationAddonVersion        = "keda.kyma-project.io/addon-version"
