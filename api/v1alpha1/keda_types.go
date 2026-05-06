@@ -91,9 +91,10 @@ const (
 	ConditionReasonAddonDisabled   = "AddonDisabled"
 	ConditionReasonAddonVersionErr = "AddonVersionErr"
 
-	AnnotationAddonEnabled   = "keda.kyma-project.io/addon-enabled"
-	AnnotationAddonVersion   = "keda.kyma-project.io/addon-version"
-	AnnotationAddonNamespace = "keda.kyma-project.io/addon-namespace"
+	AnnotationAddonEnabled        = "keda.kyma-project.io/addon-enabled"
+	AnnotationAddonVersion        = "keda.kyma-project.io/addon-version"
+	AnnotationAddonNamespace      = "keda.kyma-project.io/addon-namespace"
+	AnnotationAddonIstioInjection = "keda.kyma-project.io/addon-istio-injection"
 
 	AnnotationAddonInstalledVersion   = "keda.kyma-project.io/addon-installed-version"
 	AnnotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
@@ -460,9 +461,10 @@ func SetAddonCondition(instance *Keda, status metav1.ConditionStatus, reason, ms
 
 // AddonCfg holds the addon configuration read from the Keda CR annotations.
 type AddonCfg struct {
-	Enabled   bool
-	Version   string
-	Namespace string
+	Enabled        bool
+	Version        string
+	Namespace      string
+	IstioInjection bool
 }
 
 func (a AddonCfg) EffectiveNamespace() string {
@@ -478,9 +480,10 @@ func ReadAddonCfg(instance *Keda) AddonCfg {
 		return AddonCfg{}
 	}
 	return AddonCfg{
-		Enabled:   strings.EqualFold(ann[AnnotationAddonEnabled], "true"),
-		Version:   ann[AnnotationAddonVersion],
-		Namespace: ann[AnnotationAddonNamespace],
+		Enabled:        strings.EqualFold(ann[AnnotationAddonEnabled], "true"),
+		Version:        ann[AnnotationAddonVersion],
+		Namespace:      ann[AnnotationAddonNamespace],
+		IstioInjection: strings.EqualFold(ann[AnnotationAddonIstioInjection], "true"),
 	}
 }
 
