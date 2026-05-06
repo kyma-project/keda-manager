@@ -5,7 +5,7 @@ metadata:
   namespace: demo-app
 spec:
   hosts:
-  - "http-echo-keda.<YOUR_DOMAIN>"
+  - "http-echo-keda.${TEST_DOMAIN}"
   pathPrefixes:
   - /
   scaleTargetRef:
