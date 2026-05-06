@@ -424,6 +424,14 @@ spec:
     - port: 9090
       protocol: TCP
     from:
+    # Allow from KEDA operator in kyma-system (cross-namespace gRPC)
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kyma-system
+      podSelector:
+        matchLabels:
+          app: keda-operator
+    # Allow from KEDA operator in the same namespace (when addon is in kyma-system)
     - podSelector:
         matchLabels:
           app: keda-operator
