@@ -6,6 +6,7 @@ include ${PROJECT_ROOT}/hack/k3d.mk
 
 ADDON_NAMESPACE ?= keda
 ADDON_VERSION ?= 0.13.0
+ADDON_ISTIO_INJECTION ?= false
 
 ##@ General
 
@@ -100,6 +101,7 @@ enable-addon: ## Enable HTTP add-on via annotations on Keda CR
 		keda.kyma-project.io/addon-enabled=true \
 		keda.kyma-project.io/addon-version=$(ADDON_VERSION) \
 		keda.kyma-project.io/addon-namespace=$(ADDON_NAMESPACE) \
+		keda.kyma-project.io/addon-istio-injection=$(ADDON_ISTIO_INJECTION) \
 		--overwrite
 
 .PHONY: wait-for-addon-ready
