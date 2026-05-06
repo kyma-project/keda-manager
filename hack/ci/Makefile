@@ -59,7 +59,7 @@ http-addon-integration-test: ## Run full HTTP add-on integration test (enable, s
 	@make -C ${PROJECT_COMMON} enable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-ready
 	@make -C ${PROJECT_COMMON} verify-addon-condition
-	@./scale-to-zero-test-local.sh $(PROJECT_ROOT)
+	@./scale-to-zero-test.sh $(PROJECT_ROOT) local
 	@make -C ${PROJECT_COMMON} disable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
 	@make -C ${PROJECT_COMMON} verify-addon-disabled
@@ -72,7 +72,7 @@ http-addon-scale-to-zero: ## Verify that HTTP add-on scales to zero on BTP (requ
 	@make -C ${PROJECT_COMMON} enable-addon ADDON_ISTIO_INJECTION=true
 	@make -C ${PROJECT_COMMON} wait-for-addon-ready
 	@make -C ${PROJECT_COMMON} verify-addon-condition
-	@./scale-to-zero-test.sh $(PROJECT_ROOT) $(TEST_DOMAIN)
+	@./scale-to-zero-test.sh $(PROJECT_ROOT) btp $(TEST_DOMAIN)
 	@make -C ${PROJECT_COMMON} disable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
 	@make -C ${PROJECT_COMMON} verify-addon-disabled
