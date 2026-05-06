@@ -159,3 +159,4 @@ verify-addon-disabled: ## Verify that Addon condition reason is AddonDisabled
 		exit 1; \
 	fi; \
 	echo "Addon condition verified: reason=AddonDisabled"
+
