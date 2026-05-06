@@ -75,3 +75,4 @@ http-addon-scale-to-zero: ## Verify that HTTP add-on scales to zero on BTP
 	@make -C ${PROJECT_COMMON} disable-addon
 	@make -C ${PROJECT_COMMON} wait-for-addon-removal
 	@make -C ${PROJECT_COMMON} verify-addon-deleted
+
