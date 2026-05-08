@@ -27,7 +27,7 @@ The HTTP Add-on consists of three components:
 7. Once the **Deployment** has ready replicas, the **Interceptor** forwards the queued request to the application **Service**, which routes it to the running **Pod**.
 
 
-## Enabling the HTTP Add-on
+## Enabling, Upgrading and Disabling the HTTP Add-on
 
 You enable the HTTP Add-on by annotating the Keda custom resource (CR):
 
@@ -67,9 +67,6 @@ kubectl annotate keda default \
 ```
 
 The controller detects the namespace change, removes only the HTTP Add-on resources from the old namespace (other Deployments, Services, etc. in that namespace are not affected), creates the new namespace, if it doesn't exist, with `istio-injection=enabled`, and installs the HTTP Add-on in the new namespace.
-1. Removes **only the HTTP Add-on resources** from the old namespace (other Deployments, Services, etc. in that namespace are not affected).
-2. Creates the new namespace (if it doesn't exist) with `istio-injection=enabled`.
-3. Installs the HTTP Add-on in the new namespace.
 
 ### Disabling the HTTP Add-on
 
@@ -78,15 +75,15 @@ kubectl annotate keda default \
   keda.kyma-project.io/addon-enabled=false --overwrite
 ```
 
-This removes all add-on resources from the cluster (only the resources managed by the HTTP Add-on — other workloads in the namespace are not affected).
+This removes all add-on resources from the cluster. Only the resources managed by the HTTP Add-on are removed. Other workloads in the namespace are not affected.
 
 ## Configuring the HTTP Add-on
 
-The HTTP Add-on components are configured via environment variables on their Deployments. You can customize them by patching the respective Deployment after installation.
+The HTTP Add-on components are configured using environment variables on their Deployments. You can customize them by patching the respective Deployment after installation.
 
 ### Interceptor Timeouts
 
-The most important configuration options are the Interceptor's timeout settings. These control how long the Interceptor waits during cold start and when forwarding requests to your application.
+The most important configuration options are the Interceptor's timeout settings. These control how long the Interceptor waits during a cold start and when to forward requests to your application.
 
 | Environment Variable | Default | Description |
 |---|---|---|
@@ -95,11 +92,12 @@ The most important configuration options are the Interceptor's timeout settings.
 | `KEDA_HTTP_RESPONSE_HEADER_TIMEOUT` | `300s` | How long to wait for response headers from the backend after the request is forwarded. Acts as a safety net against hung backends. Set to `0` to disable. |
 | `KEDA_HTTP_CONNECT_TIMEOUT` | `500ms` | Per-attempt TCP dial timeout when connecting to the backend. Bounded by the request context deadline. |
 
-> **Note:** If `KEDA_HTTP_REQUEST_TIMEOUT` is set to `0` (default), the Interceptor will wait **indefinitely** for the target to scale up. This is the recommended setting when using the EnvoyFilter retry policy, as the retry policy on the Ingress Gateway side handles client-facing timeouts.
+> [!NOTE] 
+> If `KEDA_HTTP_REQUEST_TIMEOUT` is set to `0` (default), the Interceptor waits indefinitely for the target to scale up. This is the recommended setting when using the EnvoyFilter retry policy, as the retry policy on the Ingress Gateway side handles client-facing timeouts.
 
 ### Interceptor Connection Pool
 
-These settings control the Interceptor's internal HTTP connection pool to backend services:
+The following settings control the Interceptor's internal HTTP connection pool to backend services:
 
 | Environment Variable | Default | Description |
 |---|---|---|
@@ -116,7 +114,7 @@ These settings control the Interceptor's internal HTTP connection pool to backen
 
 ### Scaler Configuration
 
-The External Scaler component has these key settings:
+The External Scaler component has the following key settings:
 
 | Environment Variable | Default | Description |
 |---|---|---|
