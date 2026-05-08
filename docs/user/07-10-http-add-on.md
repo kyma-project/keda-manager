@@ -66,7 +66,7 @@ kubectl annotate keda default \
   keda.kyma-project.io/addon-namespace=my-new-namespace --overwrite
 ```
 
-The controller detects the namespace change and:
+The controller detects the namespace change, removes only the HTTP Add-on resources from the old namespace (other Deployments, Services, etc. in that namespace are not affected), creates the new namespace, if it doesn't exist, with `istio-injection=enabled`, and installs the HTTP Add-on in the new namespace.
 1. Removes **only the HTTP Add-on resources** from the old namespace (other Deployments, Services, etc. in that namespace are not affected).
 2. Creates the new namespace (if it doesn't exist) with `istio-injection=enabled`.
 3. Installs the HTTP Add-on in the new namespace.
