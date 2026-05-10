@@ -19,34 +19,16 @@ import (
 func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   namespace,
-			Labels: map[string]string{"istio-injection": "enabled"},
+			Name: namespace,
 		},
 	}
 	err := r.Create(ctx, ns)
 	if err == nil {
-		r.log.Infof("created namespace %s with istio-injection=enabled", namespace)
+		r.log.Infof("created namespace %s", namespace)
 		return nil
 	}
 	if !apierrors.IsAlreadyExists(err) {
 		return fmt.Errorf("failed to create namespace %s: %w", namespace, err)
-	}
-
-	// Namespace exists - use MergePatch to add label without optimistic locking conflicts.
-	existing := &corev1.Namespace{}
-	if getErr := r.Get(ctx, client.ObjectKey{Name: namespace}, existing); getErr != nil {
-		return fmt.Errorf("failed to get existing namespace %s: %w", namespace, getErr)
-	}
-	if existing.Labels != nil && existing.Labels["istio-injection"] == "enabled" {
-		return nil
-	}
-	patch := client.MergeFrom(existing.DeepCopy())
-	if existing.Labels == nil {
-		existing.Labels = map[string]string{}
-	}
-	existing.Labels["istio-injection"] = "enabled"
-	if patchErr := r.Patch(ctx, existing, patch); patchErr != nil {
-		return fmt.Errorf("failed to label namespace %s with istio-injection: %w", namespace, patchErr)
 	}
 	return nil
 }
@@ -54,6 +36,7 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 const (
 	istioExcludeInboundPortsAnnotation = "traffic.sidecar.istio.io/excludeInboundPorts"
 	istioExcludeInboundPortsValue      = "9090"
+	istioSidecarInjectLabel            = "sidecar.istio.io/inject"
 )
 
 var namespaceEnvVars = map[string]struct{}{
@@ -61,7 +44,7 @@ var namespaceEnvVars = map[string]struct{}{
 	"KEDA_HTTP_OPERATOR_NAMESPACE":            {},
 }
 
-func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
+func overrideNamespace(objs []unstructured.Unstructured, namespace string, istioInjection bool) {
 	for i := range objs {
 		obj := &objs[i]
 		if obj.GetNamespace() != "" {
@@ -72,7 +55,10 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string) {
 			patchSubjectsNamespace(obj, namespace)
 		case "Deployment":
 			patchDeploymentEnvNamespace(obj, namespace)
-			patchDeploymentIstioAnnotation(obj)
+			if istioInjection {
+				patchDeploymentIstioAnnotation(obj)
+				patchDeploymentIstioLabel(obj)
+			}
 		}
 	}
 }
@@ -87,6 +73,18 @@ func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
 	}
 	annotations[istioExcludeInboundPortsAnnotation] = istioExcludeInboundPortsValue
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
+}
+
+func patchDeploymentIstioLabel(obj *unstructured.Unstructured) {
+	labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	if labels[istioSidecarInjectLabel] == "true" {
+		return
+	}
+	labels[istioSidecarInjectLabel] = "true"
+	_ = unstructured.SetNestedStringMap(obj.Object, labels, "spec", "template", "metadata", "labels")
 }
 
 func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace string) {
@@ -149,12 +147,12 @@ func patchSubjectsNamespace(obj *unstructured.Unstructured, namespace string) {
 	}
 }
 
-func fetchAddonObjs(r *fsm, version, namespace string) ([]unstructured.Unstructured, error) {
+func fetchAddonObjs(r *fsm, version, namespace string, istioInjection bool) ([]unstructured.Unstructured, error) {
 	objs, err := addon.FetchResources(r.HTTPClient, version)
 	if err != nil {
 		return nil, err
 	}
-	overrideNamespace(objs, namespace)
+	overrideNamespace(objs, namespace, istioInjection)
 	objs = append(objs, addon.NetworkPolicies(namespace)...)
 	return objs, nil
 }
@@ -244,7 +242,7 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 	}
 
 	r.log.Infof("fetching HTTP add-on resources for version %s", version)
-	objs, err := fetchAddonObjs(r, version, targetNS)
+	objs, err := fetchAddonObjs(r, version, targetNS, cfg.IstioInjection)
 	if err != nil {
 		r.log.With("err", err).Error("failed to fetch addon resources")
 		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
@@ -298,7 +296,7 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		}
 		r.log.Infof("re-fetching manifest for version %s to delete from namespace %s", lastVersion, lastNS)
 		var err error
-		objs, err = fetchAddonObjs(r, lastVersion, lastNS)
+		objs, err = fetchAddonObjs(r, lastVersion, lastNS, false)
 		if err != nil {
 			r.log.With("err", err).Error("failed to re-fetch addon manifest for deletion")
 			v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonDeleted, err.Error())
@@ -334,7 +332,7 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 }
 
 func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {
-	objs, err := fetchAddonObjs(r, version, namespace)
+	objs, err := fetchAddonObjs(r, version, namespace, false)
 	if err != nil {
 		r.log.With("err", err).Warn("failed to fetch old addon manifest for cleanup")
 		return

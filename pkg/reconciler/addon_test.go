@@ -37,6 +37,29 @@ func TestReadAddonCfg(t *testing.T) {
 			map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
 			v1alpha1.AddonCfg{Enabled: false},
 		},
+		{
+			"istio injection enabled",
+			map[string]string{
+				v1alpha1.AnnotationAddonEnabled:        "true",
+				v1alpha1.AnnotationAddonIstioInjection: "true",
+			},
+			v1alpha1.AddonCfg{Enabled: true, IstioInjection: true},
+		},
+		{
+			"istio injection disabled explicitly",
+			map[string]string{
+				v1alpha1.AnnotationAddonEnabled:        "true",
+				v1alpha1.AnnotationAddonIstioInjection: "false",
+			},
+			v1alpha1.AddonCfg{Enabled: true, IstioInjection: false},
+		},
+		{
+			"istio injection absent defaults to false",
+			map[string]string{
+				v1alpha1.AnnotationAddonEnabled: "true",
+			},
+			v1alpha1.AddonCfg{Enabled: true, IstioInjection: false},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -80,7 +103,7 @@ func TestOverrideNamespace(t *testing.T) {
 			"apiVersion": "v1", "kind": "Service",
 			"metadata": map[string]interface{}{"name": "svc", "namespace": "old-ns"},
 		}}}
-		overrideNamespace(objs, "new-ns")
+		overrideNamespace(objs, "new-ns", false)
 		require.Equal(t, "new-ns", objs[0].GetNamespace())
 	})
 	t.Run("skips cluster-scoped resources", func(t *testing.T) {
@@ -88,7 +111,7 @@ func TestOverrideNamespace(t *testing.T) {
 			"apiVersion": "rbac.authorization.k8s.io/v1", "kind": "ClusterRole",
 			"metadata": map[string]interface{}{"name": "cr"},
 		}}}
-		overrideNamespace(objs, "new-ns")
+		overrideNamespace(objs, "new-ns", false)
 		require.Empty(t, objs[0].GetNamespace())
 	})
 	t.Run("patches ClusterRoleBinding subjects", func(t *testing.T) {
@@ -99,11 +122,11 @@ func TestOverrideNamespace(t *testing.T) {
 				map[string]interface{}{"kind": "ServiceAccount", "name": "sa", "namespace": "old-ns"},
 			},
 		}}}
-		overrideNamespace(objs, "new-ns")
+		overrideNamespace(objs, "new-ns", false)
 		subjects, _, _ := unstructured.NestedSlice(objs[0].Object, "subjects")
 		require.Equal(t, "new-ns", subjects[0].(map[string]interface{})["namespace"])
 	})
-	t.Run("patches Deployment env vars and istio annotation", func(t *testing.T) {
+	t.Run("patches Deployment env vars and istio when enabled", func(t *testing.T) {
 		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep", "namespace": "old-ns"},
@@ -117,7 +140,7 @@ func TestOverrideNamespace(t *testing.T) {
 				}},
 			}},
 		}}}
-		overrideNamespace(objs, "new-ns")
+		overrideNamespace(objs, "new-ns", true)
 
 		containers, _, _ := unstructured.NestedSlice(objs[0].Object, "spec", "template", "spec", "containers")
 		envList := containers[0].(map[string]interface{})["env"].([]interface{})
@@ -126,6 +149,34 @@ func TestOverrideNamespace(t *testing.T) {
 
 		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, "9090", ann[istioExcludeInboundPortsAnnotation])
+
+		labels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+	})
+	t.Run("skips istio patching when disabled", func(t *testing.T) {
+		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep", "namespace": "old-ns"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{
+				"metadata": map[string]interface{}{},
+				"spec": map[string]interface{}{"containers": []interface{}{
+					map[string]interface{}{"name": "c1", "env": []interface{}{
+						map[string]interface{}{"name": "KEDA_HTTP_OPERATOR_NAMESPACE", "value": "old-ns"},
+					}},
+				}},
+			}},
+		}}}
+		overrideNamespace(objs, "new-ns", false)
+
+		containers, _, _ := unstructured.NestedSlice(objs[0].Object, "spec", "template", "spec", "containers")
+		envList := containers[0].(map[string]interface{})["env"].([]interface{})
+		require.Equal(t, "new-ns", envList[0].(map[string]interface{})["value"])
+
+		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
+		require.Empty(t, ann[istioExcludeInboundPortsAnnotation])
+
+		labels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
+		require.Empty(t, labels[istioSidecarInjectLabel])
 	})
 }
 
@@ -151,6 +202,44 @@ func TestPatchDeploymentIstioAnnotation(t *testing.T) {
 		patchDeploymentIstioAnnotation(obj)
 		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, istioExcludeInboundPortsValue, ann[istioExcludeInboundPortsAnnotation])
+	})
+}
+
+func TestPatchDeploymentIstioLabel(t *testing.T) {
+	t.Run("adds label when missing", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
+		}}
+		patchDeploymentIstioLabel(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+	})
+	t.Run("no-op when already set", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
+				"labels": map[string]interface{}{istioSidecarInjectLabel: "true"},
+			}}},
+		}}
+		patchDeploymentIstioLabel(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+	})
+	t.Run("preserves existing labels", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
+				"labels": map[string]interface{}{"app": "myapp"},
+			}}},
+		}}
+		patchDeploymentIstioLabel(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+		require.Equal(t, "myapp", labels["app"])
 	})
 }
 
