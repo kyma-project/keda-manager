@@ -176,7 +176,7 @@ func TestOverrideNamespace(t *testing.T) {
 		require.Empty(t, ann[istioExcludeInboundPortsAnnotation])
 
 		labels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
-		require.Empty(t, labels[istioSidecarInjectLabel])
+		require.Equal(t, "false", labels[istioSidecarInjectLabel])
 	})
 }
 
@@ -206,17 +206,27 @@ func TestPatchDeploymentIstioAnnotation(t *testing.T) {
 }
 
 func TestPatchDeploymentIstioLabel(t *testing.T) {
-	t.Run("adds label when missing", func(t *testing.T) {
+	t.Run("adds true label when missing", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
 		}}
-		patchDeploymentIstioLabel(obj)
+		patchDeploymentIstioLabel(obj, "true")
 		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
 		require.Equal(t, "true", labels[istioSidecarInjectLabel])
 	})
-	t.Run("no-op when already set", func(t *testing.T) {
+	t.Run("adds false label when missing", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
+		}}
+		patchDeploymentIstioLabel(obj, "false")
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "false", labels[istioSidecarInjectLabel])
+	})
+	t.Run("no-op when already set to same value", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
@@ -224,9 +234,21 @@ func TestPatchDeploymentIstioLabel(t *testing.T) {
 				"labels": map[string]interface{}{istioSidecarInjectLabel: "true"},
 			}}},
 		}}
-		patchDeploymentIstioLabel(obj)
+		patchDeploymentIstioLabel(obj, "true")
 		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
 		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+	})
+	t.Run("overwrites true with false", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
+				"labels": map[string]interface{}{istioSidecarInjectLabel: "true"},
+			}}},
+		}}
+		patchDeploymentIstioLabel(obj, "false")
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, "false", labels[istioSidecarInjectLabel])
 	})
 	t.Run("preserves existing labels", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
@@ -236,7 +258,7 @@ func TestPatchDeploymentIstioLabel(t *testing.T) {
 				"labels": map[string]interface{}{"app": "myapp"},
 			}}},
 		}}
-		patchDeploymentIstioLabel(obj)
+		patchDeploymentIstioLabel(obj, "true")
 		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
 		require.Equal(t, "true", labels[istioSidecarInjectLabel])
 		require.Equal(t, "myapp", labels["app"])

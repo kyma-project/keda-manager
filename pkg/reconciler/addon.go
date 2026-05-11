@@ -57,7 +57,9 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string, istio
 			patchDeploymentEnvNamespace(obj, namespace)
 			if istioInjection {
 				patchDeploymentIstioAnnotation(obj)
-				patchDeploymentIstioLabel(obj)
+				patchDeploymentIstioLabel(obj, "true")
+			} else {
+				patchDeploymentIstioLabel(obj, "false")
 			}
 		}
 	}
@@ -75,15 +77,15 @@ func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
 }
 
-func patchDeploymentIstioLabel(obj *unstructured.Unstructured) {
+func patchDeploymentIstioLabel(obj *unstructured.Unstructured, value string) {
 	labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	if labels[istioSidecarInjectLabel] == "true" {
+	if labels[istioSidecarInjectLabel] == value {
 		return
 	}
-	labels[istioSidecarInjectLabel] = "true"
+	labels[istioSidecarInjectLabel] = value
 	_ = unstructured.SetNestedStringMap(obj.Object, labels, "spec", "template", "metadata", "labels")
 }
 
