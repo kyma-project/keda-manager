@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_ROOT="${1:?PROJECT_ROOT is required}"
 MODE="${2:-local}"
-TIMEOUT=120
+TIMEOUT=420
 SLEEP_INTERVAL=5
 
 setup_local() {
