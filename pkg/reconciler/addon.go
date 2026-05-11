@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
@@ -189,8 +190,8 @@ func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.R
 	if !cfg.Enabled {
 		return switchState(sFnDeleteAddon)
 	}
-	version := cfg.Version
-	if version == "" {
+	version := cfg.EffectiveVersion()
+	if strings.EqualFold(version, "latest") {
 		return switchState(sFnResolveAddonVersion)
 	}
 	cleanVersion, err := addon.ValidateVersion(version)
@@ -216,7 +217,7 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
-	version := cfg.Version
+	version := cfg.EffectiveVersion()
 	targetNS := cfg.EffectiveNamespace()
 
 	ann := s.instance.GetAnnotations()
