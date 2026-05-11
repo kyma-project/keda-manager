@@ -149,11 +149,9 @@ func TestOverrideNamespace(t *testing.T) {
 
 		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, "9090", ann[istioExcludeInboundPortsAnnotation])
-
-		labels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+		require.Equal(t, "true", ann[istioSidecarInjectAnnotation])
 	})
-	t.Run("skips istio patching when disabled", func(t *testing.T) {
+	t.Run("sets sidecar inject false annotation when istio disabled", func(t *testing.T) {
 		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep", "namespace": "old-ns"},
@@ -174,20 +172,18 @@ func TestOverrideNamespace(t *testing.T) {
 
 		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
 		require.Empty(t, ann[istioExcludeInboundPortsAnnotation])
-
-		labels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "false", labels[istioSidecarInjectLabel])
+		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
 	})
 }
 
-func TestPatchDeploymentIstioAnnotation(t *testing.T) {
+func TestPatchDeploymentIstioExcludePortsAnnotation(t *testing.T) {
 	t.Run("adds annotation when missing", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
 		}}
-		patchDeploymentIstioAnnotation(obj)
+		patchDeploymentIstioExcludePortsAnnotation(obj)
 		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, istioExcludeInboundPortsValue, ann[istioExcludeInboundPortsAnnotation])
 	})
@@ -199,69 +195,69 @@ func TestPatchDeploymentIstioAnnotation(t *testing.T) {
 				"annotations": map[string]interface{}{istioExcludeInboundPortsAnnotation: istioExcludeInboundPortsValue},
 			}}},
 		}}
-		patchDeploymentIstioAnnotation(obj)
+		patchDeploymentIstioExcludePortsAnnotation(obj)
 		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, istioExcludeInboundPortsValue, ann[istioExcludeInboundPortsAnnotation])
 	})
 }
 
-func TestPatchDeploymentIstioLabel(t *testing.T) {
-	t.Run("adds true label when missing", func(t *testing.T) {
+func TestPatchDeploymentIstioSidecarAnnotation(t *testing.T) {
+	t.Run("adds true annotation when missing", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
 		}}
-		patchDeploymentIstioLabel(obj, "true")
-		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+		patchDeploymentIstioSidecarAnnotation(obj, "true")
+		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+		require.Equal(t, "true", ann[istioSidecarInjectAnnotation])
 	})
-	t.Run("adds false label when missing", func(t *testing.T) {
+	t.Run("adds false annotation when missing", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
 		}}
-		patchDeploymentIstioLabel(obj, "false")
-		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "false", labels[istioSidecarInjectLabel])
+		patchDeploymentIstioSidecarAnnotation(obj, "false")
+		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
 	})
 	t.Run("no-op when already set to same value", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
-				"labels": map[string]interface{}{istioSidecarInjectLabel: "true"},
+				"annotations": map[string]interface{}{istioSidecarInjectAnnotation: "true"},
 			}}},
 		}}
-		patchDeploymentIstioLabel(obj, "true")
-		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "true", labels[istioSidecarInjectLabel])
+		patchDeploymentIstioSidecarAnnotation(obj, "true")
+		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+		require.Equal(t, "true", ann[istioSidecarInjectAnnotation])
 	})
 	t.Run("overwrites true with false", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
-				"labels": map[string]interface{}{istioSidecarInjectLabel: "true"},
+				"annotations": map[string]interface{}{istioSidecarInjectAnnotation: "true"},
 			}}},
 		}}
-		patchDeploymentIstioLabel(obj, "false")
-		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "false", labels[istioSidecarInjectLabel])
+		patchDeploymentIstioSidecarAnnotation(obj, "false")
+		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
 	})
-	t.Run("preserves existing labels", func(t *testing.T) {
+	t.Run("preserves existing annotations", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
 			"metadata": map[string]interface{}{"name": "dep"},
 			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
-				"labels": map[string]interface{}{"app": "myapp"},
+				"annotations": map[string]interface{}{"existing": "value"},
 			}}},
 		}}
-		patchDeploymentIstioLabel(obj, "true")
-		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-		require.Equal(t, "true", labels[istioSidecarInjectLabel])
-		require.Equal(t, "myapp", labels["app"])
+		patchDeploymentIstioSidecarAnnotation(obj, "false")
+		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
+		require.Equal(t, "value", ann["existing"])
 	})
 }
 
