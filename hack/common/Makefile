@@ -4,7 +4,7 @@ PROJECT_ROOT = ../..
 
 include ${PROJECT_ROOT}/hack/k3d.mk
 
-ADDON_NAMESPACE ?= keda
+ADDON_NAMESPACE ?= kyma-system
 ADDON_VERSION ?= 0.13.0
 ADDON_ISTIO_INJECTION ?= false
 
