@@ -1,0 +1,27 @@
+name: pull
+on:
+  pull_request_target:
+    branches:
+      - release-test
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read # This is required for actions/checkout
+jobs:
+  unit-tests:
+    uses: kyma-project/keda-manager/.github/workflows/_unit-tests.yaml@release-test
+  gitleaks:
+    uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@release-test
+  check-fips-image-versions:
+    uses: kyma-project/keda-manager/.github/workflows/_check-fips-image-versions.yaml@release-test
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+  builds:
+    permissions:
+      id-token: write # This is required for requesting the JWT token
+      contents: read
+    uses: kyma-project/keda-manager/.github/workflows/_build.yaml@release-test
+  integrations:
+    needs: builds
+    uses: kyma-project/keda-manager/.github/workflows/_integration-tests.yaml@release-test
+    with:
+      image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
