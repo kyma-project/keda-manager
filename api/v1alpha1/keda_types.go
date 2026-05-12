@@ -100,6 +100,7 @@ const (
 	AnnotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
 
 	DefaultAddonNamespace = "kyma-system"
+	DefaultAddonVersion   = "0.13.0"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
@@ -465,6 +466,13 @@ type AddonCfg struct {
 	Version        string
 	Namespace      string
 	IstioInjection bool
+}
+
+func (a AddonCfg) EffectiveVersion() string {
+	if a.Version == "" {
+		return DefaultAddonVersion
+	}
+	return a.Version
 }
 
 func (a AddonCfg) EffectiveNamespace() string {

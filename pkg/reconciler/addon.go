@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
@@ -36,7 +37,7 @@ func ensureNamespace(ctx context.Context, r *fsm, namespace string) error {
 const (
 	istioExcludeInboundPortsAnnotation = "traffic.sidecar.istio.io/excludeInboundPorts"
 	istioExcludeInboundPortsValue      = "9090"
-	istioSidecarInjectLabel            = "sidecar.istio.io/inject"
+	istioSidecarInjectAnnotation       = "sidecar.istio.io/inject"
 )
 
 var namespaceEnvVars = map[string]struct{}{
@@ -56,14 +57,16 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string, istio
 		case "Deployment":
 			patchDeploymentEnvNamespace(obj, namespace)
 			if istioInjection {
-				patchDeploymentIstioAnnotation(obj)
-				patchDeploymentIstioLabel(obj)
+				patchDeploymentIstioExcludePortsAnnotation(obj)
+				patchDeploymentIstioSidecarAnnotation(obj, "true")
+			} else {
+				patchDeploymentIstioSidecarAnnotation(obj, "false")
 			}
 		}
 	}
 }
 
-func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
+func patchDeploymentIstioExcludePortsAnnotation(obj *unstructured.Unstructured) {
 	annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 	if annotations == nil {
 		annotations = map[string]string{}
@@ -75,16 +78,16 @@ func patchDeploymentIstioAnnotation(obj *unstructured.Unstructured) {
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
 }
 
-func patchDeploymentIstioLabel(obj *unstructured.Unstructured) {
-	labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
-	if labels == nil {
-		labels = map[string]string{}
+func patchDeploymentIstioSidecarAnnotation(obj *unstructured.Unstructured, value string) {
+	annotations, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
+	if annotations == nil {
+		annotations = map[string]string{}
 	}
-	if labels[istioSidecarInjectLabel] == "true" {
+	if annotations[istioSidecarInjectAnnotation] == value {
 		return
 	}
-	labels[istioSidecarInjectLabel] = "true"
-	_ = unstructured.SetNestedStringMap(obj.Object, labels, "spec", "template", "metadata", "labels")
+	annotations[istioSidecarInjectAnnotation] = value
+	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
 }
 
 func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace string) {
@@ -187,8 +190,8 @@ func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.R
 	if !cfg.Enabled {
 		return switchState(sFnDeleteAddon)
 	}
-	version := cfg.Version
-	if version == "" {
+	version := cfg.EffectiveVersion()
+	if strings.EqualFold(version, "latest") {
 		return switchState(sFnResolveAddonVersion)
 	}
 	cleanVersion, err := addon.ValidateVersion(version)
@@ -214,7 +217,7 @@ func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn,
 
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
-	version := cfg.Version
+	version := cfg.EffectiveVersion()
 	targetNS := cfg.EffectiveNamespace()
 
 	ann := s.instance.GetAnnotations()

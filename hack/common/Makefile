@@ -4,7 +4,7 @@ PROJECT_ROOT = ../..
 
 include ${PROJECT_ROOT}/hack/k3d.mk
 
-ADDON_NAMESPACE ?= keda
+ADDON_NAMESPACE ?= kyma-system
 ADDON_VERSION ?= 0.13.0
 ADDON_ISTIO_INJECTION ?= false
 
@@ -105,19 +105,21 @@ enable-addon: ## Enable HTTP add-on via annotations on Keda CR
 		--overwrite
 
 .PHONY: wait-for-addon-ready
-wait-for-addon-ready: ## Wait for addon deployments and pods to be ready
-	@echo "Waiting for addon deployments in namespace $(ADDON_NAMESPACE)..."
+wait-for-addon-ready: ## Wait for AddonInstalled condition to become True on Keda CR
+	@echo "Waiting for AddonInstalled condition to be True..."
 	@for i in $$(seq 1 30); do \
-		DEPLOYS=$$(kubectl get deploy -n $(ADDON_NAMESPACE) --no-headers 2>/dev/null | wc -l); \
-		if [ "$$DEPLOYS" -ge 3 ]; then \
-			echo "Found $$DEPLOYS deployments"; \
-			break; \
+		STATUS=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="AddonInstalled")].status}' 2>/dev/null || echo ""); \
+		if [ "$$STATUS" = "True" ]; then \
+			echo "AddonInstalled condition is True"; \
+			exit 0; \
 		fi; \
-		echo "  attempt $$i: $$DEPLOYS deployments (3 expected)"; \
+		REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="AddonInstalled")].reason}' 2>/dev/null || echo ""); \
+		echo "  attempt $$i: AddonInstalled status=$$STATUS reason=$$REASON"; \
 		sleep 10; \
-	done
-	kubectl wait --for=condition=Available deployment --all -n $(ADDON_NAMESPACE) --timeout=200s
-	kubectl wait --for=condition=Ready pod --all -n $(ADDON_NAMESPACE) --timeout=200s
+	done; \
+	echo "ERROR: AddonInstalled condition did not become True within timeout"; \
+	kubectl get keda default -n kyma-system -o yaml; \
+	exit 1
 
 
 .PHONY: verify-addon-condition
@@ -137,19 +139,19 @@ disable-addon: ## Disable HTTP add-on via annotation
 		--overwrite
 
 .PHONY: wait-for-addon-removal
-wait-for-addon-removal: ## Wait for addon deployments to be removed
-	@echo "Waiting for addon removal from namespace $(ADDON_NAMESPACE)..."
+wait-for-addon-removal: ## Wait for HTTP addon deployments to be removed
+	@echo "Waiting for HTTP addon removal from namespace $(ADDON_NAMESPACE)..."
 	@for i in $$(seq 1 20); do \
-		DEPLOYS=$$(kubectl get deploy -n $(ADDON_NAMESPACE) --no-headers 2>/dev/null | wc -l); \
+		DEPLOYS=$$(kubectl get deploy -n $(ADDON_NAMESPACE) -l app.kubernetes.io/name=http-add-on --no-headers 2>/dev/null | wc -l); \
 		if [ "$$DEPLOYS" -eq 0 ]; then \
-			echo "All addon deployments removed"; \
+			echo "All HTTP addon deployments removed"; \
 			exit 0; \
 		fi; \
-		echo "  attempt $$i: $$DEPLOYS deployments still present"; \
+		echo "  attempt $$i: $$DEPLOYS HTTP addon deployments still present"; \
 		sleep 10; \
 	done; \
-	echo "ERROR: Addon deployments were not removed within timeout"; \
-	kubectl get deploy -n $(ADDON_NAMESPACE); \
+	echo "ERROR: HTTP addon deployments were not removed within timeout"; \
+	kubectl get deploy -n $(ADDON_NAMESPACE) -l app.kubernetes.io/name=http-add-on; \
 	exit 1
 
 .PHONY: verify-addon-disabled
