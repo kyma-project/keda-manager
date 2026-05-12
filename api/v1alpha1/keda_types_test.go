@@ -213,13 +213,12 @@ func TestReadAddonCfg(t *testing.T) {
 		{"nil annotations", nil, AddonCfg{}},
 		{"empty annotations", map[string]string{}, AddonCfg{}},
 		{
-			"enabled with version and namespace",
+			"enabled with namespace",
 			map[string]string{
 				AnnotationAddonEnabled:   "true",
-				AnnotationAddonVersion:   "0.13.0",
 				AnnotationAddonNamespace: "custom-ns",
 			},
-			AddonCfg{Enabled: true, Version: "0.13.0", Namespace: "custom-ns"},
+			AddonCfg{Enabled: true, Namespace: "custom-ns"},
 		},
 		{
 			"enabled case insensitive",
