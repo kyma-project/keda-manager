@@ -27,14 +27,13 @@ The HTTP Add-on consists of three components:
 7. Once the **Deployment** has ready replicas, the **Interceptor** forwards the queued request to the application **Service**, which routes it to the running **Pod**.
 
 
-## Enabling, Upgrading and Disabling the HTTP Add-on
+## Enabling and Disabling the HTTP Add-on
 
 You enable the HTTP Add-on by annotating the Keda custom resource (CR):
 
 ```bash
 kubectl annotate keda default \
   keda.kyma-project.io/addon-enabled=true \
-  keda.kyma-project.io/addon-version=0.13.0 \
   keda.kyma-project.io/addon-namespace=keda
 ```
 
@@ -43,19 +42,8 @@ kubectl annotate keda default \
 | Annotation | Required | Description |
 |---|---|---|
 | `keda.kyma-project.io/addon-enabled` | Yes | Set to `true` to install, `false` to uninstall. |
-| `keda.kyma-project.io/addon-version` | No | Semver version of the HTTP Add-on to install (for example, `0.13.0`). If omitted, the latest version is resolved automatically. |
 | `keda.kyma-project.io/addon-namespace` | No | Namespace where the add-on is installed. Defaults to `kyma-system`. |
-
-### Upgrading the HTTP Add-on Version
-
-To upgrade (or downgrade) the HTTP Add-on to a different version, update the `addon-version` annotation:
-
-```bash
-kubectl annotate keda default \
-  keda.kyma-project.io/addon-version=0.14.0 --overwrite
-```
-
-The controller automatically detects the version change, removes the old version's resources, and installs the new version in the same namespace. No manual cleanup is required.
+| `keda.kyma-project.io/addon-istio-injection` | No | Set to `true` to enable Istio sidecar injection on the add-on Deployments. Defaults to `false` — the add-on Deployments are annotated with `sidecar.istio.io/inject: "false"` unless this annotation is explicitly set to `true`. When enabled, the Interceptor Deployment also receives `traffic.sidecar.istio.io/excludeInboundPorts: "9090"` to prevent the sidecar from intercepting internal gRPC traffic. |
 
 ### Changing the Installation Namespace
 
@@ -92,7 +80,7 @@ The most important configuration options are the Interceptor's timeout settings.
 | `KEDA_HTTP_RESPONSE_HEADER_TIMEOUT` | `300s` | How long to wait for response headers from the backend after the request is forwarded. Acts as a safety net against hung backends. Set to `0` to disable. |
 | `KEDA_HTTP_CONNECT_TIMEOUT` | `500ms` | Per-attempt TCP dial timeout when connecting to the backend. Bounded by the request context deadline. |
 
-> [!NOTE] 
+> ### Note:
 > If `KEDA_HTTP_REQUEST_TIMEOUT` is set to `0` (default), the Interceptor waits indefinitely for the target to scale up. This is the recommended setting when using the EnvoyFilter retry policy, as the retry policy on the Ingress Gateway side handles client-facing timeouts.
 
 ### Interceptor Connection Pool
@@ -158,73 +146,6 @@ Key fields:
 - **`scalingMetric.requestRate.targetValue`** — number of requests per second per replica that triggers scale-out.
 - **`scalingMetric.requestRate.window`** — time window over which request rate is averaged.
 
-## Cold Start and the EnvoyFilter Requirement
-
-### The Problem
-
-When your application is scaled to zero and a request arrives, the following happens:
-
-1. The Interceptor receives the request and queues it.
-2. KEDA detects pending requests and scales the Deployment from 0 → 1.
-3. The Pod starts (container pull, init containers, readiness probes, Istio sidecar injection).
-4. **During this time, the Interceptor attempts to forward the request to the target Service.**
-
-The Interceptor uses a **polling loop** that periodically checks if the target Deployment has ready endpoints. Once it detects `replicas > 0`, it forwards the queued request. However, there is a brief window where:
-- The Interceptor sees a ready Pod and forwards the request.
-- The Pod's readiness probe has passed, but the Istio sidecar or application is not yet fully ready to handle traffic.
-- The upstream returns a `503` or the connection is refused.
-
-Additionally, in some edge cases the Istio Ingress Gateway may get a `502`/`503` from the Interceptor itself if it's temporarily overloaded during the scale-up.
-
-### The Solution: EnvoyFilter with Retry Policy
-
-To handle the cold-start window without returning errors to the client, you **must** configure an EnvoyFilter on the Istio Ingress Gateway:
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: my-app-keda-retry
-  namespace: istio-system
-spec:
-  workloadSelector:
-    labels:
-      istio: ingressgateway
-  configPatches:
-  - applyTo: HTTP_ROUTE
-    match:
-      context: GATEWAY
-      routeConfiguration:
-        vhost:
-          name: "my-app.example.com:443"
-          route:
-            name: ""
-    patch:
-      operation: MERGE
-      value:
-        route:
-          retry_policy:
-            retry_on: "5xx,connect-failure,reset,refused-stream"
-            num_retries: 100
-            per_try_timeout: 3s
-```
-
-> **Important:** The `vhost.name` must match the actual virtual host name in Envoy's configuration. Use `istioctl proxy-config routes <ingressgateway-pod> -o json` to find the correct name. The format is typically `hostname:port` (for example, `my-app.example.com:443`), **not** `https://hostname`.
-
-This retry policy ensures that during cold start:
-- Failed attempts (502, 503, connection refused) are transparently retried.
-- The client receives a successful response once the Pod is ready (up to 100 × 3s = 5 minutes of retries).
-
-### Why Is This Necessary?
-
-The HTTP Add-on Interceptor is designed to **queue requests** while the target is at 0 replicas, but once it detects at least 1 ready endpoint, it **immediately forwards** the request. It does **not** implement application-level retries. The Interceptor trusts the Kubernetes readiness signal, but in an Istio mesh:
-
-1. A Pod can become "Ready" (readiness probe passes) while the Istio sidecar is still initializing.
-2. The Service endpoints are updated, but the envoy proxy in the sidecar may not yet be configured.
-3. The forwarded request hits a `503` or connection reset.
-
-The EnvoyFilter retry policy at the Ingress Gateway level compensates for this gap.
-
 ## Limitations and Throughput Considerations
 
 ### 1. Interceptor Is a Proxy in the Data Path
@@ -249,6 +170,8 @@ The time from first request to successful response depends on:
 
 **Total cold-start latency:** Typically 15–90 seconds depending on your Pod's startup time.
 
+In an Istio mesh, the cold-start window can also cause `502` or `503` errors returned to the client. For details and the required EnvoyFilter configuration, see [HTTP Add-on Returns 503 Errors During Cold Start](troubleshooting-guides/07-10-cold-start-503-errors.md).
+
 ### 4. No Persistent Queue
 
 Queued requests are stored in-memory. If the Interceptor Pod restarts or is evicted:
@@ -270,3 +193,4 @@ Queued requests are stored in-memory. If the Interceptor Pod restarts or is evic
 
 - [KEDA HTTP Add-on GitHub](https://github.com/kedacore/http-add-on)
 - [Scale-to-Zero Example](https://github.com/kyma-project/keda-manager/tree/main/examples/scale-to-zero-with-keda)
+- [HTTP Add-on Returns 503 Errors During Cold Start](troubleshooting-guides/07-10-cold-start-503-errors.md)
