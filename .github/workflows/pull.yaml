@@ -12,6 +12,15 @@ jobs:
   unit-tests:
     uses: kyma-project/keda-manager/.github/workflows/_unit-tests.yaml@main
 
+  experiment:
+    runs-on: ubuntu-latest
+    steps:
+    - shell: bash
+      run: |
+        echo $FOO
+      env:
+        FOO: ${{ secrets.BTP_BACKEND_URL }}
+
   gitleaks:
     uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@main
 
