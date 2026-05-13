@@ -80,7 +80,7 @@ The most important configuration options are the Interceptor's timeout settings.
 | `KEDA_HTTP_RESPONSE_HEADER_TIMEOUT` | `300s` | How long to wait for response headers from the backend after the request is forwarded. Acts as a safety net against hung backends. Set to `0` to disable. |
 | `KEDA_HTTP_CONNECT_TIMEOUT` | `500ms` | Per-attempt TCP dial timeout when connecting to the backend. Bounded by the request context deadline. |
 
-> ### Note:
+> [!Note]
 > If `KEDA_HTTP_REQUEST_TIMEOUT` is set to `0` (default), the Interceptor waits indefinitely for the target to scale up. This is the recommended setting when using the EnvoyFilter retry policy, as the retry policy on the Ingress Gateway side handles client-facing timeouts.
 
 ### Interceptor Connection Pool
