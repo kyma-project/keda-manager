@@ -155,11 +155,11 @@ wait-for-addon-removal: ## Wait for HTTP addon deployments to be removed
 	exit 1
 
 .PHONY: verify-addon-disabled
-verify-addon-disabled: ## Verify that AddonInstalled condition reason is HTTPAddonDeleted
+verify-addon-disabled: ## Verify that AddonInstalled condition reason is HTTPAddonDisabled
 	@ADDON_REASON=$$(kubectl get keda default -n kyma-system -o jsonpath='{.status.conditions[?(@.type=="AddonInstalled")].reason}'); \
-	if [ "$$ADDON_REASON" != "HTTPAddonDeleted" ]; then \
-		echo "ERROR: AddonInstalled condition reason is not HTTPAddonDeleted, got: $$ADDON_REASON"; \
+	if [ "$$ADDON_REASON" != "HTTPAddonDisabled" ]; then \
+		echo "ERROR: AddonInstalled condition reason is not HTTPAddonDisabled, got: $$ADDON_REASON"; \
 		kubectl get keda default -n kyma-system -o yaml; \
 		exit 1; \
 	fi; \
-	echo "AddonInstalled condition verified: reason=HTTPAddonDeleted"
+	echo "AddonInstalled condition verified: reason=HTTPAddonDisabled"
