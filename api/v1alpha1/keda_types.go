@@ -89,10 +89,8 @@ const (
 	ConditionReasonAddonDeleted    = "HTTPAddonDeleted"
 	ConditionReasonAddonInstallErr = "HTTPAddonInstallErr"
 	ConditionReasonAddonDisabled   = "HTTPAddonDisabled"
-	ConditionReasonAddonVersionErr = "HTTPAddonVersionErr"
 
 	AnnotationAddonEnabled        = "keda.kyma-project.io/addon-enabled"
-	AnnotationAddonVersion        = "keda.kyma-project.io/addon-version"
 	AnnotationAddonNamespace      = "keda.kyma-project.io/addon-namespace"
 	AnnotationAddonIstioInjection = "keda.kyma-project.io/addon-istio-injection"
 
@@ -463,16 +461,8 @@ func SetAddonCondition(instance *Keda, status metav1.ConditionStatus, reason, ms
 // AddonCfg holds the addon configuration read from the Keda CR annotations.
 type AddonCfg struct {
 	Enabled        bool
-	Version        string
 	Namespace      string
 	IstioInjection bool
-}
-
-func (a AddonCfg) EffectiveVersion() string {
-	if a.Version == "" {
-		return DefaultAddonVersion
-	}
-	return a.Version
 }
 
 func (a AddonCfg) EffectiveNamespace() string {
@@ -489,7 +479,6 @@ func ReadAddonCfg(instance *Keda) AddonCfg {
 	}
 	return AddonCfg{
 		Enabled:        strings.EqualFold(ann[AnnotationAddonEnabled], "true"),
-		Version:        ann[AnnotationAddonVersion],
 		Namespace:      ann[AnnotationAddonNamespace],
 		IstioInjection: strings.EqualFold(ann[AnnotationAddonIstioInjection], "true"),
 	}

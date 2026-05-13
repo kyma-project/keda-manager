@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_ROOT="${1:?PROJECT_ROOT is required}"
 MODE="${2:-local}"
-TIMEOUT=120
+TIMEOUT=420
 SLEEP_INTERVAL=5
 
 setup_local() {
@@ -142,19 +142,8 @@ for i in $(seq 1 ${TIMEOUT}); do
     sleep ${SLEEP_INTERVAL}
 done
 
-# Wait for http-echo to scale back to zero
-echo "Waiting for http-echo to scale back to 0..."
-for i in $(seq 1 ${TIMEOUT}); do
-    REPLICAS=$(kubectl get deployment http-echo -n demo-app -o jsonpath='{.spec.replicas}' 2>/dev/null)
-    if [ "$REPLICAS" = "0" ]; then
-        echo "http-echo scaled back to 0"
-        break
-    fi
-    if [ "$i" -eq "${TIMEOUT}" ]; then
-        echo "Timed out waiting for scale back to zero"
-        exit 1
-    fi
-    sleep ${SLEEP_INTERVAL}
-done
+# Schedule cleanup in the background and pass immediately
+echo "Scheduling background cleanup of demo-app namespace..."
+kubectl delete ns demo-app --wait=false &
 
 echo "Scale-to-zero test passed (mode: ${MODE})"

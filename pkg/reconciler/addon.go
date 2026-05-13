@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
@@ -190,34 +189,12 @@ func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.R
 	if !cfg.Enabled {
 		return switchState(sFnDeleteAddon)
 	}
-	version := cfg.EffectiveVersion()
-	if strings.EqualFold(version, "latest") {
-		return switchState(sFnResolveAddonVersion)
-	}
-	cleanVersion, err := addon.ValidateVersion(version)
-	if err != nil {
-		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
-		return stopWithNoRequeue()
-	}
-	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, cleanVersion)
-	return switchState(sFnApplyAddon)
-}
-
-func sFnResolveAddonVersion(_ context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
-	version, err := addon.LatestVersion(r.HTTPClient)
-	if err != nil {
-		r.log.With("err", err).Error("failed to resolve latest addon version")
-		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonVersionErr, err.Error())
-		return stopWithNoRequeue()
-	}
-	r.log.Infof("resolved latest HTTP add-on version: %s", version)
-	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonVersion, version)
 	return switchState(sFnApplyAddon)
 }
 
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
-	version := cfg.EffectiveVersion()
+	version := v1alpha1.DefaultAddonVersion
 	targetNS := cfg.EffectiveNamespace()
 
 	ann := s.instance.GetAnnotations()
