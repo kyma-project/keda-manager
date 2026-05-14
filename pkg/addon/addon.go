@@ -61,6 +61,7 @@ func LatestVersion(client *http.Client) (string, error) {
 		return "", fmt.Errorf("failed to fetch tags: %w", err)
 	}
 	defer resp.Body.Close()
+	print("ahoj")
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("tags API returned HTTP %d", resp.StatusCode)
