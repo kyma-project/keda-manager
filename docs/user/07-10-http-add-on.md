@@ -29,7 +29,7 @@ The HTTP Add-on consists of three components:
 
 ## Enabling and Disabling the HTTP Add-on
 
-You enable the HTTP Add-on by annotating the Keda custom resource (CR):
+Enable the HTTP Add-on by annotating the Keda custom resource (CR):
 
 ```bash
 kubectl annotate keda default \
