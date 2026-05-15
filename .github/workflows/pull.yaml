@@ -30,7 +30,7 @@ jobs:
   builds:
     needs: select-environment
     permissions:
-      id-token: write # This is required for requesting the JWT token
+      id-token: write # This is required for requesting the JWT token testowy komentarzyk
       contents: read
     uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
 
