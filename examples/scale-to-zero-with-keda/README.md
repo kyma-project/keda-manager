@@ -31,7 +31,7 @@ kubectl annotate keda default \
 
 ### 2. Wait for the Add-on to Be Ready
 
-Verify that the Addon condition is `True`:
+Verify that the add-on condition is `True`:
 
 ```bash
 kubectl get keda default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
