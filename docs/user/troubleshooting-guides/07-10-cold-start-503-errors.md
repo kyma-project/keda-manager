@@ -50,7 +50,7 @@ spec:
             per_try_timeout: 3s
 ```
 
-> [!Note]
+> [!NOTE]
 > The `vhost.name` must match the actual virtual host name in Envoy's configuration. To find the correct name, run `istioctl proxy-config routes <ingressgateway-pod> -o json`. The format is typically `hostname:port` (for example, `my-app.example.com:443`), not `https://hostname`.
 
 With this retry policy in place, failed attempts (502, 503, connection refused) are transparently retried. The client receives a successful response once the Pod is ready — up to 100 × 3s = 5 minutes of retries.
