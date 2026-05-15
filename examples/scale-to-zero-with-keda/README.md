@@ -20,7 +20,7 @@ It uses:
 
 ### 1. Enable the HTTP Add-on via Annotations
 
-Enable the HTTP Add-on by annotating the Keda CR. The Keda Manager will automatically install the add-on in the specified namespace with Istio sidecar injection and the required port exclusion configured:
+Enable the HTTP Add-on by annotating the Keda custom resource (CR). The Keda Manager automatically installs the add-on in the specified namespace with Istio sidecar injection and the required port exclusion configured:
 
 ```bash
 kubectl annotate keda default \
