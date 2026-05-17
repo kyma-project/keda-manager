@@ -57,6 +57,7 @@ kubectl annotate keda default \
 The controller detects the namespace change, removes only the HTTP Add-on resources from the old namespace (other Deployments, Services, etc. in that namespace are not affected), creates the new namespace, if it doesn't exist, with `istio-injection=enabled`, and installs the HTTP Add-on in the new namespace.
 
 ### Disabling the HTTP Add-on
+
 To disable the HTTP add-on, run:
 ```bash
 kubectl annotate keda default \
