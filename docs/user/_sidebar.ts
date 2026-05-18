@@ -4,4 +4,7 @@ export default [
   { text: 'KEDA Demo Application', link: './04-20-demo-applications' },
   { text: 'Keda CR Conditions', link: './05-01-conditions' },
   { text: 'Keda Logging Configuration', link: './06-70-configuring-logging' },
+  { text: 'KEDA HTTP Add-on', link: './07-10-http-add-on' },
+  { text: 'Troubleshooting Guides', link: './troubleshooting-guides/README', collapsed: true, items: [
+      { text: 'Serverless Periodically Restarting', link: './troubleshooting-guides/07-10-cold-start-503-errors' },] },
 ];

@@ -1,0 +1,30 @@
+name: pull-build
+on:
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read # This is required for actions/checkout
+
+jobs:
+  select-environment:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.pull_request.author_association != 'COLLABORATOR' && github.event.pull_request.author_association != 'OWNER' && 'restricted' || 'internal' }}
+    steps:
+      - name: Approved
+        run: echo "Build approved, environment selected"
+
+  builds:
+    needs: select-environment
+    permissions:
+      id-token: write # This is required for requesting the JWT token
+      contents: read
+    uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
+
+  integrations:
+    needs: builds
+    uses: kyma-project/keda-manager/.github/workflows/_integration-tests.yaml@main
+    with:
+      image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
