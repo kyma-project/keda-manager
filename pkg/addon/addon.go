@@ -75,6 +75,7 @@ func LatestVersion(client *http.Client) (string, error) {
 	if len(tags) == 0 {
 		return "", fmt.Errorf("no tags found for http-add-on")
 	}
+	print("test ahoj")
 
 	tag := strings.TrimPrefix(tags[0].Name, "v")
 	return tag, nil
