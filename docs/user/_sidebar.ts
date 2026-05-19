@@ -6,5 +6,5 @@ export default [
   { text: 'Keda Logging Configuration', link: './06-70-configuring-logging' },
   { text: 'KEDA HTTP Add-on', link: './07-10-http-add-on' },
   { text: 'Troubleshooting Guides', link: './troubleshooting-guides/README', collapsed: true, items: [
-      { text: 'Serverless Periodically Restarting', link: './troubleshooting-guides/07-10-cold-start-503-errors' },] },
+      { text: 'HTTP Add-on Returns 503 Errors During Cold Start', link: './troubleshooting-guides/07-10-cold-start-503-errors' },] },
 ];
