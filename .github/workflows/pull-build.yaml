@@ -1,8 +1,6 @@
 name: pull-build
 on:
   pull_request_target:
-    branches:
-      - main
     types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
