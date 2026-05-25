@@ -1,8 +1,6 @@
 name: pull
 on:
   pull_request:
-    branches:
-      - main
     types: [opened, edited, synchronize, reopened, ready_for_review]
 
 permissions:
@@ -10,13 +8,13 @@ permissions:
 
 jobs:
   unit-tests:
-    uses: kyma-project/keda-manager/.github/workflows/_unit-tests.yaml@main
+    uses: ./.github/workflows/_unit-tests.yaml
 
   gitleaks:
-    uses: kyma-project/keda-manager/.github/workflows/_gitleaks.yaml@main
+    uses: ./.github/workflows/_gitleaks.yaml
 
   check-fips-image-versions:
-    uses: kyma-project/keda-manager/.github/workflows/_check-fips-image-versions.yaml@main
+    uses: ./.github/workflows/_check-fips-image-versions.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
 

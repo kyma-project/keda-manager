@@ -22,10 +22,10 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT token
       contents: read
-    uses: kyma-project/keda-manager/.github/workflows/_build.yaml@main
+    uses: ./.github/workflows/_build.yaml
 
   integrations:
     needs: builds
-    uses: kyma-project/keda-manager/.github/workflows/_integration-tests.yaml@main
+    uses: ./.github/workflows/_integration-tests.yaml
     with:
       image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
