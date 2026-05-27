@@ -36,14 +36,14 @@ jobs:
         id: create-btp-resources
         with:
           btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
-          btp_backend_url: "${{ secrets.BTP_BACKEND_URL}}"
-          btp_user: "${{ secrets.BTP_BOT_USER}}"
+          btp_backend_url: "${{ vars.BTP_BACKEND_URL}}"
+          btp_user: "${{ vars.BTP_BOT_USER}}"
           btp_password: "${{ secrets.BTP_BOT_PASSWORD}}"
-          btp_global_account: "${{ secrets.BTP_GLOBAL_ACCOUNT }}"
-          btp_idp_tenant: "${{ secrets.BTP_CUSTOM_IAS_TENANT }}"
-          btp_subaccount_region: "${{ secrets.BTP_SUBACCOUNT_REGION }}"
-          btp_kyma_region: "${{ secrets.BTP_KYMA_REGION }}"
-          btp_kyma_plan: "${{ secrets.BTP_KYMA_PLAN }}"
+          btp_global_account: "${{ vars.BTP_GLOBAL_ACCOUNT }}"
+          btp_idp_tenant: "${{ vars.BTP_CUSTOM_IAS_TENANT }}"
+          btp_subaccount_region: "${{ vars.BTP_SUBACCOUNT_REGION }}"
+          btp_kyma_region: "${{ vars.BTP_KYMA_REGION }}"
+          btp_kyma_plan: "${{ vars.BTP_KYMA_PLAN }}"
 
       - name: Run Keda Manager's integration test
         run: |
@@ -55,11 +55,11 @@ jobs:
         if: always()
         with:
           btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
-          btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
-          btp_user: ${{ secrets.BTP_BOT_USER}}
+          btp_backend_url: ${{ vars.BTP_BACKEND_URL}}
+          btp_user: ${{ vars.BTP_BOT_USER}}
           btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
-          btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
-          btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+          btp_global_account: ${{ vars.BTP_GLOBAL_ACCOUNT }}
+          btp_idp_tenant: ${{ vars.BTP_CUSTOM_IAS_TENANT }}
 
   btp-scale-to-zero-integration-tests:
     if: ${{ !startsWith(github.event_name, 'pull_request') }}
@@ -73,14 +73,14 @@ jobs:
         id: create-btp-resources
         with:
           btp_subaccount_name: keda-test-${{ steps.vars.outputs.sha_short }}-${{ github.run_attempt }}
-          btp_backend_url: "${{ secrets.BTP_BACKEND_URL}}"
-          btp_user: "${{ secrets.BTP_BOT_USER}}"
+          btp_backend_url: "${{ vars.BTP_BACKEND_URL}}"
+          btp_user: "${{ vars.BTP_BOT_USER}}"
           btp_password: "${{ secrets.BTP_BOT_PASSWORD}}"
-          btp_global_account: "${{ secrets.BTP_GLOBAL_ACCOUNT }}"
-          btp_idp_tenant: "${{ secrets.BTP_CUSTOM_IAS_TENANT }}"
-          btp_subaccount_region: "${{ secrets.BTP_SUBACCOUNT_REGION }}"
-          btp_kyma_region: "${{ secrets.BTP_KYMA_REGION }}"
-          btp_kyma_plan: "${{ secrets.BTP_KYMA_PLAN }}"
+          btp_global_account: "${{ vars.BTP_GLOBAL_ACCOUNT }}"
+          btp_idp_tenant: "${{ vars.BTP_CUSTOM_IAS_TENANT }}"
+          btp_subaccount_region: "${{ vars.BTP_SUBACCOUNT_REGION }}"
+          btp_kyma_region: "${{ vars.BTP_KYMA_REGION }}"
+          btp_kyma_plan: "${{ vars.BTP_KYMA_PLAN }}"
       - name: Run Keda Addon BTP integration test
         run: |
           kubectl create namespace kyma-system || true
@@ -92,11 +92,11 @@ jobs:
         if: always()
         with:
           btp_subaccount_id: ${{ steps.create-btp-resources.outputs.subaccount_id }}
-          btp_backend_url: ${{ secrets.BTP_BACKEND_URL}}
-          btp_user: ${{ secrets.BTP_BOT_USER}}
+          btp_backend_url: ${{ vars.BTP_BACKEND_URL}}
+          btp_user: ${{ vars.BTP_BOT_USER}}
           btp_password: ${{ secrets.BTP_BOT_PASSWORD}}
-          btp_global_account: ${{ secrets.BTP_GLOBAL_ACCOUNT }}
-          btp_idp_tenant: ${{ secrets.BTP_CUSTOM_IAS_TENANT }}
+          btp_global_account: ${{ vars.BTP_GLOBAL_ACCOUNT }}
+          btp_idp_tenant: ${{ vars.BTP_CUSTOM_IAS_TENANT }}
 
   rbac-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
