@@ -28,7 +28,7 @@ kubectl annotate keda default \
   keda.kyma-project.io/addon-version=<addon-version> \
   keda.kyma-project.io/addon-namespace=<addon-namespace>
 ```
-
+=^.^=
 ### 2. Wait for the Add-on to Be Ready
 
 Verify that the add-on condition is `True`:
