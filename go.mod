@@ -18,7 +18,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/kedacore/keda/v2 v2.19.0
-	github.com/kyma-project/manager-toolkit/installation/base v0.260429.203803-de5537e
+	github.com/kyma-project/manager-toolkit/installation/base v0.260521.143230-2b28ea6
 	github.com/kyma-project/manager-toolkit/logging v0.260128.123422-9ec1c8b
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
