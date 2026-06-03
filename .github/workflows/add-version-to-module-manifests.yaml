@@ -19,6 +19,9 @@ env:
 
 jobs:
   add-keda:
+    environment:
+      name: push
+      deployment: false
     name: Get, render and push keda assets
     runs-on: ubuntu-latest
 
