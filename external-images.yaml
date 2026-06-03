@@ -1,7 +1,7 @@
 images:
-  - source: "ghcr.io/kedacore/keda:2.19.0"
-  - source: "ghcr.io/kedacore/keda-metrics-apiserver:2.19.0"
-  - source: "ghcr.io/kedacore/keda-admission-webhooks:2.19.0"
+  - source: "ghcr.io/kedacore/keda:2.20.0"
+  - source: "ghcr.io/kedacore/keda-metrics-apiserver:2.20.0"
+  - source: "ghcr.io/kedacore/keda-admission-webhooks:2.20.0"
   - source: "ghcr.io/kedacore/http-add-on-scaler:0.13.0"
   - source: "ghcr.io/kedacore/http-add-on-interceptor:0.13.0"
   - source: "ghcr.io/kedacore/http-add-on-operator:0.13.0"
