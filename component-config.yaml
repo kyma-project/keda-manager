@@ -2,12 +2,12 @@ name: kyma-project.io/module/keda
 team: kyma/otters-dev
 images:
   - europe-docker.pkg.dev/kyma-project/prod/keda-manager:main
-  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.19.0
-  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.19.0
-  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.19.0
+  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.20.0
+  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.20.0
+  - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.20.0
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/http-add-on-scaler:0.13.0
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/http-add-on-interceptor:0.13.0
   - europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/http-add-on-operator:0.13.0
-  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-fips:2.19.0
-  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-metrics-apiserver-fips:2.19.0
-  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-admission-webhooks-fips:2.19.0
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-fips:2.20.0
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-metrics-apiserver-fips:2.20.0
+  - europe-docker.pkg.dev/kyma-project/restricted-prod/keda-admission-webhooks-fips:2.20.0

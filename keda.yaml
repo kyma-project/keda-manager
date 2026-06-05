@@ -6,11 +6,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator
     
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -23,13 +23,12 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-metrics-server
     
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
-  annotations:
   name: keda-metrics-server
   namespace: kyma-system
 automountServiceAccountToken: true
@@ -41,13 +40,12 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-webhook
     
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
-  annotations:
   name: keda-webhook
   namespace: kyma-system
 automountServiceAccountToken: true
@@ -57,14 +55,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: cloudeventsources.eventing.keda.sh
 spec:
   group: eventing.keda.sh
@@ -113,6 +111,9 @@ spec:
                   kind:
                     description: Kind of the resource being referred to. Defaults
                       to TriggerAuthentication.
+                    enum:
+                    - TriggerAuthentication
+                    - ClusterTriggerAuthentication
                     type: string
                   name:
                     type: string
@@ -235,14 +236,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: clustercloudeventsources.eventing.keda.sh
 spec:
   group: eventing.keda.sh
@@ -289,6 +290,9 @@ spec:
                   kind:
                     description: Kind of the resource being referred to. Defaults
                       to TriggerAuthentication.
+                    enum:
+                    - TriggerAuthentication
+                    - ClusterTriggerAuthentication
                     type: string
                   name:
                     type: string
@@ -411,14 +415,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: clustertriggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -556,6 +560,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -611,6 +620,7 @@ spec:
                       - name
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - secrets
@@ -666,6 +676,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -715,6 +730,7 @@ spec:
                       - name
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                   vaultUri:
                     type: string
@@ -805,6 +821,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -854,6 +875,7 @@ spec:
                       - id
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - secrets
@@ -867,6 +889,9 @@ spec:
                   authentication:
                     description: VaultAuthentication contains the list of Hashicorp
                       Vault authentication methods
+                    enum:
+                    - token
+                    - kubernetes
                     type: string
                   credential:
                     description: Credential defines the Hashicorp Vault credentials
@@ -915,23 +940,78 @@ spec:
                           type: object
                         type:
                           description: VaultSecretType defines the type of vault secret
+                          enum:
+                          - ""
+                          - secretV2
+                          - secret
+                          - pki
                           type: string
                       required:
                       - key
                       - parameter
                       - path
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - address
                 - authentication
                 - secrets
                 type: object
+              oauth2:
+                properties:
+                  clientId:
+                    type: string
+                  clientSecret:
+                    properties:
+                      valueFrom:
+                        properties:
+                          secretKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                            - key
+                            - name
+                            type: object
+                        required:
+                        - secretKeyRef
+                        type: object
+                    required:
+                    - valueFrom
+                    type: object
+                  scopes:
+                    items:
+                      type: string
+                    type: array
+                  tokenUrl:
+                    type: string
+                  tokenUrlParams:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  type:
+                    default: clientCredentials
+                    enum:
+                    - clientCredentials
+                    type: string
+                required:
+                - clientId
+                - tokenUrl
+                - type
+                type: object
               podIdentity:
                 description: |-
                   AuthPodIdentity allows users to select the platform native identity
                   mechanism
                 properties:
+                  externalID:
+                    description: ExternalID sets the External ID to be used when assuming
+                      an identity. This is only applicable when using AWS pod identity
+                      with a RoleArn.
+                    type: string
                   identityAuthorityHost:
                     description: Set identityAuthorityHost to override the default
                       Azure authority host. If this is set, then the IdentityTenantID
@@ -1008,14 +1088,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: scaledjobs.keda.sh
 spec:
   group: keda.sh
@@ -1082,6 +1162,7 @@ spec:
                 type: string
               failedJobsHistoryLimit:
                 format: int32
+                minimum: 0
                 type: integer
               jobTargetRef:
                 description: JobSpec describes how the job execution will look like.
@@ -1158,9 +1239,6 @@ spec:
                       by RFC 1123. All characters trailing the first "/" must be valid HTTP Path
                       characters as defined by RFC 3986. The value cannot exceed 63 characters.
                       This field is immutable.
-
-                      This field is beta-level. The job controller accepts setting the field
-                      when the feature gate JobManagedBy is enabled (enabled by default).
                     type: string
                   manualSelector:
                     description: |-
@@ -1298,7 +1376,6 @@ spec:
                                       it is required that specified type equals the pod condition type.
                                     type: string
                                 required:
-                                - status
                                 - type
                                 type: object
                               type: array
@@ -1465,7 +1542,6 @@ spec:
                           namespace:
                             type: string
                         type: object
-                        x-kubernetes-preserve-unknown-fields: true
                       spec:
                         description: |-
                           Specification of the desired behavior of the pod.
@@ -3137,7 +3213,6 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
-                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -3304,7 +3379,9 @@ spec:
                                       type: integer
                                   type: object
                                 resizePolicy:
-                                  description: Resources resize policy for the container.
+                                  description: |-
+                                    Resources resize policy for the container.
+                                    This field cannot be set on ephemeral containers.
                                   items:
                                     description: ContainerResizePolicy represents
                                       resource resize policy for the container.
@@ -4748,7 +4825,6 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
-                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -6388,7 +6464,6 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
-                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -6555,7 +6630,9 @@ spec:
                                       type: integer
                                   type: object
                                 resizePolicy:
-                                  description: Resources resize policy for the container.
+                                  description: |-
+                                    Resources resize policy for the container.
+                                    This field cannot be set on ephemeral containers.
                                   items:
                                     description: ContainerResizePolicy represents
                                       resource resize policy for the container.
@@ -7344,8 +7421,8 @@ spec:
                               will be made available to those containers which consume them
                               by name.
 
-                              This is an alpha field and requires enabling the
-                              DynamicResourceAllocation feature gate.
+                              This is a stable field but requires that the
+                              DynamicResourceAllocation feature gate is enabled.
 
                               This field is immutable.
                             items:
@@ -7805,9 +7882,10 @@ spec:
                                 operator:
                                   description: |-
                                     Operator represents a key's relationship to the value.
-                                    Valid operators are Exists and Equal. Defaults to Equal.
+                                    Valid operators are Exists, Equal, Lt, and Gt. Defaults to Equal.
                                     Exists is equivalent to wildcard for value, so that a pod can
                                     tolerate all taints of a particular category.
+                                    Lt and Gt perform numeric comparisons (requires feature gate TaintTolerationComparisonOperators).
                                   type: string
                                 tolerationSeconds:
                                   description: |-
@@ -8622,7 +8700,7 @@ spec:
                                             resources:
                                               description: |-
                                                 resources represents the minimum resources the volume should have.
-                                                If RecoverVolumeExpansionFailure feature is enabled users are allowed to specify resource requirements
+                                                Users are allowed to specify resource requirements
                                                 that are lower than previous value but must still be higher than capacity recorded in the
                                                 status field of the claim.
                                                 More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#resources
@@ -9519,6 +9597,24 @@ spec:
                                                 description: Kubelet's generated CSRs
                                                   will be addressed to this signer.
                                                 type: string
+                                              userAnnotations:
+                                                additionalProperties:
+                                                  type: string
+                                                description: |-
+                                                  userAnnotations allow pod authors to pass additional information to
+                                                  the signer implementation.  Kubernetes does not restrict or validate this
+                                                  metadata in any way.
+
+                                                  These values are copied verbatim into the `spec.unverifiedUserAnnotations` field of
+                                                  the PodCertificateRequest objects that Kubelet creates.
+
+                                                  Entries are subject to the same validation as object metadata annotations,
+                                                  with the addition that all keys must be domain-prefixed. No restrictions
+                                                  are placed on values, except an overall size limitation on the entire field.
+
+                                                  Signers should document the keys and values they support. Signers should
+                                                  deny requests that contain keys they do not recognize.
+                                                type: object
                                             required:
                                             - keyType
                                             - signerName
@@ -9948,6 +10044,42 @@ spec:
                             x-kubernetes-list-map-keys:
                             - name
                             x-kubernetes-list-type: map
+                          workloadRef:
+                            description: |-
+                              WorkloadRef provides a reference to the Workload object that this Pod belongs to.
+                              This field is used by the scheduler to identify the PodGroup and apply the
+                              correct group scheduling policies. The Workload object referenced
+                              by this field may not exist at the time the Pod is created.
+                              This field is immutable, but a Workload object with the same name
+                              may be recreated with different policies. Doing this during pod scheduling
+                              may result in the placement not conforming to the expected policies.
+                            properties:
+                              name:
+                                description: |-
+                                  Name defines the name of the Workload object this Pod belongs to.
+                                  Workload must be in the same namespace as the Pod.
+                                  If it doesn't match any existing Workload, the Pod will remain unschedulable
+                                  until a Workload object is created and observed by the kube-scheduler.
+                                  It must be a DNS subdomain.
+                                type: string
+                              podGroup:
+                                description: |-
+                                  PodGroup is the name of the PodGroup within the Workload that this Pod
+                                  belongs to. If it doesn't match any existing PodGroup within the Workload,
+                                  the Pod will remain unschedulable until the Workload object is recreated
+                                  and observed by the kube-scheduler. It must be a DNS label.
+                                type: string
+                              podGroupReplicaKey:
+                                description: |-
+                                  PodGroupReplicaKey specifies the replica key of the PodGroup to which this
+                                  Pod belongs. It is used to distinguish pods belonging to different replicas
+                                  of the same pod group. The pod group policy is applied separately to each replica.
+                                  When set, it must be a DNS label.
+                                type: string
+                            required:
+                            - name
+                            - podGroup
+                            type: object
                         required:
                         - containers
                         type: object
@@ -9968,22 +10100,35 @@ spec:
                 type: object
               maxReplicaCount:
                 format: int32
+                minimum: 1
                 type: integer
               minReplicaCount:
                 format: int32
+                minimum: 0
                 type: integer
               pollingInterval:
                 format: int32
+                minimum: 1
                 type: integer
               rollout:
                 description: Rollout defines the strategy for job rollouts
                 properties:
                   propagationPolicy:
+                    enum:
+                    - foreground
+                    - background
                     type: string
                   strategy:
+                    enum:
+                    - gradual
+                    - immediate
                     type: string
                 type: object
               rolloutStrategy:
+                description: 'Deprecated: Use Rollout.Strategy instead (see https://github.com/kedacore/keda/issues/3596).'
+                enum:
+                - gradual
+                - immediate
                 type: string
               scalingStrategy:
                 description: ScalingStrategy defines the strategy of Scaling
@@ -9994,16 +10139,26 @@ spec:
                   customScalingRunningJobPercentage:
                     type: string
                   multipleScalersCalculation:
+                    enum:
+                    - min
+                    - avg
+                    - sum
+                    - max
                     type: string
                   pendingPodConditions:
                     items:
                       type: string
                     type: array
                   strategy:
+                    enum:
+                    - custom
+                    - accurate
+                    - eager
                     type: string
                 type: object
               successfulJobsHistoryLimit:
                 format: int32
+                minimum: 0
                 type: integer
               triggers:
                 items:
@@ -10017,6 +10172,9 @@ spec:
                         kind:
                           description: Kind of the resource being referred to. Defaults
                             to TriggerAuthentication.
+                          enum:
+                          - TriggerAuthentication
+                          - ClusterTriggerAuthentication
                           type: string
                         name:
                           type: string
@@ -10027,9 +10185,15 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
+                    metricType:
+                      description: |-
+                        MetricTargetType specifies the type of metric being targeted, and should be either
+                        "Value", "AverageValue", or "Utilization"
+                      type: string
                     name:
                       type: string
                     type:
+                      minLength: 1
                       type: string
                     useCachedMetrics:
                       type: boolean
@@ -10037,6 +10201,7 @@ spec:
                   - metadata
                   - type
                   type: object
+                minItems: 1
                 type: array
             required:
             - jobTargetRef
@@ -10103,14 +10268,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: scaledobjects.keda.sh
 spec:
   group: keda.sh
@@ -10248,8 +10413,6 @@ spec:
                                   - For scale up: 0 (i.e. no stabilization is done).
                                   - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
                                 format: int32
-                                maximum: 3600
-                                minimum: 0
                                 type: integer
                               tolerance:
                                 anyOf:
@@ -10265,8 +10428,8 @@ spec:
                                   and scale-down and scale-up tolerances of 5% and 1% respectively, scaling will be
                                   triggered when the actual consumption falls below 95Mi or exceeds 101Mi.
 
-                                  This is an alpha field and requires enabling the HPAConfigurableTolerance
-                                  feature gate.
+                                  This is an beta field and requires the HPAConfigurableTolerance feature
+                                  gate to be enabled.
                                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                 x-kubernetes-int-or-string: true
                             type: object
@@ -10325,8 +10488,6 @@ spec:
                                   - For scale up: 0 (i.e. no stabilization is done).
                                   - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
                                 format: int32
-                                maximum: 3600
-                                minimum: 0
                                 type: integer
                               tolerance:
                                 anyOf:
@@ -10342,8 +10503,8 @@ spec:
                                   and scale-down and scale-up tolerances of 5% and 1% respectively, scaling will be
                                   triggered when the actual consumption falls below 95Mi or exceeds 101Mi.
 
-                                  This is an alpha field and requires enabling the HPAConfigurableTolerance
-                                  feature gate.
+                                  This is an beta field and requires the HPAConfigurableTolerance feature
+                                  gate to be enabled.
                                 pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                 x-kubernetes-int-or-string: true
                             type: object
@@ -10375,6 +10536,7 @@ spec:
                 type: object
               cooldownPeriod:
                 format: int32
+                minimum: 0
                 type: integer
               fallback:
                 description: Fallback is the spec for fallback options
@@ -10386,12 +10548,15 @@ spec:
                     - currentReplicas
                     - currentReplicasIfHigher
                     - currentReplicasIfLower
+                    - scalingModifiers
                     type: string
                   failureThreshold:
                     format: int32
+                    minimum: 0
                     type: integer
                   replicas:
                     format: int32
+                    minimum: 0
                     type: integer
                 required:
                 - failureThreshold
@@ -10399,18 +10564,23 @@ spec:
                 type: object
               idleReplicaCount:
                 format: int32
+                minimum: 0
                 type: integer
               initialCooldownPeriod:
                 format: int32
+                minimum: 0
                 type: integer
               maxReplicaCount:
                 format: int32
+                minimum: 1
                 type: integer
               minReplicaCount:
                 format: int32
+                minimum: 0
                 type: integer
               pollingInterval:
                 format: int32
+                minimum: 1
                 type: integer
               scaleTargetRef:
                 description: ScaleTarget holds the reference to the scale target Object
@@ -10422,6 +10592,7 @@ spec:
                   kind:
                     type: string
                   name:
+                    minLength: 1
                     type: string
                 required:
                 - name
@@ -10438,6 +10609,9 @@ spec:
                         kind:
                           description: Kind of the resource being referred to. Defaults
                             to TriggerAuthentication.
+                          enum:
+                          - TriggerAuthentication
+                          - ClusterTriggerAuthentication
                           type: string
                         name:
                           type: string
@@ -10456,6 +10630,7 @@ spec:
                     name:
                       type: string
                     type:
+                      minLength: 1
                       type: string
                     useCachedMetrics:
                       type: boolean
@@ -10463,11 +10638,16 @@ spec:
                   - metadata
                   - type
                   type: object
+                minItems: 1
                 type: array
             required:
             - scaleTargetRef
             - triggers
             type: object
+            x-kubernetes-validations:
+            - message: minReplicaCount must be less than or equal to maxReplicaCount
+              rule: '!has(self.minReplicaCount) || self.minReplicaCount <= (has(self.maxReplicaCount)
+                ? self.maxReplicaCount : 100)'
           status:
             description: ScaledObjectStatus is the status for a ScaledObject resource
             properties:
@@ -10576,14 +10756,14 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
   name: triggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -10717,6 +10897,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -10772,6 +10957,7 @@ spec:
                       - name
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - secrets
@@ -10827,6 +11013,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -10876,6 +11067,7 @@ spec:
                       - name
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                   vaultUri:
                     type: string
@@ -10966,6 +11158,11 @@ spec:
                       AuthPodIdentity allows users to select the platform native identity
                       mechanism
                     properties:
+                      externalID:
+                        description: ExternalID sets the External ID to be used when
+                          assuming an identity. This is only applicable when using
+                          AWS pod identity with a RoleArn.
+                        type: string
                       identityAuthorityHost:
                         description: Set identityAuthorityHost to override the default
                           Azure authority host. If this is set, then the IdentityTenantID
@@ -11015,6 +11212,7 @@ spec:
                       - id
                       - parameter
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - secrets
@@ -11028,6 +11226,9 @@ spec:
                   authentication:
                     description: VaultAuthentication contains the list of Hashicorp
                       Vault authentication methods
+                    enum:
+                    - token
+                    - kubernetes
                     type: string
                   credential:
                     description: Credential defines the Hashicorp Vault credentials
@@ -11076,23 +11277,78 @@ spec:
                           type: object
                         type:
                           description: VaultSecretType defines the type of vault secret
+                          enum:
+                          - ""
+                          - secretV2
+                          - secret
+                          - pki
                           type: string
                       required:
                       - key
                       - parameter
                       - path
                       type: object
+                    minItems: 1
                     type: array
                 required:
                 - address
                 - authentication
                 - secrets
                 type: object
+              oauth2:
+                properties:
+                  clientId:
+                    type: string
+                  clientSecret:
+                    properties:
+                      valueFrom:
+                        properties:
+                          secretKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                            - key
+                            - name
+                            type: object
+                        required:
+                        - secretKeyRef
+                        type: object
+                    required:
+                    - valueFrom
+                    type: object
+                  scopes:
+                    items:
+                      type: string
+                    type: array
+                  tokenUrl:
+                    type: string
+                  tokenUrlParams:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  type:
+                    default: clientCredentials
+                    enum:
+                    - clientCredentials
+                    type: string
+                required:
+                - clientId
+                - tokenUrl
+                - type
+                type: object
               podIdentity:
                 description: |-
                   AuthPodIdentity allows users to select the platform native identity
                   mechanism
                 properties:
+                  externalID:
+                    description: ExternalID sets the External ID to be used when assuming
+                      an identity. This is only applicable when using AWS pod identity
+                      with a RoleArn.
+                    type: string
                   identityAuthorityHost:
                     description: Set identityAuthorityHost to override the default
                       Azure authority host. If this is set, then the IdentityTenantID
@@ -11170,11 +11426,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator
 rules:
@@ -11192,7 +11448,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - events.k8s.io
   resources:
   - events
   verbs:
@@ -11244,6 +11500,7 @@ rules:
   - apps
   resources:
   - deployments
+  - replicasets
   - statefulsets
   verbs:
   - get
@@ -11310,11 +11567,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal-cluster-role    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal-cluster-role
 rules:
@@ -11369,11 +11626,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-external-metrics-reader    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-external-metrics-reader
 rules:
@@ -11390,11 +11647,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 rules:
@@ -11434,11 +11691,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator
 roleRef:
@@ -11456,11 +11713,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal
 roleRef:
@@ -11478,11 +11735,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-system-auth-delegator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-system-auth-delegator
 roleRef:
@@ -11500,11 +11757,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-hpa-controller-external-metrics    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-hpa-controller-external-metrics
 roleRef:
@@ -11522,11 +11779,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 roleRef:
@@ -11544,11 +11801,11 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -11587,11 +11844,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -11611,11 +11868,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-auth-reader    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-auth-reader
   namespace: kube-system
@@ -11638,11 +11895,11 @@ metadata:
     prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -11664,11 +11921,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator-metrics-apiserver
     app: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
@@ -11701,11 +11958,11 @@ metadata:
     prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-admission-webhooks
   namespace: kyma-system
@@ -11732,11 +11989,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -11750,11 +12007,11 @@ spec:
         app: keda-operator
         name: keda-operator
         app.kubernetes.io/name: keda-operator        
-        helm.sh/chart: keda-2.19.0
+        helm.sh/chart: keda-2.20.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.19.0
+        app.kubernetes.io/version: 2.20.0
         app.kubernetes.io/instance: keda
       annotations:
         rt-cfg.kyma-project.io/add-img-pull-secret: "true"
@@ -11775,7 +12032,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.19.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.20.0"
           command:
           - "/keda"
           args:
@@ -11786,7 +12043,7 @@ spec:
           - "--zap-time-encoding=rfc3339"
           - "--enable-webhook-patching=true"
           - "--cert-dir=/certs"
-          - "--enable-cert-rotation=true"          
+          - "--enable-cert-rotation=true"
           - "--cert-secret-name=kedaorg-certs"
           - "--operator-service-name=keda-operator"
           - "--metrics-server-service-name=keda-operator-metrics-apiserver"
@@ -11838,7 +12095,13 @@ spec:
               value: "3000"
             - name: KEDA_HTTP_MIN_TLS_VERSION
               value: TLS12
-          volumeMounts:         
+            - name: KEDA_HTTP_TLS_CIPHER_LIST
+              value: ""
+            - name: KEDA_SERVICE_MIN_TLS_VERSION
+              value: TLS13
+            - name: KEDA_SERVICE_TLS_CIPHER_LIST
+              value: ""
+          volumeMounts:
           - mountPath: /certs
             name: certificates
             readOnly: true
@@ -11869,11 +12132,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -11886,11 +12149,11 @@ spec:
       labels:
         app: keda-operator-metrics-apiserver
         app.kubernetes.io/name: keda-operator-metrics-apiserver        
-        helm.sh/chart: keda-2.19.0
+        helm.sh/chart: keda-2.20.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.19.0
+        app.kubernetes.io/version: 2.20.0
         app.kubernetes.io/instance: keda
       annotations:
         prometheus.io/scrape: "true"
@@ -11913,7 +12176,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.19.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.20.0"
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -11946,6 +12209,12 @@ spec:
               value: "3000"
             - name: KEDA_HTTP_MIN_TLS_VERSION
               value: TLS12
+            - name: KEDA_HTTP_TLS_CIPHER_LIST
+              value: ""
+            - name: KEDA_SERVICE_MIN_TLS_VERSION
+              value: TLS13
+            - name: KEDA_SERVICE_TLS_CIPHER_LIST
+              value: ""
           command:
            - /keda-adapter
           args:
@@ -12001,11 +12270,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -12019,11 +12288,11 @@ spec:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
         app.kubernetes.io/name: keda-admission-webhooks        
-        helm.sh/chart: keda-2.19.0
+        helm.sh/chart: keda-2.20.0
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.19.0
+        app.kubernetes.io/version: 2.20.0
         app.kubernetes.io/instance: keda
       annotations:
         rt-cfg.kyma-project.io/add-img-pull-secret: "true"
@@ -12044,7 +12313,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.19.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.20.0"
           command:
           - /keda-admission-webhooks
           args:
@@ -12117,11 +12386,11 @@ kind: APIService
 metadata:
   labels:
     app.kubernetes.io/name: v1beta1.external.metrics.k8s.io    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: v1beta1.external.metrics.k8s.io
 spec:
@@ -12140,11 +12409,11 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.19.0
+    helm.sh/chart: keda-2.20.0
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.19.0
+    app.kubernetes.io/version: 2.20.0
     app.kubernetes.io/instance: keda
   name: keda-admission
 webhooks:
