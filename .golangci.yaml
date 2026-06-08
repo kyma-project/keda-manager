@@ -21,6 +21,10 @@ linters:
     rules:
       - path: (.+)\.go$
         text: '^QF1008:'
+      - path: (.+)\.go$
+        text: 'SA1019: mgr.GetEventRecorderFor is deprecated'
+      - path: (.+)\.go$
+        text: 'SA1019: client\.Apply is deprecated'
     paths:
       - third_party$
       - builtin$
