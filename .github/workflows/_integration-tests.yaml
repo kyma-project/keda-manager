@@ -11,9 +11,7 @@ on:
 jobs:
   integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -29,9 +27,7 @@ jobs:
 
   btp-integration-tests:
     if: ${{ !startsWith(github.event_name, 'pull_request') }}
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -69,9 +65,7 @@ jobs:
 
   btp-scale-to-zero-integration-tests:
     if: ${{ !startsWith(github.event_name, 'pull_request') }}
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -109,9 +103,7 @@ jobs:
 
   rbac-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -133,9 +125,7 @@ jobs:
 
   http-add-on-integration-test:
     if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -14,9 +14,7 @@ on:
 
 jobs:
   upgrade-images:
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     name: Upgrade main images
     runs-on: ubuntu-latest
 
@@ -49,9 +47,7 @@ jobs:
           git push origin ${{ github.ref_name }}
 
   create-tag:
-    environment:
-      name: push
-      deployment: false
+    environment: secrets
     name: Create tag
     needs: upgrade-images
     runs-on: ubuntu-latest
