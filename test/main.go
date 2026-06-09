@@ -87,6 +87,12 @@ func runScenario(testutil *utils.TestUtils) error {
 		return err
 	}
 
+	// verify KEDA emitted events via events.k8s.io (not the legacy core API group)
+	testutil.Logger.Infof("Verifying events for scaledobject '%s'", testutil.ScaledObjectName)
+	if err := utils.WithRetry(testutil, scaledobject.VerifyEvents); err != nil {
+		return err
+	}
+
 	// verify if the underlying HPA
 	testutil.Logger.Infof("Verifying scaledobjects '%s' hpa", testutil.ScaledObjectName)
 	if err := utils.WithRetry(testutil, hpa.Verify); err != nil {
