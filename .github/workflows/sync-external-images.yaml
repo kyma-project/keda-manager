@@ -20,11 +20,12 @@ permissions:
 jobs:
   select-environment:
     runs-on: ubuntu-latest
-    environment: restricted
+    environment: ${{ github.event_name == 'push' && 'secrets' || 'restricted' }}
     # uncomment after gating is allowed - environment: ${{ github.event.pull_request.author_association != 'COLLABORATOR' && github.event.pull_request.author_association != 'OWNER' && 'restricted' || 'internal' }}
     steps:
       - name: Approved
         run: echo "Build approved, environment selected"
 
   sync-external-images:
+    needs: select-environment
     uses: kyma-project/test-infra/.github/workflows/image-syncer.yml@main
