@@ -49,7 +49,7 @@ kubectl annotate keda -n kyma-system default \
 To move the HTTP Add-on to a different namespace, update the `addon-namespace` annotation:
 
 ```bash
-kubectl annotate keda -n kyma-system  default \
+kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-namespace=my-new-namespace --overwrite
 ```
 
@@ -59,7 +59,7 @@ The controller detects the namespace change, removes only the HTTP Add-on resour
 
 To disable the HTTP add-on, run:
 ```bash
-kubectl annotate keda default \
+kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-enabled=false --overwrite
 ```
 
