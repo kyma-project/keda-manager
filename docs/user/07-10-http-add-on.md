@@ -49,7 +49,7 @@ kubectl annotate keda -n kyma-system default \
 To move the HTTP Add-on to a different namespace, update the `addon-namespace` annotation:
 
 ```bash
-kubectl annotate keda default \
+kubectl annotate keda -n kyma-system  default \
   keda.kyma-project.io/addon-namespace=my-new-namespace --overwrite
 ```
 
