@@ -29,7 +29,16 @@ kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-namespace=<addon-namespace>
 ```
 
-### 2. Wait for the Add-on to Be Ready
+### 2. Enable Istio Sidecar Injection for the Add-on
+
+Annotate the Keda CR to enable Istio sidecar injection on the HTTP Add-on Deployments:
+
+```bash
+kubectl annotate keda -n kyma-system default \
+  keda.kyma-project.io/addon-istio-injection=true
+```
+
+### 3. Wait for the Add-on to Be Ready
 
 Verify that the add-on condition is `True`:
 
@@ -49,21 +58,21 @@ keda-add-ons-http-operator-66bb6c6f8b-qwrm6        2/2     Running   0          
 keda-add-ons-http-scaler-5cd8bd8499-gs8wh          2/2     Running   0          2m
 ```
 
-### 3. Get Your Cluster Domain
+### 4. Get Your Cluster Domain
 
 ```bash
 export DOMAIN=$(kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}')
 echo $DOMAIN
 ```
 
-### 4. Edit the Example Resources
+### 5. Edit the Example Resources
 
 Edit the following files and replace `<YOUR_DOMAIN>` with your cluster domain:
 
 - `k8s-resources/httpscaledobject.yaml` — set the host
 - `k8s-resources/envoyfilter.yaml` — set the vhost name (format: `http-echo-keda.<YOUR_DOMAIN>:443`)
 
-### 5. Apply the Example Resources
+### 6. Apply the Example Resources
 
 ```bash
 kubectl create namespace demo-app
