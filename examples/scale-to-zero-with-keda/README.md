@@ -23,7 +23,7 @@ It uses:
 Enable the HTTP Add-on by annotating the Keda custom resource (CR). The Keda Manager automatically installs the add-on in the specified namespace with Istio sidecar injection and the required port exclusion configured:
 
 ```bash
-kubectl annotate keda default \
+kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-enabled=true \
   keda.kyma-project.io/addon-version=<addon-version> \
   keda.kyma-project.io/addon-namespace=<addon-namespace>
@@ -34,7 +34,7 @@ kubectl annotate keda default \
 Verify that the add-on condition is `True`:
 
 ```bash
-kubectl get keda default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
+kubectl get keda -n kyma-system default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
 ```
 
 Expected output: `True`
@@ -42,7 +42,7 @@ Expected output: `True`
 Verify that all add-on Pods are running with Istio sidecar (2/2):
 
 ```bash
-kubectl get pods -n keda
+kubectl get pods -n kyma-system
 NAME                                               READY   STATUS    RESTARTS   AGE
 keda-add-ons-http-interceptor-b98dc64f9-gswbn      2/2     Running   0          2m
 keda-add-ons-http-operator-66bb6c6f8b-qwrm6        2/2     Running   0          2m
@@ -58,7 +58,7 @@ echo $DOMAIN
 
 ### 4. Edit the Example Resources
 
-Edit the following files and replace `<YOUR_DOMAIN>` with your cluster domain and `<HTTP-ADD-ON-NAMESPACE>` with `keda`:
+Edit the following files and replace `<YOUR_DOMAIN>` with your cluster domain:
 
 - `k8s-resources/httpscaledobject.yaml` — set the host
 - `k8s-resources/envoyfilter.yaml` — set the vhost name (format: `http-echo-keda.<YOUR_DOMAIN>:443`)
@@ -146,7 +146,7 @@ No resources found in demo-app namespace.
 
 ```bash
 kubectl delete namespace demo-app
-kubectl annotate keda default \
+kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-enabled=false --overwrite
 ```
 
