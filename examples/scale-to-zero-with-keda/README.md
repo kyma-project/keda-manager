@@ -60,7 +60,6 @@ echo $DOMAIN
 
 Edit the following files and replace `<YOUR_DOMAIN>` with your cluster domain and `<HTTP-ADD-ON-NAMESPACE>` with `keda`:
 
-- `k8s-resources/apirule.yaml` — set the host and the interceptor service namespace
 - `k8s-resources/httpscaledobject.yaml` — set the host
 - `k8s-resources/envoyfilter.yaml` — set the vhost name (format: `http-echo-keda.<YOUR_DOMAIN>:443`)
 
