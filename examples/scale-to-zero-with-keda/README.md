@@ -47,7 +47,7 @@ This example installs the following resources from the `k8s-resources` directory
    kubectl get pods -n kyma-system -l kyma-project.io/module=keda
    ```
 
-4. Export your cluster domain:
+5. Export your cluster domain:
 
    ```bash
    export DOMAIN=$(kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}')
