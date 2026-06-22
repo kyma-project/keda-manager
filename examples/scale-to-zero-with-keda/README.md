@@ -57,7 +57,7 @@ This example installs the following resources from the `k8s-resources` directory
 6. In `k8s-resources/httpscaledobject.yaml` and `k8s-resources/envoyfilter.yaml`, replace `<YOUR_DOMAIN>` with your cluster domain. In `envoyfilter.yaml`, the vhost name must use the format `http-echo-keda.<YOUR_DOMAIN>:443`.
 
 
-6. Create the `demo-app` namespace and enable Istio sidecar injection on it:
+7. Create the `demo-app` namespace and enable Istio sidecar injection on it:
 
    ```bash
    kubectl create namespace demo-app
