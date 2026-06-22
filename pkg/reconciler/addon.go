@@ -37,6 +37,8 @@ const (
 	istioExcludeInboundPortsAnnotation = "traffic.sidecar.istio.io/excludeInboundPorts"
 	istioExcludeInboundPortsValue      = "9090"
 	istioSidecarInjectAnnotation       = "sidecar.istio.io/inject"
+	kymaModuleLabel                    = "kyma-project.io/module"
+	kymaModuleLabelValue               = "keda"
 )
 
 var namespaceEnvVars = map[string]struct{}{
@@ -50,11 +52,13 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string, istio
 		if obj.GetNamespace() != "" {
 			obj.SetNamespace(namespace)
 		}
+		applyCommonMetadataLabels(obj)
 		switch obj.GetKind() {
 		case "ClusterRoleBinding", "RoleBinding":
 			patchSubjectsNamespace(obj, namespace)
 		case "Deployment":
 			patchDeploymentEnvNamespace(obj, namespace)
+			patchDeploymentPodTemplateLabels(obj)
 			if istioInjection {
 				patchDeploymentIstioExcludePortsAnnotation(obj)
 				patchDeploymentIstioSidecarAnnotation(obj, "true")
@@ -63,6 +67,19 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string, istio
 			}
 		}
 	}
+}
+
+// applyCommonMetadataLabels stamps the standard Kyma module labels
+// (kyma-project.io/module=keda, app.kubernetes.io/part-of=keda-manager,
+// app.kubernetes.io/managed-by=keda-manager) on the object's top-level
+// metadata so add-on resources (Deployments, Services, etc.) are discoverable
+// via the same label selectors as the rest of the Keda module.
+func applyCommonMetadataLabels(obj *unstructured.Unstructured) {
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	obj.SetLabels(setCommonLabels(labels))
 }
 
 func patchDeploymentIstioExcludePortsAnnotation(obj *unstructured.Unstructured) {
@@ -87,6 +104,26 @@ func patchDeploymentIstioSidecarAnnotation(obj *unstructured.Unstructured, value
 	}
 	annotations[istioSidecarInjectAnnotation] = value
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
+}
+
+// patchDeploymentPodTemplateLabels stamps the standard Kyma module labels on
+// the Deployment's pod template so add-on Pods (interceptor, operator, scaler)
+// are discoverable via the same label selectors as the rest of the Keda module.
+func patchDeploymentPodTemplateLabels(obj *unstructured.Unstructured) {
+	labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	before := len(labels)
+	labels = setCommonLabels(labels)
+	// Skip the write when nothing changed and the keys were already present.
+	if len(labels) == before &&
+		labels[kymaModuleLabel] == kymaModuleLabelValue &&
+		labels["app.kubernetes.io/part-of"] == "keda-manager" &&
+		labels["app.kubernetes.io/managed-by"] == "keda-manager" {
+		return
+	}
+	_ = unstructured.SetNestedStringMap(obj.Object, labels, "spec", "template", "metadata", "labels")
 }
 
 func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace string) {
