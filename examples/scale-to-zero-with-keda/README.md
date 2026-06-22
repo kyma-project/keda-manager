@@ -70,7 +70,7 @@ This example installs the following resources from the `k8s-resources` directory
    kubectl apply -f ./k8s-resources
    ```
 
-8. Wait until the application Pod scales to zero, then send a request to trigger scale-from-zero:
+9. Wait until the application Pod scales to zero, then send a request to trigger scale-from-zero:
 
    ```bash
    curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://http-echo-keda.${DOMAIN}/
