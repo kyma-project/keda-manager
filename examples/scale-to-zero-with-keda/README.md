@@ -76,7 +76,8 @@ This example installs the following resources from the `k8s-resources` directory
    curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://http-echo-keda.${DOMAIN}/
    ```
 
-   The first request can take 30–60 seconds while the Pod starts.
+   > [!NOTE]
+   > The first request can take 30–60 seconds while the Pod starts.
 
 ## Result
 
