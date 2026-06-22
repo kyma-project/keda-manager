@@ -1,6 +1,6 @@
 # Configuring Keda Module
 
-By default, the Keda module comes with the default configuration. You can change the configuration using the Keda CustomResourceDefinition (CRD). See how to configure the **logging.level** attribute, enable the Istio sidecar injection, change resource consumption, define custom annotations, or override the minimum TLS version.
+By default, the Keda module comes with the default configuration. You can change the configuration using the Keda CustomResourceDefinition (CRD). See how to configure the **logging.level** attribute, enable the Istio sidecar injection, change resource consumption, define custom annotations, override the minimum TLS version, or enable the KEDA HTTP Add-on.
 
 ## Prerequisites
 
@@ -101,4 +101,25 @@ For more information about logging configuration, see [Keda logging configuratio
          value: TLS13
    ```
 
-For more information about the KEDA resources, see [KEDA concepts](https://keda.sh/docs/latest/concepts/).
+- To enable the KEDA HTTP Add-on, which extends KEDA with the ability to scale HTTP workloads to and from zero based on incoming request rate, annotate the Keda CR:
+
+   ```bash
+   kubectl annotate keda -n kyma-system default \
+     keda.kyma-project.io/addon-enabled=true
+   ```
+
+- Optionally, to enable Istio sidecar injection on the HTTP Add-on Deployments, set the following annotation:
+
+   ```bash
+   kubectl annotate keda -n kyma-system default \
+     keda.kyma-project.io/addon-istio-injection=true
+   ```
+
+- Optionally, to install the HTTP Add-on in a different namespace than the default `kyma-system`, set the following annotation:
+
+   ```bash
+   kubectl annotate keda -n kyma-system default \
+     keda.kyma-project.io/addon-namespace=my-new-namespace --overwrite
+   ```
+
+For more information about the KEDA resources, see [KEDA HTTP Add-on](07-10-http-add-on.md).
