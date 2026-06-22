@@ -64,7 +64,7 @@ This example installs the following resources from the `k8s-resources` directory
    kubectl label namespace demo-app istio-injection=enabled
    ```
 
-7. Apply the example resources:
+8. Apply the example resources:
 
    ```bash
    kubectl apply -f ./k8s-resources
