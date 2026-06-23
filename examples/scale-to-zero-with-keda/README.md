@@ -1,112 +1,87 @@
-# Scale to Zero with KEDA HTTP Add-on
-
-## Overview
-
-This example demonstrates how to use the [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) on a Kyma cluster to achieve HTTP-based scale-to-zero and scale-from-zero for workloads, without losing any requests.
-It uses:
-
-- [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) to intercept, queue, and count incoming HTTP requests — enabling scale-to-zero and scale-from-zero without lost requests,
-- [KEDA](https://keda.sh/) to drive the workload's scaling based on request rate metrics provided by the HTTP Add-on,
-- A demo application that returns request-specific information (Pod name, timestamp, request body) to verify that no requests are lost during scaling,
-- Istio service mesh to provide mTLS encryption between all components and to expose the application via API Gateway,
-- API Gateway (APIRule v2) to route external HTTPS traffic to the HTTP Add-on's Interceptor.
+# Scaling HTTP Workloads to Zero With the KEDA HTTP Add-on
 
 ## Prerequisites
 
-- Kyma as the target Kubernetes runtime.
-- [Keda, Istio and API Gateway modules installed](https://kyma-project.io/02-get-started/01-quick-install.html#steps)
+- A Kyma runtime cluster.
+- [Keda, Istio, and API Gateway modules installed](https://kyma-project.io/02-get-started/01-quick-install.html#steps).
+- The `kubectl` and `curl` CLIs installed locally.
+
+## Context
+
+The [KEDA HTTP Add-on](https://github.com/kedacore/http-add-on) extends KEDA with HTTP-based scale-to-zero and scale-from-zero for workloads, without losing requests. Its **Interceptor** queues incoming requests, the **External Scaler** exposes the request rate to KEDA over gRPC, and the **Operator** reconciles `HTTPScaledObject` resources to drive the application's scaling. Combined with Istio service mesh and API Gateway, this example exposes a demo application over HTTPS, drives it to zero replicas during idle periods, and scales it back up on the first incoming request.
+
+This example installs the following resources from the `k8s-resources` directory:
+
+| File | Kind | Purpose |
+|---|---|---|
+| `apirule.yaml` | `APIRule` | Routes external HTTPS traffic from `https://http-echo-keda.<YOUR_DOMAIN>` through the Istio Ingress Gateway to the HTTP Add-on Interceptor's Service (`keda-add-ons-http-interceptor-proxy`). |
+| `httpscaledobject.yaml` | `HTTPScaledObject` | Configures the HTTP Add-on to scale the `http-echo` Deployment by incoming request rate. `min: 0` enables scale-to-zero; `max: 10` caps scale-out. The Operator creates the corresponding KEDA `ScaledObject` automatically. |
+| `envoyfilter.yaml` | `EnvoyFilter` | Configures the Istio Ingress Gateway to retry requests that fail with `5xx`, `connect-failure`, or `reset` — up to 100 times with a 3-second per-try timeout. This covers the cold-start window when the first forwarded request may arrive before the Pod is ready. |
+| `demo-app.yaml` | `Deployment` + `Service` | Deploys a lightweight Node.js HTTP server that returns a JSON response with the handling Pod's name, a timestamp, and the request body. Use this to verify that no request is lost during scale-from-zero. |
 
 ## Procedure
 
-### 1. Enable the HTTP Add-on via Annotations
+1. Enable the HTTP Add-on by annotating the Keda custom resource (CR). The Keda Manager installs the add-on in the specified namespace:
 
-Enable the HTTP Add-on by annotating the Keda custom resource (CR). The Keda Manager automatically installs the add-on in the specified namespace with Istio sidecar injection and the required port exclusion configured:
+   ```bash
+   kubectl annotate keda -n kyma-system default \
+     keda.kyma-project.io/addon-enabled=true 
+   ```
 
-```bash
-kubectl annotate keda default \
-  keda.kyma-project.io/addon-enabled=true \
-  keda.kyma-project.io/addon-version=<addon-version> \
-  keda.kyma-project.io/addon-namespace=<addon-namespace>
-```
+2. Enable Istio sidecar injection on the HTTP Add-on Deployments. The demo application runs in an Istio-injected namespace and accepts only mTLS traffic, so the Interceptor and Scaler must also have sidecars to reach it:
 
-### 2. Wait for the Add-on to Be Ready
+   ```bash
+   kubectl annotate keda -n kyma-system default \
+     keda.kyma-project.io/addon-istio-injection=true
+   ```
 
-Verify that the add-on condition is `True`:
+3. Verify that the add-on condition is `True`:
 
-```bash
-kubectl get keda default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
-```
+   ```bash
+   kubectl get keda -n kyma-system default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
+   ```
 
-Expected output: `True`
+   4. Verify that all add-on Pods are running with the Istio sidecar (`2/2`). Filter by the `kyma-project.io/module=keda` label that the Keda Manager stamps on every add-on resource:
 
-Verify that all add-on Pods are running with Istio sidecar (2/2):
+   ```bash
+   kubectl get pods -n kyma-system -l kyma-project.io/module=keda
+   ```
 
-```bash
-kubectl get pods -n keda
-NAME                                               READY   STATUS    RESTARTS   AGE
-keda-add-ons-http-interceptor-b98dc64f9-gswbn      2/2     Running   0          2m
-keda-add-ons-http-operator-66bb6c6f8b-qwrm6        2/2     Running   0          2m
-keda-add-ons-http-scaler-5cd8bd8499-gs8wh          2/2     Running   0          2m
-```
+5. Export your cluster domain:
 
-### 3. Get Your Cluster Domain
+   ```bash
+   export DOMAIN=$(kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}')
+   echo $DOMAIN
+   ```
 
-```bash
-export DOMAIN=$(kubectl get configmap shoot-info -n kube-system -o jsonpath='{.data.domain}')
-echo $DOMAIN
-```
+6. In `k8s-resources/httpscaledobject.yaml` and `k8s-resources/envoyfilter.yaml`, replace `<YOUR_DOMAIN>` with your cluster domain. In `envoyfilter.yaml`, the vhost name must use the format `http-echo-keda.<YOUR_DOMAIN>:443`.
 
-### 4. Edit the Example Resources
 
-Edit the following files and replace `<YOUR_DOMAIN>` with your cluster domain and `<HTTP-ADD-ON-NAMESPACE>` with `keda`:
+7. Create the `demo-app` namespace and enable Istio sidecar injection on it:
 
-- `k8s-resources/apirule.yaml` — set the host and the interceptor service namespace
-- `k8s-resources/httpscaledobject.yaml` — set the host
-- `k8s-resources/envoyfilter.yaml` — set the vhost name (format: `http-echo-keda.<YOUR_DOMAIN>:443`)
+   ```bash
+   kubectl create namespace demo-app
+   kubectl label namespace demo-app istio-injection=enabled
+   ```
 
-### 5. Apply the Example Resources
+8. Apply the example resources:
 
-```bash
-kubectl create namespace demo-app
-kubectl label namespace demo-app istio-injection=enabled
-kubectl apply -f ./k8s-resources
-```
+   ```bash
+   kubectl apply -f ./k8s-resources
+   ```
 
-### Key Resources
+9. Wait until the application Pod scales to zero, then send a request to trigger scale-from-zero:
 
-| Resource | Kind | Description |
-|---|---|---|
-| `apirule.yaml` | `APIRule` | Routes external HTTPS traffic from `https://http-echo-keda.<YOUR_DOMAIN>` through Istio Ingress Gateway to the HTTP Add-on Interceptor's Service (`keda-add-ons-http-interceptor-proxy`) in the `keda` namespace. The Interceptor handles request queuing and forwarding to the application. |
-| `httpscaledobject.yaml` | `HTTPScaledObject` | Configures the HTTP Add-on to scale the `http-echo` Deployment based on incoming request rate. Sets `min: 0` to allow scale-to-zero and `max: 10` for scale-out. The operator automatically creates a corresponding KEDA `ScaledObject`. |
-| `envoyfilter.yaml` | `EnvoyFilter` | Configures the Istio Ingress Gateway to automatically retry requests that fail with `5xx`, `connect-failure`, or `reset` — up to 100 times with a 3-second per-try timeout. This is critical for cold start: when the application is scaling from zero, the first forwarded request may arrive before the Pod is ready. The retry policy ensures the request is eventually delivered without returning an error to the client. |
-| `demo-app.yaml` | `Deployment` + `Service` | Deploys a lightweight Node.js HTTP server that returns a JSON response with the handling Pod's name, a timestamp, and the request body. This allows you to verify that every request was processed and no request was lost during scale-from-zero. |
+   ```bash
+   curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://http-echo-keda.${DOMAIN}/
+   ```
 
-## Test the Application
+   > [!NOTE]
+   > The first request can take 30–60 seconds while the Pod starts.
 
-Initially, the application Pod is scaled down to zero.
+## Result
 
-1. List HPA for the demo application and check that the current replica count is zero:
-
-```bash
-kubectl get hpa -n demo-app
-NAME                 REFERENCE              TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
-keda-hpa-http-echo   Deployment/http-echo   <unknown>/10 (avg)   1         10        0          5m46s
-```
-
-2. Verify that the application has zero replicas:
-
-```bash
-kubectl get pod -n demo-app
-No resources found in demo-app namespace.
-```
-
-3. Send a request to trigger scale-from-zero:
-
-```bash
-curl -v -H "Content-Type: application/json" -X GET -d '{"foo":"bar"}' https://http-echo-keda.${DOMAIN}/
-```
-
-The first request may take up to 30–60 seconds while the Pod starts. The response confirms the request was not lost:
+The `curl` command returns a JSON response that confirms the request reached a freshly scaled-up Pod:
 
 ```json
 {
@@ -117,17 +92,7 @@ The first request may take up to 30–60 seconds while the Pod starts. The respo
 }
 ```
 
-4. Observe the demo application scaling up from zero:
-
-```bash
-kubectl get pod -n demo-app -w
-NAME                         READY   STATUS            RESTARTS   AGE
-http-echo-677d479d69-sjd95   0/2     Pending           0          0s
-http-echo-677d479d69-sjd95   0/2     Init:0/2          0          1s
-http-echo-677d479d69-sjd95   0/2     PodInitializing   0          4s
-http-echo-677d479d69-sjd95   1/2     Running           0          5s
-http-echo-677d479d69-sjd95   2/2     Running           0          21s
-```
+While the request is being served, `http-echo` scales from zero to one replica:
 
 ```bash
 kubectl get hpa -n demo-app -w
@@ -136,19 +101,27 @@ keda-hpa-http-echo   Deployment/http-echo   <unknown>/10 (avg)   1         10   
 keda-hpa-http-echo   Deployment/http-echo   1/10 (avg)           1         10        1          6m30s
 ```
 
-Eventually, if there is no traffic, no Pods should be running after a configurable cooldown period:
+After traffic stops and the configurable cooldown period elapses, the application scales back to zero:
 
 ```bash
 kubectl get pod -n demo-app
 No resources found in demo-app namespace.
 ```
 
-## Clean Up
+## Cleanup
+
+Remove the demo namespace and disable the HTTP Add-on:
 
 ```bash
 kubectl delete namespace demo-app
-kubectl annotate keda default \
+kubectl annotate keda -n kyma-system default \
   keda.kyma-project.io/addon-enabled=false --overwrite
 ```
 
-This disables the HTTP Add-on and removes all its resources from the `keda` namespace. Other workloads in the namespace are not affected.
+This removes all add-on resources from the cluster. Other workloads in the add-on namespace are not affected.
+
+## Related Information
+
+- [KEDA HTTP Add-on](../../docs/user/07-10-http-add-on.md)
+- [HTTP Add-on Returns 503 Errors During Cold Start](../../docs/user/troubleshooting-guides/07-10-cold-start-503-errors.md)
+- [KEDA HTTP Add-on on GitHub](https://github.com/kedacore/http-add-on)
