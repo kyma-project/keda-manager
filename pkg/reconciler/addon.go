@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/addon"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,6 +42,12 @@ const (
 	istioSidecarInjectAnnotation       = "sidecar.istio.io/inject"
 	kymaModuleLabel                    = "kyma-project.io/module"
 	kymaModuleLabelValue               = "keda"
+
+	httpScaledObjectGroup   = "http.keda.sh"
+	httpScaledObjectVersion = "v1alpha1"
+	httpScaledObjectKind    = "HTTPScaledObject"
+
+	guardAddonInUseRequeue = 30 * time.Second
 )
 
 var namespaceEnvVars = map[string]struct{}{
@@ -224,9 +233,54 @@ func deleteObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured
 func sFnHandleAddon(_ context.Context, _ *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
 	cfg := v1alpha1.ReadAddonCfg(&s.instance)
 	if !cfg.Enabled {
-		return switchState(sFnDeleteAddon)
+		return switchState(sFnGuardAddonInUse)
 	}
 	return switchState(sFnApplyAddon)
+}
+
+// httpScaledObjectsInUse returns the number of HTTPScaledObjects on the
+// cluster. A missing CRD (NoKindMatchError / IsNotFound) returns (0, nil) —
+// there is nothing to block because the type doesn't exist. RBAC / API errors
+// are returned to the caller so they can surface a Warning and requeue.
+func httpScaledObjectsInUse(ctx context.Context, c client.Client) (int, error) {
+	list := &unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   httpScaledObjectGroup,
+		Version: httpScaledObjectVersion,
+		Kind:    httpScaledObjectKind + "List",
+	})
+	if err := c.List(ctx, list); err != nil {
+		if meta.IsNoMatchError(err) || apierrors.IsNotFound(err) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("list HTTPScaledObjects: %w", err)
+	}
+	return len(list.Items), nil
+}
+
+// sFnGuardAddonInUse blocks the disable path of the HTTP add-on while at least
+// one HTTPScaledObject exists on the cluster. The user must remove their
+// HTTPScaledObjects before the add-on can be uninstalled — otherwise removing
+// the CRD would leave orphaned resources of an unknown type.
+func sFnGuardAddonInUse(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+	count, err := httpScaledObjectsInUse(ctx, r.Client)
+	if err != nil {
+		msg := fmt.Sprintf("Cannot verify HTTPScaledObject usage: %v", err)
+		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse,
+			v1alpha1.ConditionReasonAddonInUse, msg)
+		s.instance.Status.State = v1alpha1.StateWarning
+		return stopWithRequeueAfter(guardAddonInUseRequeue)
+	}
+	if count == 0 {
+		return switchState(sFnDeleteAddon)
+	}
+	msg := fmt.Sprintf(
+		"%d HTTPScaledObject(s) still exist on the cluster; delete them before disabling the HTTP add-on",
+		count)
+	v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse,
+		v1alpha1.ConditionReasonAddonInUse, msg)
+	s.instance.Status.State = v1alpha1.StateWarning
+	return stopWithRequeueAfter(guardAddonInUseRequeue)
 }
 
 func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {

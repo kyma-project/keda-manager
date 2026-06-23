@@ -65,6 +65,21 @@ kubectl annotate keda -n kyma-system default \
 
 This removes all add-on resources from the cluster. Only the resources managed by the HTTP Add-on are removed. Other workloads in the namespace are not affected.
 
+### Uninstall Protection
+
+The Keda Manager refuses to disable or uninstall the HTTP Add-on while any `HTTPScaledObject` resources exist on the cluster. This protects user workloads from losing their scaling controller and ending up with orphaned resources after the CRD is removed.
+
+If you try to disable the add-on or delete the Keda module CR while HTTPScaledObjects exist, the Keda CR's `Status.State` flips to `Warning` and the `Addon` condition is set to `False` with reason `HTTPAddonInUse`. The message tells you how many HTTPScaledObjects are blocking the uninstall.
+
+To find and remove them:
+
+```bash
+kubectl get httpscaledobjects -A
+kubectl delete httpscaledobject -n <namespace> <name>
+```
+
+Once all HTTPScaledObjects are gone, the Keda Manager retries automatically within about 30 seconds.
+
 ## Configuring the HTTP Add-on
 
 The HTTP Add-on components are configured using environment variables on their Deployments. You can customize them by patching the respective Deployment after installation.
