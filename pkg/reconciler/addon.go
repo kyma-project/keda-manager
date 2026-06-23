@@ -106,23 +106,28 @@ func patchDeploymentIstioSidecarAnnotation(obj *unstructured.Unstructured, value
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
 }
 
-// patchDeploymentPodTemplateLabels stamps the standard Kyma module labels on
+// patchDeploymentPodTemplateLabels stamps `kyma-project.io/module=keda` on
 // the Deployment's pod template so add-on Pods (interceptor, operator, scaler)
-// are discoverable via the same label selectors as the rest of the Keda module.
+// are discoverable via the standard Kyma module label selector.
+//
+// We intentionally do NOT stamp the full `setCommonLabels` set here: the
+// upstream http-add-on manifest declares immutable `spec.selector.matchLabels`
+// entries that include keys like `app.kubernetes.io/part-of: keda`. Adding our
+// own `app.kubernetes.io/part-of: keda-manager` to the pod template would
+// overwrite the value and break the selector→template invariant, which the
+// API server rejects with "selector does not match template labels". The full
+// label set still lands on the top-level Deployment/Service/SA metadata via
+// applyCommonMetadataLabels — only the pod template is scoped to the single
+// Kyma module label.
 func patchDeploymentPodTemplateLabels(obj *unstructured.Unstructured) {
 	labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	before := len(labels)
-	labels = setCommonLabels(labels)
-	// Skip the write when nothing changed and the keys were already present.
-	if len(labels) == before &&
-		labels[kymaModuleLabel] == kymaModuleLabelValue &&
-		labels["app.kubernetes.io/part-of"] == "keda-manager" &&
-		labels["app.kubernetes.io/managed-by"] == "keda-manager" {
+	if labels[kymaModuleLabel] == kymaModuleLabelValue {
 		return
 	}
+	labels[kymaModuleLabel] = kymaModuleLabelValue
 	_ = unstructured.SetNestedStringMap(obj.Object, labels, "spec", "template", "metadata", "labels")
 }
 
