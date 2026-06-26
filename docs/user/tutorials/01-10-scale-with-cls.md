@@ -9,23 +9,21 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 ## Prerequisites
 
 - The Keda, Telemetry, and BTP Operator modules are enabled in your Kyma cluster. See [Enable and Disable a Kyma Module](https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US).
-- Your subaccount has an entitlement for Cloud Logging Service. See [Configure Entitlements and Quotas for Subaccounts](https://help.sap.com/docs/btp/sap-business-technology-platform/configure-entitlements-and-quotas-for-subaccounts).
+- Your subaccount has an entitlement for Cloud Logging Service with the `standard` plan. See [Configure Entitlements and Quotas for Subaccounts](https://help.sap.com/docs/btp/sap-business-technology-platform/configure-entitlements-and-quotas-for-subaccounts).
 - `kubectl` is installed and configured to access your Kyma cluster.
 
 ## Steps
 
 ### Create a CLS Service Instance and Binding
 
-1. Create a namespace for CLS resources:
+1. Create a namespace for CLS resources and a `ServiceInstance` for Cloud Logging:
 
     ```bash
     kubectl create namespace cls
     ```
 
-2. Create a `ServiceInstance` for Cloud Logging:
-
     ```bash
-    cat <<EOF | kubectl apply -f -
+    kubectl apply -f - <<EOF
     apiVersion: services.cloud.sap.com/v1
     kind: ServiceInstance
     metadata:
@@ -33,11 +31,11 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
       namespace: cls
     spec:
       serviceOfferingName: cloud-logging
-      servicePlanName: dev
+      servicePlanName: standard
     EOF
     ```
 
-3. Wait until the instance is ready:
+2. Wait until the instance is ready:
 
     ```bash
     kubectl get serviceinstance cloud-logging -n cls -w
@@ -46,14 +44,14 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
     You should get a result similar to this example:
 
     ```bash
-    NAME             OFFERING        PLAN   STATE   AGE
-    cloud-logging    cloud-logging   dev    Ready   2m
+    NAME             OFFERING        PLAN       STATE    AGE
+    cloud-logging    cloud-logging   standard   Ready    2m
     ```
 
-4. Create a `ServiceBinding` to generate the credentials secret:
+3. Create a `ServiceBinding` to generate the credentials secret:
 
     ```bash
-    cat <<EOF | kubectl apply -f -
+    kubectl apply -f - <<EOF
     apiVersion: services.cloud.sap.com/v1
     kind: ServiceBinding
     metadata:
@@ -64,10 +62,22 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
     EOF
     ```
 
-5. Verify that the binding secret was created:
+4. Verify that the binding secret was created:
 
     ```bash
     kubectl get secret cloud-logging-binding -n cls
+    ```
+
+5. Create a separate secret with the OTLP endpoint for Telemetry. The standard binding secret provides `ingest-mtls-*` credentials, but Telemetry requires the OTLP endpoint which uses a different subdomain. Derive the OTLP endpoint from the mTLS endpoint and store it together with the mTLS certificates:
+
+    ```bash
+    CLS_OTLP_ENDPOINT=$(kubectl get secret cloud-logging-binding -n cls \
+      -o jsonpath='{.data.ingest-mtls-endpoint}' | base64 -d | sed 's/ingest-mtls/ingest-otlp/')
+
+    kubectl create secret generic cloud-logging-otlp -n cls \
+      --from-literal=ingest-otlp-endpoint="${CLS_OTLP_ENDPOINT}:443" \
+      --from-file=ingest-otlp-cert=<(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-mtls-cert}' | base64 -d) \
+      --from-file=ingest-otlp-key=<(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-mtls-key}' | base64 -d)
     ```
 
 ### Deploy the Demo Application
@@ -76,10 +86,10 @@ The demo application exposes a Prometheus-format `queue_depth` gauge metric at t
 
 The `QUEUE_DEPTH` value is set by an init container at pod startup. To change the value, update the env var and restart the Pod.
 
-1. Deploy the demo application:
+1. Save the demo application manifest to a file and apply it:
 
     ```bash
-    cat <<EOF | kubectl apply -f -
+    cat > /tmp/demo-app.yaml << 'EOF'
     apiVersion: v1
     kind: Namespace
     metadata:
@@ -195,6 +205,8 @@ The `QUEUE_DEPTH` value is set by an init container at pod startup. To change th
         targetPort: 8080
       type: ClusterIP
     EOF
+
+    kubectl apply -f /tmp/demo-app.yaml
     ```
 
 2. Verify that the Pod is running:
@@ -229,14 +241,10 @@ The `QUEUE_DEPTH` value is set by an init container at pod startup. To change th
 
 The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The Prometheus scraping annotations are already included in the demo application manifest.
 
-Create a `MetricPipeline` resource that sends the scraped metrics to CLS. The pipeline uses mTLS authentication with credentials stored in the CLS service binding secret in the `cls` namespace.
-
-The CLS binding secret does not include a port in the endpoint value, so you must append `:443` manually. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
+Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP secret created in the previous step:
 
 ```bash
-export CLS_MTLS_ENDPOINT=$(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.ingest-mtls-endpoint}' | base64 -d)
-
-cat <<EOF | kubectl apply -f -
+kubectl apply -f - <<EOF
 apiVersion: telemetry.kyma-project.io/v1beta1
 kind: MetricPipeline
 metadata:
@@ -252,23 +260,29 @@ spec:
       enabled: false
     runtime:
       enabled: false
+    otlp:
+      enabled: true
   output:
     otlp:
       endpoint:
-        value: "${CLS_MTLS_ENDPOINT}:443"
+        valueFrom:
+          secretKeyRef:
+            name: cloud-logging-otlp
+            namespace: cls
+            key: ingest-otlp-endpoint
       tls:
         cert:
           valueFrom:
             secretKeyRef:
-              name: <CLS-BINDING-SECRET>
+              name: cloud-logging-otlp
               namespace: cls
-              key: ingest-mtls-cert
+              key: ingest-otlp-cert
         key:
           valueFrom:
             secretKeyRef:
-              name: <CLS-BINDING-SECRET>
+              name: cloud-logging-otlp
               namespace: cls
-              key: ingest-mtls-key
+              key: ingest-otlp-key
 EOF
 ```
 
@@ -287,12 +301,12 @@ cls-metric-pipeline   True                      True              True          
 
 In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
 
-1. Get the Dashboards URL and credentials from the CLS binding secret. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
+1. Get the Dashboards URL and credentials from the CLS binding secret:
 
     ```bash
-    echo "URL: https://$(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
-    echo "Username: $(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-username}' | base64 -d)"
-    echo "Password: $(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-password}' | base64 -d)"
+    echo "URL: https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
+    echo "Username: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-username}' | base64 -d)"
+    echo "Password: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-password}' | base64 -d)"
     ```
 
 2. Open the URL in your browser and log in with the credentials.
@@ -311,19 +325,19 @@ The credentials are available in the CLS service binding secret. The following k
 | `ingest-username` | Username for OpenSearch authentication |
 | `ingest-password` | Password for OpenSearch authentication |
 
-1. Create a `Secret` with your CLS OpenSearch credentials. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
+1. Create a `Secret` with your CLS OpenSearch credentials:
 
     ```bash
     kubectl create secret generic cls-keda-auth \
-      --from-literal=username=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-username}' | base64 -d) \
-      --from-literal=password=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-password}' | base64 -d) \
+      --from-literal=username=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-username}' | base64 -d) \
+      --from-literal=password=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-password}' | base64 -d) \
       -n keda-cls-demo
     ```
 
 2. Create a `TriggerAuthentication` that references the secret:
 
     ```bash
-    cat <<EOF | kubectl apply -f -
+    kubectl apply -f - <<EOF
     apiVersion: keda.sh/v1alpha1
     kind: TriggerAuthentication
     metadata:
@@ -344,17 +358,17 @@ The credentials are available in the CLS service binding secret. The following k
 
 The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
 
-1. Export the OpenSearch endpoint from your CLS service binding secret. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
+1. Export the OpenSearch endpoint from your CLS service binding secret:
 
     ```bash
-    export CLS_OPENSEARCH_ENDPOINT=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-endpoint}' | base64 -d)
-    export CLS_OPENSEARCH_USERNAME=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-username}' | base64 -d)
+    export CLS_OPENSEARCH_ENDPOINT=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-endpoint}' | base64 -d)
+    export CLS_OPENSEARCH_USERNAME=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-username}' | base64 -d)
     ```
 
 2. Create the `ScaledObject`:
 
     ```bash
-    cat <<EOF | kubectl apply -f -
+    cat > /tmp/scaled-object.yaml << EOF
     apiVersion: keda.sh/v1alpha1
     kind: ScaledObject
     metadata:
@@ -393,12 +407,14 @@ The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value an
           authenticationRef:
             name: cls-trigger-auth
     EOF
+
+    kubectl apply -f /tmp/scaled-object.yaml
     ```
 
     > [!NOTE]
     > The `targetValue` of `10` means KEDA targets one replica per 10 units of `queue_depth`. With a `queue_depth` of 42, KEDA targets 5 replicas (`ceil(42/10)`).
 
-2. Verify that KEDA has picked up the scaler:
+3. Verify that KEDA has picked up the scaler:
 
     ```bash
     kubectl get scaledobject cls-queue-depth-scaler -n keda-cls-demo
@@ -461,4 +477,8 @@ Remove all resources created during this tutorial:
 ```bash
 kubectl delete namespace keda-cls-demo
 kubectl delete metricpipeline cls-metric-pipeline
+kubectl delete secret cloud-logging-otlp -n cls
+kubectl delete servicebinding cloud-logging-binding -n cls
+kubectl delete serviceinstance cloud-logging -n cls
+kubectl delete namespace cls
 ```
