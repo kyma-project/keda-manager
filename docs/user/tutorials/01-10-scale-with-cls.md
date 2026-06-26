@@ -4,33 +4,200 @@ This tutorial shows how to configure KEDA to autoscale a Kubernetes workload usi
 
 SAP BTP Cloud Logging Service is a managed observability backend built on OpenSearch. When your application metrics already flow into CLS through the Kyma Telemetry module, you can use those metrics as autoscaling signals without running a separate metrics store.
 
-KEDA's Elasticsearch scaler is compatible with OpenSearch and can query CLS directly. This tutorial walks you through the full setup: from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a `ScaledObject` that scales the workload based on that metric.
+KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial walks you through the full setup: from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a `ScaledObject` that scales the workload based on that metric.
 
 ## Prerequisites
 
-- The Keda and Telemetry modules are enabled in your Kyma cluster. See [Enable and Disable a Kyma Module](https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US).
-- An SAP BTP Cloud Logging Service instance is connected to your Kyma cluster. See [Integrate with SAP Cloud Logging](https://help.sap.com/docs/btp/sap-business-technology-platform/integrate-with-sap-cloud-logging).
+- The Keda, Telemetry, and BTP Operator modules are enabled in your Kyma cluster. See [Enable and Disable a Kyma Module](https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US).
+- Your subaccount has an entitlement for Cloud Logging Service. See [Configure Entitlements and Quotas for Subaccounts](https://help.sap.com/docs/btp/sap-business-technology-platform/configure-entitlements-and-quotas-for-subaccounts).
 - `kubectl` is installed and configured to access your Kyma cluster.
 
 ## Steps
 
+### Create a CLS Service Instance and Binding
+
+1. Create a namespace for CLS resources:
+
+    ```bash
+    kubectl create namespace cls
+    ```
+
+2. Create a `ServiceInstance` for Cloud Logging:
+
+    ```bash
+    cat <<EOF | kubectl apply -f -
+    apiVersion: services.cloud.sap.com/v1
+    kind: ServiceInstance
+    metadata:
+      name: cloud-logging
+      namespace: cls
+    spec:
+      serviceOfferingName: cloud-logging
+      servicePlanName: dev
+    EOF
+    ```
+
+3. Wait until the instance is ready:
+
+    ```bash
+    kubectl get serviceinstance cloud-logging -n cls -w
+    ```
+
+    You should get a result similar to this example:
+
+    ```bash
+    NAME             OFFERING        PLAN   STATE   AGE
+    cloud-logging    cloud-logging   dev    Ready   2m
+    ```
+
+4. Create a `ServiceBinding` to generate the credentials secret:
+
+    ```bash
+    cat <<EOF | kubectl apply -f -
+    apiVersion: services.cloud.sap.com/v1
+    kind: ServiceBinding
+    metadata:
+      name: cloud-logging-binding
+      namespace: cls
+    spec:
+      serviceInstanceName: cloud-logging
+    EOF
+    ```
+
+5. Verify that the binding secret was created:
+
+    ```bash
+    kubectl get secret cloud-logging-binding -n cls
+    ```
+
 ### Deploy the Demo Application
 
-The demo application exposes a Prometheus-format `queue_depth` gauge metric. KEDA uses this value — as stored in CLS — to determine the desired replica count.
+The demo application exposes a Prometheus-format `queue_depth` gauge metric at the `/metrics` endpoint. KEDA uses this value — as stored in CLS — to determine the desired replica count.
 
-1. Create a namespace for the demo:
+The `QUEUE_DEPTH` value is set by an init container at pod startup. To change the value, update the env var and restart the Pod.
 
-    ```bash
-    kubectl create namespace keda-cls-demo
-    ```
-
-2. Apply the demo application resources:
+1. Deploy the demo application:
 
     ```bash
-    kubectl apply -f https://raw.githubusercontent.com/kyma-project/keda-manager/main/examples/cls-scaler/k8s-resources/demo-app.yaml -n keda-cls-demo
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: keda-cls-demo
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: fake-metrics-nginx-config
+      namespace: keda-cls-demo
+    data:
+      default.conf.template: |
+        server {
+            listen 8080;
+            root /usr/share/nginx/html;
+
+            location /metrics {
+                default_type "text/plain; version=0.0.4; charset=utf-8";
+                try_files /metrics.txt =404;
+            }
+
+            location /health {
+                default_type text/plain;
+                return 200 "OK";
+            }
+
+            location / {
+                return 404;
+            }
+        }
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: fake-metrics
+      namespace: keda-cls-demo
+      labels:
+        app: fake-metrics
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: fake-metrics
+      template:
+        metadata:
+          labels:
+            app: fake-metrics
+        spec:
+          initContainers:
+          - name: generate-metrics
+            image: busybox:1.36
+            command:
+            - sh
+            - -c
+            - printf '# HELP queue_depth The current depth of the queue\n# TYPE queue_depth gauge\nqueue_depth %d\n' "$QUEUE_DEPTH" > /data/metrics.txt
+            env:
+            - name: QUEUE_DEPTH
+              value: "10"
+            volumeMounts:
+            - name: metrics-data
+              mountPath: /data
+          containers:
+          - name: fake-metrics
+            image: nginx:alpine
+            ports:
+            - containerPort: 8080
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "100m"
+              limits:
+                memory: "128Mi"
+                cpu: "200m"
+            volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/templates
+            - name: metrics-data
+              mountPath: /usr/share/nginx/html
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 5
+          volumes:
+          - name: nginx-config
+            configMap:
+              name: fake-metrics-nginx-config
+          - name: metrics-data
+            emptyDir: {}
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: fake-metrics
+      namespace: keda-cls-demo
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      selector:
+        app: fake-metrics
+      ports:
+      - port: 8080
+        protocol: TCP
+        targetPort: 8080
+      type: ClusterIP
+    EOF
     ```
 
-3. Verify that the Pod is running:
+2. Verify that the Pod is running:
 
     ```bash
     kubectl get pods -n keda-cls-demo
@@ -39,106 +206,117 @@ The demo application exposes a Prometheus-format `queue_depth` gauge metric. KED
     You should get a result similar to this example:
 
     ```bash
-    NAME                        READY   STATUS    RESTARTS   AGE
-    demo-app-<hash>             1/1     Running   0          30s
+    NAME                           READY   STATUS    RESTARTS   AGE
+    fake-metrics-<hash>            1/1     Running   0          30s
     ```
 
-4. Confirm the `/metrics` endpoint is reachable:
+3. Confirm the `/metrics` endpoint is reachable:
 
     ```bash
-    kubectl port-forward -n keda-cls-demo deploy/demo-app 8080:8080 &
-    curl http://localhost:8080/metrics | grep queue_depth
+    kubectl run curl-test --image=curlimages/curl --rm -it --restart=Never --quiet \
+      -- curl -s http://fake-metrics.keda-cls-demo.svc.cluster.local:8080/metrics
     ```
 
     You should get a result similar to this example:
 
     ```bash
-    # HELP queue_depth Simulated queue depth metric
+    # HELP queue_depth The current depth of the queue
     # TYPE queue_depth gauge
-    queue_depth 42
+    queue_depth 10
     ```
 
-### Configure the Telemetry Module to Scrape and Forward Metrics
+### Configure the Telemetry Module to Forward Metrics to CLS
 
-The Kyma Telemetry module collects Prometheus metrics from annotated Pods and forwards them to your CLS instance.
+The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The Prometheus scraping annotations are already included in the demo application manifest.
 
-1. Annotate the demo application's Pod template so that the Telemetry module discovers it:
+Create a `MetricPipeline` resource that sends the scraped metrics to CLS. The pipeline uses mTLS authentication with credentials stored in the CLS service binding secret in the `cls` namespace.
+
+The CLS binding secret does not include a port in the endpoint value, so you must append `:443` manually. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
+
+```bash
+export CLS_MTLS_ENDPOINT=$(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.ingest-mtls-endpoint}' | base64 -d)
+
+cat <<EOF | kubectl apply -f -
+apiVersion: telemetry.kyma-project.io/v1beta1
+kind: MetricPipeline
+metadata:
+  name: cls-metric-pipeline
+spec:
+  input:
+    prometheus:
+      enabled: true
+      namespaces:
+        include:
+          - keda-cls-demo
+    istio:
+      enabled: false
+    runtime:
+      enabled: false
+  output:
+    otlp:
+      endpoint:
+        value: "${CLS_MTLS_ENDPOINT}:443"
+      tls:
+        cert:
+          valueFrom:
+            secretKeyRef:
+              name: <CLS-BINDING-SECRET>
+              namespace: cls
+              key: ingest-mtls-cert
+        key:
+          valueFrom:
+            secretKeyRef:
+              name: <CLS-BINDING-SECRET>
+              namespace: cls
+              key: ingest-mtls-key
+EOF
+```
+
+Verify the pipeline is ready:
+
+```bash
+kubectl get metricpipeline cls-metric-pipeline
+```
+
+You should get a result similar to this example:
+
+```bash
+NAME                  CONFIGURATION GENERATED   GATEWAY HEALTHY   AGENT HEALTHY   FLOW HEALTHY   AGE
+cls-metric-pipeline   True                      True              True            True           2m
+```
+
+In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
+
+1. Get the Dashboards URL and credentials from the CLS binding secret. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
 
     ```bash
-    kubectl patch deployment demo-app -n keda-cls-demo --type=merge -p '{
-      "spec": {
-        "template": {
-          "metadata": {
-            "annotations": {
-              "prometheus.io/scrape": "true",
-              "prometheus.io/port": "8080",
-              "prometheus.io/path": "/metrics"
-            }
-          }
-        }
-      }
-    }'
+    echo "URL: https://$(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
+    echo "Username: $(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-username}' | base64 -d)"
+    echo "Password: $(kubectl get secret <CLS-BINDING-SECRET> -n cls -o jsonpath='{.data.dashboards-password}' | base64 -d)"
     ```
 
-2. Create a `MetricPipeline` resource that sends the scraped metrics to your CLS instance. Replace `<CLS-ENDPOINT>`, `<CLS-SECRET-NAME>`, and the secret key names with values from your CLS service binding:
+2. Open the URL in your browser and log in with the credentials.
 
-    ```bash
-    cat <<EOF | kubectl apply -f -
-    apiVersion: telemetry.kyma-project.io/v1alpha1
-    kind: MetricPipeline
-    metadata:
-      name: cls-metric-pipeline
-    spec:
-      input:
-        prometheus:
-          enabled: true
-          namespaces:
-            include:
-              - keda-cls-demo
-      output:
-        otlp:
-          endpoint:
-            value: <CLS-ENDPOINT>
-          auth:
-            basic:
-              user:
-                valueFrom:
-                  secretKeyRef:
-                    name: <CLS-SECRET-NAME>
-                    key: username
-              password:
-                valueFrom:
-                  secretKeyRef:
-                    name: <CLS-SECRET-NAME>
-                    key: password
-    EOF
-    ```
-
-3. Verify the pipeline is ready:
-
-    ```bash
-    kubectl get metricpipeline cls-metric-pipeline
-    ```
-
-    You should get a result similar to this example:
-
-    ```bash
-    NAME                   HEALTHY
-    cls-metric-pipeline    True
-    ```
-
-4. In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving. Use the **Discover** view and filter for documents with a `metric.name` of `queue_depth`.
+3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1–2 minutes after the MetricPipeline becomes healthy.
 
 ### Create a KEDA TriggerAuthentication for CLS
 
-KEDA must authenticate with CLS to run OpenSearch queries. Store the CLS credentials in a Kubernetes `Secret` and reference them from a `TriggerAuthentication`.
+KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store the CLS credentials in a Kubernetes `Secret` and reference them from a `TriggerAuthentication`.
 
-1. Create a `Secret` with your CLS credentials. Replace the placeholder values with the actual credentials from your CLS service binding:
+The credentials are available in the CLS service binding secret. The following keys are used:
+
+| Key | Description |
+|---|---|
+| `ingest-endpoint` | OpenSearch REST API endpoint |
+| `ingest-username` | Username for OpenSearch authentication |
+| `ingest-password` | Password for OpenSearch authentication |
+
+1. Create a `Secret` with your CLS OpenSearch credentials. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
 
     ```bash
     kubectl create secret generic cls-keda-auth \
-      --from-literal=username=<CLS-USERNAME> \
-      --from-literal=password=<CLS-PASSWORD> \
+      --from-literal=username=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-username}' | base64 -d) \
+      --from-literal=password=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-password}' | base64 -d) \
       -n keda-cls-demo
     ```
 
@@ -164,36 +342,16 @@ KEDA must authenticate with CLS to run OpenSearch queries. Store the CLS credent
 
 ### Create the ScaledObject
 
-The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scale the demo application accordingly.
+The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
 
-1. Register a stored search template in CLS. Run the following request using the OpenSearch REST API or Dashboards Dev Tools, replacing `<CLS-OPENSEARCH-ENDPOINT>`, `<CLS-USERNAME>`, and `<CLS-PASSWORD>` with your CLS credentials:
+1. Export the OpenSearch endpoint from your CLS service binding secret. Replace `<CLS-BINDING-SECRET>` with the name of your CLS service binding secret:
 
     ```bash
-    curl -X PUT "<CLS-OPENSEARCH-ENDPOINT>/_scripts/queue-depth-query" \
-      -u "<CLS-USERNAME>:<CLS-PASSWORD>" \
-      -H "Content-Type: application/json" -d '{
-        "script": {
-          "lang": "mustache",
-          "source": {
-            "query": {
-              "bool": {
-                "filter": [
-                  { "term": { "metric.name": "queue_depth" } },
-                  { "range": { "@timestamp": { "gte": "now-1m" } } }
-                ]
-              }
-            },
-            "aggs": {
-              "latest_value": {
-                "max": { "field": "metric.value" }
-              }
-            }
-          }
-        }
-      }'
+    export CLS_OPENSEARCH_ENDPOINT=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-endpoint}' | base64 -d)
+    export CLS_OPENSEARCH_USERNAME=$(kubectl get secret <CLS-BINDING-SECRET> -o jsonpath='{.data.ingest-username}' | base64 -d)
     ```
 
-2. Create the `ScaledObject`. Replace `<CLS-OPENSEARCH-ENDPOINT>` with the OpenSearch REST endpoint of your CLS instance:
+2. Create the `ScaledObject`:
 
     ```bash
     cat <<EOF | kubectl apply -f -
@@ -204,16 +362,33 @@ The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scal
       namespace: keda-cls-demo
     spec:
       scaleTargetRef:
-        name: demo-app
+        name: fake-metrics
       minReplicaCount: 1
       maxReplicaCount: 10
       triggers:
-        - type: elasticsearch
+        - type: opensearch
           metadata:
-            addresses: "<CLS-OPENSEARCH-ENDPOINT>"
-            index: "metrics-*"
-            searchTemplateName: "queue-depth-query"
-            valueLocation: "hits.total.value"
+            addresses: "${CLS_OPENSEARCH_ENDPOINT}"
+            username: "${CLS_OPENSEARCH_USERNAME}"
+            index: "metrics-otel-v1-*"
+            query: |
+              {
+                "size": 0,
+                "query": {
+                  "bool": {
+                    "filter": [
+                      { "term": { "name": "queue_depth" } },
+                      { "range": { "time": { "gte": "now-1m" } } }
+                    ]
+                  }
+                },
+                "aggs": {
+                  "latest_value": {
+                    "max": { "field": "value" }
+                  }
+                }
+              }
+            valueLocation: "aggregations.latest_value.value"
             targetValue: "10"
           authenticationRef:
             name: cls-trigger-auth
@@ -221,9 +396,9 @@ The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scal
     ```
 
     > [!NOTE]
-    > KEDA's `elasticsearch` scaler is compatible with OpenSearch. The `targetValue` of `10` means KEDA targets one replica per 10 units of `queue_depth`. With a `queue_depth` of 42, KEDA targets 5 replicas (`ceil(42/10)`).
+    > The `targetValue` of `10` means KEDA targets one replica per 10 units of `queue_depth`. With a `queue_depth` of 42, KEDA targets 5 replicas (`ceil(42/10)`).
 
-3. Verify that KEDA has picked up the scaler:
+2. Verify that KEDA has picked up the scaler:
 
     ```bash
     kubectl get scaledobject cls-queue-depth-scaler -n keda-cls-demo
@@ -232,8 +407,8 @@ The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scal
     You should get a result similar to this example:
 
     ```bash
-    NAME                     SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   TRIGGERS       READY   ACTIVE
-    cls-queue-depth-scaler   apps/v1.Deployment   demo-app          1     10    elasticsearch  True    True
+    NAME                     SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   TRIGGERS     READY   ACTIVE
+    cls-queue-depth-scaler   apps/v1.Deployment   fake-metrics      1     10    opensearch   True    True
     ```
 
 ### Observe Autoscaling in Action
@@ -247,14 +422,15 @@ The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scal
     You should get a result similar to this example:
 
     ```bash
-    NAME                              REFERENCE             TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-    keda-hpa-cls-queue-depth-scaler   Deployment/demo-app   42/10     1         10        5          2m
+    NAME                              REFERENCE                    TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+    keda-hpa-cls-queue-depth-scaler   Deployment/fake-metrics      10/10     1         10        1          2m
     ```
 
-2. Simulate a metric spike by updating the `QUEUE_DEPTH` environment variable in the demo app:
+2. Simulate a metric spike by updating the `QUEUE_DEPTH` environment variable and restarting the Pod:
 
     ```bash
-    kubectl set env deployment/demo-app QUEUE_DEPTH=80 -n keda-cls-demo
+    kubectl set env deployment/fake-metrics QUEUE_DEPTH=80 -n keda-cls-demo
+    kubectl rollout restart deployment/fake-metrics -n keda-cls-demo
     ```
 
     After the next Telemetry scrape and CLS ingestion cycle (typically within 1–2 minutes), KEDA queries CLS and adjusts the replica count.
@@ -268,7 +444,8 @@ The `ScaledObject` tells KEDA to query CLS for the `queue_depth` metric and scal
 4. Set the metric back to a lower value to observe scale-down:
 
     ```bash
-    kubectl set env deployment/demo-app QUEUE_DEPTH=5 -n keda-cls-demo
+    kubectl set env deployment/fake-metrics QUEUE_DEPTH=5 -n keda-cls-demo
+    kubectl rollout restart deployment/fake-metrics -n keda-cls-demo
     ```
 
     After the cooldown period, the replica count returns to the minimum of 1.
