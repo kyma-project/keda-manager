@@ -104,6 +104,11 @@ func TestOverrideNamespace(t *testing.T) {
 		}}}
 		overrideNamespace(objs, "new-ns", false)
 		require.Equal(t, "new-ns", objs[0].GetNamespace())
+		// Top-level Service metadata gets the standard Kyma module labels.
+		labels := objs[0].GetLabels()
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+		require.Equal(t, "keda-manager", labels["app.kubernetes.io/part-of"])
+		require.Equal(t, "keda-manager", labels["app.kubernetes.io/managed-by"])
 	})
 	t.Run("skips cluster-scoped resources", func(t *testing.T) {
 		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
@@ -112,6 +117,8 @@ func TestOverrideNamespace(t *testing.T) {
 		}}}
 		overrideNamespace(objs, "new-ns", false)
 		require.Empty(t, objs[0].GetNamespace())
+		// Cluster-scoped resources still get the standard module labels.
+		require.Equal(t, kymaModuleLabelValue, objs[0].GetLabels()[kymaModuleLabel])
 	})
 	t.Run("patches ClusterRoleBinding subjects", func(t *testing.T) {
 		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
@@ -149,6 +156,19 @@ func TestOverrideNamespace(t *testing.T) {
 		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, "9090", ann[istioExcludeInboundPortsAnnotation])
 		require.Equal(t, "true", ann[istioSidecarInjectAnnotation])
+
+		// Top-level Deployment metadata gets the standard module labels.
+		topLabels := objs[0].GetLabels()
+		require.Equal(t, kymaModuleLabelValue, topLabels[kymaModuleLabel])
+		require.Equal(t, "keda-manager", topLabels["app.kubernetes.io/part-of"])
+		require.Equal(t, "keda-manager", topLabels["app.kubernetes.io/managed-by"])
+
+		// Pod template gets only the Kyma module label — we must not overwrite
+		// upstream selector keys like app.kubernetes.io/part-of on the template.
+		podLabels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, kymaModuleLabelValue, podLabels[kymaModuleLabel])
+		require.NotContains(t, podLabels, "app.kubernetes.io/part-of")
+		require.NotContains(t, podLabels, "app.kubernetes.io/managed-by")
 	})
 	t.Run("sets sidecar inject false annotation when istio disabled", func(t *testing.T) {
 		objs := []unstructured.Unstructured{{Object: map[string]interface{}{
@@ -172,6 +192,13 @@ func TestOverrideNamespace(t *testing.T) {
 		ann, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "annotations")
 		require.Empty(t, ann[istioExcludeInboundPortsAnnotation])
 		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
+
+		// Module label lands on top-level (full set) and on pod template (only kyma-project.io/module).
+		require.Equal(t, kymaModuleLabelValue, objs[0].GetLabels()[kymaModuleLabel])
+		podLabels, _, _ := unstructured.NestedStringMap(objs[0].Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, kymaModuleLabelValue, podLabels[kymaModuleLabel])
+		require.NotContains(t, podLabels, "app.kubernetes.io/part-of")
+		require.NotContains(t, podLabels, "app.kubernetes.io/managed-by")
 	})
 }
 
@@ -257,6 +284,122 @@ func TestPatchDeploymentIstioSidecarAnnotation(t *testing.T) {
 		ann, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "annotations")
 		require.Equal(t, "false", ann[istioSidecarInjectAnnotation])
 		require.Equal(t, "value", ann["existing"])
+	})
+}
+
+func TestPatchDeploymentPodTemplateLabels(t *testing.T) {
+	t.Run("adds kyma module label when missing", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec":     map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{}}},
+		}}
+		patchDeploymentPodTemplateLabels(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+		// Pod template MUST NOT receive the part-of/managed-by labels — those
+		// would overwrite immutable selector keys on upstream Deployments.
+		require.NotContains(t, labels, "app.kubernetes.io/part-of")
+		require.NotContains(t, labels, "app.kubernetes.io/managed-by")
+	})
+	t.Run("no-op when already set", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
+				"labels": map[string]interface{}{
+					kymaModuleLabel: kymaModuleLabelValue,
+				},
+			}}},
+		}}
+		patchDeploymentPodTemplateLabels(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+	})
+	t.Run("preserves existing labels and does not touch part-of", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"metadata": map[string]interface{}{
+				"labels": map[string]interface{}{
+					"app":                       "interceptor",
+					"app.kubernetes.io/part-of": "keda",
+				},
+			}}},
+		}}
+		patchDeploymentPodTemplateLabels(obj)
+		labels, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+		require.Equal(t, "interceptor", labels["app"])
+		// Critically, part-of stays at the upstream value, NOT "keda-manager".
+		require.Equal(t, "keda", labels["app.kubernetes.io/part-of"])
+	})
+	t.Run("template.labels stays consistent with upstream selector.matchLabels", func(t *testing.T) {
+		// Regression for the http-add-on Deployment: spec.selector.matchLabels
+		// is immutable and includes app.kubernetes.io/part-of: keda. The
+		// API server rejects the apply if our patch changes template.labels
+		// in a way that breaks selector == template invariant.
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "keda-add-ons-http-operator"},
+			"spec": map[string]interface{}{
+				"selector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"app.kubernetes.io/component": "add-on",
+						"app.kubernetes.io/instance":  "operator",
+						"app.kubernetes.io/name":      "http",
+						"app.kubernetes.io/part-of":   "keda",
+					},
+				},
+				"template": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"app.kubernetes.io/component": "add-on",
+							"app.kubernetes.io/instance":  "operator",
+							"app.kubernetes.io/name":      "http",
+							"app.kubernetes.io/part-of":   "keda",
+						},
+					},
+				},
+			},
+		}}
+		patchDeploymentPodTemplateLabels(obj)
+
+		selector, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "selector", "matchLabels")
+		template, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "template", "metadata", "labels")
+		for k, v := range selector {
+			require.Equal(t, v, template[k],
+				"template.labels[%q] must equal selector.matchLabels[%q]; the API server otherwise rejects the Deployment", k, k)
+		}
+		// And we did add our marker.
+		require.Equal(t, kymaModuleLabelValue, template[kymaModuleLabel])
+	})
+}
+
+func TestApplyCommonMetadataLabels(t *testing.T) {
+	t.Run("adds labels when metadata has none", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "v1", "kind": "Service",
+			"metadata": map[string]interface{}{"name": "svc"},
+		}}
+		applyCommonMetadataLabels(obj)
+		labels := obj.GetLabels()
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+		require.Equal(t, "keda-manager", labels["app.kubernetes.io/part-of"])
+		require.Equal(t, "keda-manager", labels["app.kubernetes.io/managed-by"])
+	})
+	t.Run("merges with existing labels", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "v1", "kind": "Service",
+			"metadata": map[string]interface{}{
+				"name":   "svc",
+				"labels": map[string]interface{}{"app": "interceptor"},
+			},
+		}}
+		applyCommonMetadataLabels(obj)
+		labels := obj.GetLabels()
+		require.Equal(t, kymaModuleLabelValue, labels[kymaModuleLabel])
+		require.Equal(t, "interceptor", labels["app"])
 	})
 }
 
