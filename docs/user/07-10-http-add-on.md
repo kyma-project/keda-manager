@@ -78,7 +78,7 @@ kubectl get httpscaledobjects -A
 kubectl delete httpscaledobject -n <namespace> <name>
 ```
 
-Once all HTTPScaledObjects are gone, the Keda Manager retries automatically within about 30 seconds.
+Once all HTTPScaledObjects are deleted, the Keda Manager retries automatically within about 30 seconds.
 
 ## Configuring the HTTP Add-on
 
