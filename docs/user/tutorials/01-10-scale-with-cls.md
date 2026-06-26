@@ -32,6 +32,9 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
     spec:
       serviceOfferingName: cloud-logging
       servicePlanName: standard
+      parameters:
+        ingest_otlp:
+          enabled: true
     EOF
     ```
 
@@ -62,23 +65,13 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
     EOF
     ```
 
-4. Verify that the binding secret was created:
+4. Verify that the binding secret was created and contains the OTLP keys:
 
     ```bash
-    kubectl get secret cloud-logging-binding -n cls
+    kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data}' | jq 'keys'
     ```
 
-5. Create a separate secret with the OTLP endpoint for Telemetry. The standard binding secret provides `ingest-mtls-*` credentials, but Telemetry requires the OTLP endpoint which uses a different subdomain. Derive the OTLP endpoint from the mTLS endpoint and store it together with the mTLS certificates:
-
-    ```bash
-    CLS_OTLP_ENDPOINT=$(kubectl get secret cloud-logging-binding -n cls \
-      -o jsonpath='{.data.ingest-mtls-endpoint}' | base64 -d | sed 's/ingest-mtls/ingest-otlp/')
-
-    kubectl create secret generic cloud-logging-otlp -n cls \
-      --from-literal=ingest-otlp-endpoint="${CLS_OTLP_ENDPOINT}:443" \
-      --from-file=ingest-otlp-cert=<(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-mtls-cert}' | base64 -d) \
-      --from-file=ingest-otlp-key=<(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-mtls-key}' | base64 -d)
-    ```
+    The secret must contain `ingest-otlp-endpoint`, `ingest-otlp-cert`, and `ingest-otlp-key`.
 
 ### Deploy the Demo Application
 
@@ -241,7 +234,7 @@ The `QUEUE_DEPTH` value is set by an init container at pod startup. To change th
 
 The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The Prometheus scraping annotations are already included in the demo application manifest.
 
-Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP secret created in the previous step:
+Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP credentials from the binding secret:
 
 ```bash
 kubectl apply -f - <<EOF
@@ -267,20 +260,20 @@ spec:
       endpoint:
         valueFrom:
           secretKeyRef:
-            name: cloud-logging-otlp
+            name: cloud-logging-binding
             namespace: cls
             key: ingest-otlp-endpoint
       tls:
         cert:
           valueFrom:
             secretKeyRef:
-              name: cloud-logging-otlp
+              name: cloud-logging-binding
               namespace: cls
               key: ingest-otlp-cert
         key:
           valueFrom:
             secretKeyRef:
-              name: cloud-logging-otlp
+              name: cloud-logging-binding
               namespace: cls
               key: ingest-otlp-key
 EOF
@@ -477,7 +470,6 @@ Remove all resources created during this tutorial:
 ```bash
 kubectl delete namespace keda-cls-demo
 kubectl delete metricpipeline cls-metric-pipeline
-kubectl delete secret cloud-logging-otlp -n cls
 kubectl delete servicebinding cloud-logging-binding -n cls
 kubectl delete serviceinstance cloud-logging -n cls
 kubectl delete namespace cls
