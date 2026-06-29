@@ -413,3 +413,39 @@ func canGetFakeResource(c client.Client, u unstructured.Unstructured) bool {
 		}, &u)
 	return err == nil
 }
+
+func TestCheckAddonOrphanResources(t *testing.T) {
+	t.Run("no add-on installed → no-op", func(t *testing.T) {
+		c := fake.NewClientBuilder().Build()
+		r := &fsm{
+			log: zap.NewNop().Sugar(),
+			K8s: K8s{Client: c},
+			Cfg: Cfg{},
+		}
+		require.NoError(t, checkAddonOrphanResources(context.Background(), r))
+	})
+	t.Run("add-on installed, no HTTPScaledObjects → pass", func(t *testing.T) {
+		c := fake.NewClientBuilder().Build()
+		r := &fsm{
+			log: zap.NewNop().Sugar(),
+			K8s: K8s{Client: c},
+			Cfg: Cfg{AddonObjs: []unstructured.Unstructured{{}}},
+		}
+		require.NoError(t, checkAddonOrphanResources(context.Background(), r))
+	})
+	t.Run("add-on installed, HTTPScaledObjects exist → error", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithObjects(
+			newHTTPScaledObject("demo-app", "http-echo"),
+			newHTTPScaledObject("billing", "api"),
+		).Build()
+		r := &fsm{
+			log: zap.NewNop().Sugar(),
+			K8s: K8s{Client: c},
+			Cfg: Cfg{AddonObjs: []unstructured.Unstructured{{}}},
+		}
+		err := checkAddonOrphanResources(context.Background(), r)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "2 HTTPScaledObject(s)")
+		require.Contains(t, err.Error(), "uninstalling the Keda module")
+	})
+}

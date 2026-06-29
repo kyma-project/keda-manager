@@ -89,6 +89,7 @@ const (
 	ConditionReasonAddonDeleted    = "HTTPAddonDeleted"
 	ConditionReasonAddonInstallErr = "HTTPAddonInstallErr"
 	ConditionReasonAddonDisabled   = "HTTPAddonDisabled"
+	ConditionReasonAddonInUse      = "HTTPAddonInUse"
 
 	AnnotationAddonEnabled        = "keda.kyma-project.io/addon-enabled"
 	AnnotationAddonNamespace      = "keda.kyma-project.io/addon-namespace"
