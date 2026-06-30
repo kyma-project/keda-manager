@@ -76,12 +76,38 @@ func sFnUpstreamDeletionState(ctx context.Context, r *fsm, s *systemState) (stat
 }
 
 func sFnSafeDeletionState(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Result, error) {
+	if err := checkAddonOrphanResources(ctx, r); err != nil {
+		s.instance.UpdateStateFromWarning(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonAddonInUse, err)
+		return stopWithErrorAndNoRequeue(err)
+	}
+
 	if err := checkCRDOrphanResources(ctx, r); err != nil {
 		s.instance.UpdateStateFromWarning(v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletionErr, err)
 		return stopWithErrorAndNoRequeue(err)
 	}
 
 	return deleteResourcesWithFilter(ctx, r, s)
+}
+
+// checkAddonOrphanResources refuses to tear down the HTTP add-on while there
+// are HTTPScaledObjects on the cluster. The add-on owns the HTTPScaledObject
+// CRD, so removing the add-on before the user removes their HTTPScaledObjects
+// would leave orphaned resources of an unknown type. The check is a no-op when
+// the add-on was never installed (r.AddonObjs is empty).
+func checkAddonOrphanResources(ctx context.Context, r *fsm) error {
+	if len(r.AddonObjs) == 0 {
+		return nil
+	}
+	count, err := httpScaledObjectsInUse(ctx, r.Client)
+	if err != nil {
+		return fmt.Errorf("cannot verify HTTPScaledObject usage: %w", err)
+	}
+	if count > 0 {
+		return fmt.Errorf(
+			"%d HTTPScaledObject(s) still exist on the cluster; delete them before uninstalling the Keda module",
+			count)
+	}
+	return nil
 }
 
 func withoutCRDFilter(u unstructured.Unstructured) bool {
