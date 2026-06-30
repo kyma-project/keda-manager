@@ -33,6 +33,8 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
       serviceOfferingName: cloud-logging
       servicePlanName: standard
       parameters:
+        backend:
+          max_data_nodes: 2
         ingest_otlp:
           enabled: true
     EOF
@@ -47,7 +49,7 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
     You should get a result similar to this example:
 
     ```bash
-    NAME             OFFERING        PLAN       STATE    AGE
+    NAME             OFFERING        PLAN       STATUS    AGE
     cloud-logging    cloud-logging   standard   Ready    2m
     ```
 
@@ -314,7 +316,7 @@ The credentials are available in the CLS service binding secret. The following k
 
 | Key | Description |
 |---|---|
-| `ingest-endpoint` | OpenSearch REST API endpoint |
+| `backend-endpoint` | OpenSearch REST API endpoint |
 | `ingest-username` | Username for OpenSearch authentication |
 | `ingest-password` | Password for OpenSearch authentication |
 
@@ -354,7 +356,7 @@ The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value an
 1. Export the OpenSearch endpoint from your CLS service binding secret:
 
     ```bash
-    export CLS_OPENSEARCH_ENDPOINT=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-endpoint}' | base64 -d)
+    export CLS_OPENSEARCH_ENDPOINT=https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-endpoint}' | base64 -d)
     export CLS_OPENSEARCH_USERNAME=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.ingest-username}' | base64 -d)
     ```
 
