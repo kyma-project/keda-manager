@@ -22,7 +22,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/kedacore/keda/v2 v2.20.0
+	github.com/kedacore/keda/v2 v2.20.1
 	github.com/kyma-project/manager-toolkit/installation/base v0.260521.143230-2b28ea6
 	github.com/kyma-project/manager-toolkit/logging v0.260128.123422-9ec1c8b
 	github.com/onsi/ginkgo/v2 v2.32.0
