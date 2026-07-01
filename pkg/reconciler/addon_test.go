@@ -2,12 +2,19 @@ package reconciler
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/stretchr/testify/require"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 func TestReadAddonCfg(t *testing.T) {
@@ -472,14 +479,14 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 }
 
 func TestSFnHandleAddon(t *testing.T) {
-	t.Run("disabled addon switches to delete", func(t *testing.T) {
+	t.Run("disabled addon switches to guard", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{v1alpha1.AnnotationAddonEnabled: "false"},
 		}}}
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.NotNil(t, fn)
+		requireEqualFunc(t, sFnGuardAddonInUse, fn)
 	})
 	t.Run("enabled addon switches to apply", func(t *testing.T) {
 		s := &systemState{instance: v1alpha1.Keda{ObjectMeta: metav1.ObjectMeta{
@@ -488,6 +495,125 @@ func TestSFnHandleAddon(t *testing.T) {
 		fn, result, err := sFnHandleAddon(context.TODO(), nil, s)
 		require.NoError(t, err)
 		require.Nil(t, result)
-		require.NotNil(t, fn)
+		requireEqualFunc(t, sFnApplyAddon, fn)
+	})
+}
+
+func newHTTPScaledObject(namespace, name string) *unstructured.Unstructured {
+	hso := &unstructured.Unstructured{}
+	hso.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   httpScaledObjectGroup,
+		Version: httpScaledObjectVersion,
+		Kind:    httpScaledObjectKind,
+	})
+	hso.SetNamespace(namespace)
+	hso.SetName(name)
+	return hso
+}
+
+func TestHTTPScaledObjectsInUse(t *testing.T) {
+	t.Run("returns zero when no HTTPScaledObjects exist", func(t *testing.T) {
+		c := fake.NewClientBuilder().Build()
+		count, err := httpScaledObjectsInUse(context.Background(), c)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+	t.Run("counts all HTTPScaledObjects across namespaces", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithObjects(
+			newHTTPScaledObject("ns-a", "foo"),
+			newHTTPScaledObject("ns-a", "bar"),
+			newHTTPScaledObject("ns-b", "baz"),
+		).Build()
+		count, err := httpScaledObjectsInUse(context.Background(), c)
+		require.NoError(t, err)
+		require.Equal(t, 3, count)
+	})
+	t.Run("treats NoKindMatchError as zero", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
+				return &meta.NoKindMatchError{GroupKind: schema.GroupKind{Group: httpScaledObjectGroup, Kind: httpScaledObjectKind}}
+			},
+		}).Build()
+		count, err := httpScaledObjectsInUse(context.Background(), c)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+	t.Run("treats IsNotFound as zero", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
+				return apierrors.NewNotFound(schema.GroupResource{Group: httpScaledObjectGroup, Resource: "httpscaledobjects"}, "")
+			},
+		}).Build()
+		count, err := httpScaledObjectsInUse(context.Background(), c)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+	t.Run("surfaces other list errors (fail-closed)", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
+				return apierrors.NewForbidden(schema.GroupResource{Group: httpScaledObjectGroup, Resource: "httpscaledobjects"}, "", errors.New("rbac"))
+			},
+		}).Build()
+		_, err := httpScaledObjectsInUse(context.Background(), c)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "list HTTPScaledObjects")
+	})
+}
+
+// noKindMatchErr removed — we use meta.NoKindMatchError directly in the tests
+// above.
+func TestSFnGuardAddonInUse(t *testing.T) {
+	t.Run("no HTTPScaledObjects → switches to delete", func(t *testing.T) {
+		c := fake.NewClientBuilder().Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		s := &systemState{instance: v1alpha1.Keda{}}
+
+		fn, result, err := sFnGuardAddonInUse(context.Background(), r, s)
+		require.NoError(t, err)
+		require.Nil(t, result)
+		requireEqualFunc(t, sFnDeleteAddon, fn)
+	})
+	t.Run("HTTPScaledObjects exist → warning + requeue", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithObjects(
+			newHTTPScaledObject("demo-app", "http-echo"),
+			newHTTPScaledObject("billing", "api"),
+		).Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		s := &systemState{instance: v1alpha1.Keda{}}
+
+		_, _, err := sFnGuardAddonInUse(context.Background(), r, s)
+		require.NoError(t, err)
+		require.Equal(t, v1alpha1.StateWarning, s.instance.Status.State)
+		cond := metav1.Condition{}
+		for _, c := range s.instance.Status.Conditions {
+			if c.Reason == v1alpha1.ConditionReasonAddonInUse {
+				cond = c
+				break
+			}
+		}
+		require.Equal(t, v1alpha1.ConditionReasonAddonInUse, cond.Reason)
+		require.Equal(t, metav1.ConditionFalse, cond.Status)
+		require.Contains(t, cond.Message, "2 HTTPScaledObject(s)")
+	})
+	t.Run("list error → warning + requeue with verification message", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
+				return apierrors.NewForbidden(schema.GroupResource{Group: httpScaledObjectGroup, Resource: "httpscaledobjects"}, "", errors.New("rbac"))
+			},
+		}).Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		s := &systemState{instance: v1alpha1.Keda{}}
+
+		_, _, err := sFnGuardAddonInUse(context.Background(), r, s)
+		require.NoError(t, err)
+		require.Equal(t, v1alpha1.StateWarning, s.instance.Status.State)
+		var found bool
+		for _, c := range s.instance.Status.Conditions {
+			if c.Reason == v1alpha1.ConditionReasonAddonInUse {
+				require.Contains(t, c.Message, "Cannot verify HTTPScaledObject usage")
+				found = true
+			}
+		}
+		require.True(t, found)
 	})
 }
