@@ -71,7 +71,7 @@ The Keda Manager refuses to disable or uninstall the HTTP Add-on while any `HTTP
 
 If you try to disable the add-on or delete the Keda module CR while HTTPScaledObjects exist, the Keda CR's `Status.State` flips to `Warning` and the `Addon` condition is set to `False` with reason `HTTPAddonInUse`. The message tells you how many HTTPScaledObjects are blocking the uninstall.
 
-To find and remove them:
+To find and remove them, run:
 
 ```bash
 kubectl get httpscaledobjects -A
