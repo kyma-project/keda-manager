@@ -67,7 +67,7 @@ This removes all add-on resources from the cluster. Only the resources managed b
 
 ### Uninstall Protection
 
-The Keda Manager refuses to disable or uninstall the HTTP Add-on while any `HTTPScaledObject` resources exist in the cluster. This protects user workloads from losing their scaling controller and ending up with orphaned resources after the CRD is removed.
+Keda Manager refuses to disable or uninstall the HTTP Add-on while any `HTTPScaledObject` resources exist in the cluster. This protects user workloads from losing their scaling controller and ending up with orphaned resources after the CRD is removed.
 
 If you try to disable the add-on or delete the Keda module CR while HTTPScaledObjects exist, the Keda CR's `Status.State` flips to `Warning` and the `Addon` condition is set to `False` with reason `HTTPAddonInUse`. The message tells you how many HTTPScaledObjects are blocking the uninstall.
 
@@ -78,7 +78,7 @@ kubectl get httpscaledobjects -A
 kubectl delete httpscaledobject -n <namespace> <name>
 ```
 
-Once all HTTPScaledObjects are deleted, the Keda Manager retries automatically within about 30 seconds.
+Once all HTTPScaledObjects are deleted, Keda Manager retries automatically within about 30 seconds.
 
 ## Configuring the HTTP Add-on
 

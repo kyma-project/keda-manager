@@ -1,9 +1,9 @@
-# Scaling HTTP Workloads to Zero With the KEDA HTTP Add-on
+# Scaling HTTP Workloads to Zero with the KEDA HTTP Add-On
 
 ## Prerequisites
 
 - A Kyma runtime cluster.
-- [Keda, Istio, and API Gateway modules installed](https://kyma-project.io/02-get-started/01-quick-install.html#steps).
+- Keda, Istio, and API Gateway modules installed. See [Quick Install](https://kyma-project.io/02-get-started/01-quick-install.html#steps).
 - The `kubectl` and `curl` CLIs installed locally.
 
 ## Context
@@ -21,7 +21,7 @@ This example installs the following resources from the `k8s-resources` directory
 
 ## Procedure
 
-1. Enable the HTTP Add-on by annotating the Keda custom resource (CR). The Keda Manager installs the add-on in the specified namespace:
+1. Enable the HTTP Add-on by annotating the Keda custom resource (CR). Keda Manager installs the add-on in the specified namespace:
 
    ```bash
    kubectl annotate keda -n kyma-system default \
@@ -41,7 +41,7 @@ This example installs the following resources from the `k8s-resources` directory
    kubectl get keda -n kyma-system default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
    ```
 
-   4. Verify that all add-on Pods are running with the Istio sidecar (`2/2`). Filter by the `kyma-project.io/module=keda` label that the Keda Manager stamps on every add-on resource:
+   4. Verify that all add-on Pods are running with the Istio sidecar (`2/2`). Filter by the `kyma-project.io/module=keda` label that Keda Manager stamps on every add-on resource:
 
    ```bash
    kubectl get pods -n kyma-system -l kyma-project.io/module=keda
