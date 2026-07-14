@@ -41,7 +41,7 @@ This example installs the following resources from the `k8s-resources` directory
    kubectl get keda -n kyma-system default -o jsonpath='{.status.conditions[?(@.type=="Addon")].status}'
    ```
 
-   4. Verify that all add-on Pods are running with the Istio sidecar (`2/2`). Filter by the `kyma-project.io/module=keda` label that Keda Manager stamps on every add-on resource:
+4. Verify that all add-on Pods are running with the Istio sidecar (`2/2`). Filter by the `kyma-project.io/module=keda` label that the Keda Manager stamps on every add-on resource:
 
    ```bash
    kubectl get pods -n kyma-system -l kyma-project.io/module=keda
