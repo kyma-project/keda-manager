@@ -46,7 +46,7 @@ setup_btp() {
     kubectl create ns demo-app || true
     kubectl label namespace demo-app istio-injection=enabled --overwrite
 
-    sed "s/\${TEST_DOMAIN}/${TEST_DOMAIN}/g" "${PROJECT_ROOT}/examples/scale-to-zero-with-keda/k8s-resources/apirule.yaml" | kubectl apply -f -
+    kubectl apply -f "${PROJECT_ROOT}/examples/scale-to-zero-with-keda/k8s-resources/apirule.yaml"
     sed "s/\${TEST_DOMAIN}/${TEST_DOMAIN}/g" "${PROJECT_ROOT}/examples/scale-to-zero-with-keda/k8s-resources/envoyfilter.yaml" | kubectl apply -f -
     sed "s/\${TEST_DOMAIN}/${TEST_DOMAIN}/g" "${PROJECT_ROOT}/examples/scale-to-zero-with-keda/k8s-resources/httpscaledobject.yaml" | kubectl apply -f -
     kubectl apply -f "${PROJECT_ROOT}/examples/scale-to-zero-with-keda/k8s-resources/demo-app.yaml"
