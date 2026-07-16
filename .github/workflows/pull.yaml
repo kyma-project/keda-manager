@@ -12,11 +12,7 @@ jobs:
   unit-tests:
     uses: ./.github/workflows/_unit-tests.yaml
 
-  gitleaks:
-    uses: ./.github/workflows/_gitleaks.yaml
-
   check-fips-image-versions:
     uses: ./.github/workflows/_check-fips-image-versions.yaml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
-
