@@ -24,8 +24,11 @@ jobs:
       contents: read
     uses: ./.github/workflows/_build.yaml
 
-  integrations:
-    needs: builds
-    uses: ./.github/workflows/_integration-tests.yaml
-    with:
-      image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
+  # Integration tests are intentionally disabled for pull_request_target.
+  # actions/checkout@v7 blocks fork checkouts in pull_request_target by default (safer-pull_request_target-defaults).
+  # Only the build job above runs here - it uses id-token to push images but does not expose secrets to untrusted fork code.
+  # integrations:
+  #  needs: builds
+  #  uses: ./.github/workflows/_integration-tests.yaml
+  #  with:
+  #    image: europe-docker.pkg.dev/kyma-project/dev/keda-manager:PR-${{ github.event.number }}
