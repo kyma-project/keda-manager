@@ -92,3 +92,15 @@ jobs:
     with:
       release_version: ${{ github.ref_name }}
     secrets: inherit
+
+  notify-sbom:
+    needs: [ run-integration-test ]                # released only after successful release tests
+    if: ${{ needs.run-integration-test.result == 'success' }}
+    permissions:
+      id-token: write
+      contents: read
+    uses: kyma-project/compliancy/.github/workflows/notify-component-sbom.yml@main
+    secrets: inherit
+    with:
+      component: kyma-project.io/module/keda   # full OCM component name
+      version: ${{ github.ref_name }}
