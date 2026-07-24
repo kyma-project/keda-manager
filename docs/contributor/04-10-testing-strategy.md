@@ -7,7 +7,6 @@ The following CI jobs are part of the development cycle. They verify the functio
 - `lint / lint` - Is responsible for the Keda Operator linting and static code analysis. For the configuration, see the [lint.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/lint.yaml) file.
 - `pull / unit tests / unit-tests` - Runs basic unit tests of Keda Operator's logic. For the configuration, see the [unit-tests.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/_unit-tests.yaml) file.
 - `pull / integration tests / integration-test` - Runs the basic functionality integration test suite for the Keda Operator in a k3d cluster. For the configuration, see the [integration-tests.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/_integration-tests.yaml) file.
-- `pull / gitleaks / gitleaks-scan` - Scans the pull request for secrets and credentials. For the configuration, see the [gitleaks.yaml](https://github.com/kyma-project/keda-manager/blob/main/.github/workflows/_gitleaks.yaml) file. 
 
 ## CI/CD Jobs Running on the Main Branch
 
