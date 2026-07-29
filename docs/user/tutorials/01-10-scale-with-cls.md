@@ -90,9 +90,6 @@ Choose the setup that matches your deployment strategy:
 
 #### Option B: Create CLS via BTP Operator
 
-> [!NOTE]
-> This option requires the CLS backend API endpoint to be available in your region. Contact your Cloud Provider to confirm availability before proceeding.
-
 1. Create a namespace for CLS resources and a `ServiceInstance` for Cloud Logging:
 
     ```bash
@@ -128,7 +125,7 @@ Choose the setup that matches your deployment strategy:
 
     ```bash
     NAME             OFFERING        PLAN       STATUS    AGE
-    cloud-logging    cloud-logging   standard   Ready    2m
+    cloud-logging    cloud-logging   standard   Created    2m
     ```
 
 3. Create a `ServiceBinding` to generate the credentials secret:
