@@ -99,7 +99,7 @@ const (
 	AnnotationAddonInstalledNamespace = "keda.kyma-project.io/addon-installed-namespace"
 
 	DefaultAddonNamespace = "kyma-system"
-	DefaultAddonVersion   = "0.13.0"
+	DefaultAddonVersion   = "0.15.0"
 )
 
 // +kubebuilder:validation:Enum=debug;info;error
