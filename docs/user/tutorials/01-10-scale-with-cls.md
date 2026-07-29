@@ -129,7 +129,7 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
     cloud-logging    cloud-logging   standard   Created    2m
     ```
 
-3. Create a `ServiceBinding` to generate the credentials secret:
+3. Create a `ServiceBinding` to generate the credentials Secret:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -143,13 +143,13 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
     EOF
     ```
 
-4. Verify that the binding secret was created and contains the required keys:
+4. Verify that the binding Secret was created and contains the required keys:
 
     ```bash
     kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data}' | jq 'keys'
     ```
 
-    The secret must contain `backend-endpoint`, `backend-username`, `backend-password`, `ingest-otlp-endpoint`, `ingest-otlp-cert`, and `ingest-otlp-key`.
+    The Secret must contain `backend-endpoint`, `backend-username`, `backend-password`, `ingest-otlp-endpoint`, `ingest-otlp-cert`, and `ingest-otlp-key`.
 
 <!-- tabs:end -->
 
@@ -345,7 +345,7 @@ The `QUEUE_DEPTH` value is set by an init container at Pod startup. To change th
 
 The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The Prometheus scraping annotations are already included in the demo application manifest.
 
-Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP credentials from the binding secret:
+Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP credentials from the binding Secret:
 
 ```bash
 kubectl apply -f - <<EOF
@@ -431,7 +431,7 @@ In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriv
 
 KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store the CLS credentials in a Kubernetes `Secret` and reference them from a `TriggerAuthentication`.
 
-The credentials are available in the CLS service binding secret. The following keys are used:
+The credentials are available in the CLS service binding Secret. The following keys are used:
 
 | Key | Description |
 |---|---|
@@ -448,7 +448,7 @@ The credentials are available in the CLS service binding secret. The following k
       -n keda-cls-demo
     ```
 
-2. Create a `TriggerAuthentication` that references the secret:
+2. Create a `TriggerAuthentication` that references the Secret:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -472,7 +472,7 @@ The credentials are available in the CLS service binding secret. The following k
 
 The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
 
-1. Export the OpenSearch endpoint from your CLS service binding secret:
+1. Export the OpenSearch endpoint from your CLS service binding Secret:
 
     ```bash
     export CLS_OPENSEARCH_ENDPOINT=https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-endpoint}' | base64 -d)
