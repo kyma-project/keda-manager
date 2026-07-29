@@ -153,7 +153,36 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
 
 <!-- tabs:end -->
 
+### Share a CLS Instance Across Clusters (Optional)
 
+If you want to reuse a single CLS instance across multiple Kyma clusters or subaccounts, you can use SAP Service Manager instance sharing. This lets you create a pointer instance in each cluster that references the shared instance, without affecting its lifecycle when the pointer is deleted.
+
+1. Mark your CLS instance as sharable. In SAP BTP Cockpit, choose **Share Instance** from the **...** menu for your CLS instance. Alternatively, use the btp CLI:
+
+    ```bash
+    btp share services/instance <instance-id> --subaccount <subaccount-id>
+    ```
+
+2. In each Kyma cluster that needs access, create a `ServiceInstance` with the `reference-instance` plan pointing to the shared instance:
+
+    ```bash
+    kubectl apply -f - <<EOF
+    apiVersion: services.cloud.sap.com/v1
+    kind: ServiceInstance
+    metadata:
+      name: cloud-logging-pointer
+      namespace: cls
+    spec:
+      serviceOfferingName: cloud-logging
+      servicePlanName: reference-instance
+      parameters:
+        instance_name_selector: "<SHARED_INSTANCE_NAME>"
+    EOF
+    ```
+
+3. Create a `ServiceBinding` on the pointer instance as described in the **SAP BTP Operator module** tab above.
+
+For cross-subaccount sharing, see [Working with Multiple Subaccounts](https://kyma-project.io/#/btp-manager/user/03-20-multitenancy).
 
 ### Deploy the Demo Application
 
