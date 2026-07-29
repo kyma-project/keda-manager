@@ -376,27 +376,25 @@ cls-metric-pipeline   True                      True              True          
 
 In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
 
-1. Get the Dashboards URL and credentials:
+1. Get the Dashboards URL:
 
     <!-- tabs:start -->
 
-    #### **BTP Cockpit**
+    #### **SAP BTP Cockpit**
 
-    Find the `dashboards-endpoint`, `dashboards-username`, and `dashboards-password` values in SAP BTP Cockpit under **View Credentials** for your CLS instance.
+    Find the `dashboards-endpoint` value under **View Credentials** for your CLS binding.
 
     #### **SAP BTP Operator module**
 
-    Extract the credentials from the binding secret:
+    Run the following command:
 
     ```bash
-    echo "URL: https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
-    echo "Username: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-username}' | base64 -d)"
-    echo "Password: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-password}' | base64 -d)"
+    echo "https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
     ```
 
     <!-- tabs:end -->
 
-2. Open the URL in your browser and log in with the credentials.
+2. Open the URL in your browser and log in with the Dashboards credentials from your CLS binding.
 
 3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1-2 minutes after the MetricPipeline becomes healthy.
 
