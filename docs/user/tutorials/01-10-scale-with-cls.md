@@ -2,13 +2,13 @@
 
 This tutorial shows how to configure KEDA to autoscale a Kubernetes workload using application metrics stored in SAP BTP Cloud Logging Service (CLS) as the scaling signal.
 
-SAP BTP Cloud Logging Service is a managed observability backend built on OpenSearch. When your application metrics already flow into CLS through the Kyma Telemetry module, you can use those metrics as autoscaling signals without running a separate metrics store.
+SAP BTP Cloud Logging Service is a managed observability backend built on OpenSearch. When your application metrics already flow into CLS through the [Kyma Telemetry module](https://kyma-project.io/external-content/telemetry-manager/docs/user/README.html), you can use those metrics as autoscaling signals without running a separate metrics store.
 
-KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial walks you through the full setup: from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a `ScaledObject` that scales the workload based on that metric.
+KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial walks you from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a `ScaledObject` that scales the workload based on that metric.
 
 ## Prerequisites
 
-- The Keda, Telemetry, and BTP Operator modules are enabled in your Kyma cluster. See [Enable and Disable a Kyma Module](https://help.sap.com/docs/btp/sap-business-technology-platform/enable-and-disable-kyma-module?locale=en-US).
+- The Keda, Telemetry, and BTP Operator modules are enabled in your Kyma cluster. See [Quick Install](https://kyma-project.io/02-get-started/01-quick-install.html).
 - Your subaccount has an entitlement for Cloud Logging Service with the `standard` plan. See [Configure Entitlements and Quotas for Subaccounts](https://help.sap.com/docs/btp/sap-business-technology-platform/configure-entitlements-and-quotas-for-subaccounts).
 - `kubectl` is installed and configured to access your Kyma cluster.
 
@@ -20,7 +20,7 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 
 #### **BTP Cockpit**
 
-Create the CLS instance in a separate subaccount using BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
+Create the CLS instance in a separate subaccount using SAP BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
 
 1. In SAP BTP Cockpit, go to **Services** → **Instances and Subscriptions** and choose **Create**.
 
@@ -85,11 +85,11 @@ Create the CLS instance in a separate subaccount using BTP Cockpit. The instance
     EOF
     ```
 
-    Replace each placeholder with the corresponding value from BTP Cockpit. For `ingest-otlp-cert` and `ingest-otlp-key`, paste the full PEM content including the `-----BEGIN ...-----` and `-----END ...-----` lines.
+    Replace each placeholder with the corresponding value from the Cockpit. For `ingest-otlp-cert` and `ingest-otlp-key`, paste the full PEM content including the `-----BEGIN ...-----` and `-----END ...-----` lines.
 
-#### **BTP Operator**
+#### **SAP BTP Operator module**
 
-Create the CLS instance directly in your Kyma cluster using the BTP Operator.
+Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator module.
 
 1. Create a namespace for CLS resources and a `ServiceInstance` for Cloud Logging:
 
@@ -159,7 +159,7 @@ Create the CLS instance directly in your Kyma cluster using the BTP Operator.
 
 The demo application exposes a Prometheus-format `queue_depth` gauge metric at the `/metrics` endpoint. KEDA uses this value (as stored in CLS) to determine the desired replica count.
 
-The `QUEUE_DEPTH` value is set by an init container at pod startup. To change the value, update the env var and restart the Pod.
+The `QUEUE_DEPTH` value is set by an init container at Pod startup. To change the value, update the env var and restart the Pod.
 
 1. Save the demo application manifest to a file and apply it:
 
@@ -377,14 +377,24 @@ cls-metric-pipeline   True                      True              True          
 In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
 
 1. Get the Dashboards URL and credentials:
-   - **BTP Cockpit:** Find the `dashboards-endpoint`, `dashboards-username`, and `dashboards-password` values in BTP Cockpit under **View Credentials** for your CLS instance.
-   - **BTP Operator:** Extract them from the binding secret:
+
+    <!-- tabs:start -->
+
+    #### **BTP Cockpit**
+
+    Find the `dashboards-endpoint`, `dashboards-username`, and `dashboards-password` values in SAP BTP Cockpit under **View Credentials** for your CLS instance.
+
+    #### **SAP BTP Operator module**
+
+    Extract the credentials from the binding secret:
 
     ```bash
     echo "URL: https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
     echo "Username: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-username}' | base64 -d)"
     echo "Password: $(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-password}' | base64 -d)"
     ```
+
+    <!-- tabs:end -->
 
 2. Open the URL in your browser and log in with the credentials.
 
