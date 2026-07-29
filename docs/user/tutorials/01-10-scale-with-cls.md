@@ -16,12 +16,11 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 
 ### Create a CLS Instance and Credentials
 
-Choose the setup that matches your deployment strategy:
+<!-- tabs:start -->
 
-- **Option A - BTP Cockpit:** Create the CLS instance in a separate subaccount using BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
-- **Option B - BTP Operator:** Create the CLS instance directly in your Kyma cluster using the BTP Operator.
+#### **BTP Cockpit**
 
-#### Option A: Create CLS via BTP Cockpit
+Create the CLS instance in a separate subaccount using BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
 
 1. In SAP BTP Cockpit, go to **Services** → **Instances and Subscriptions** and choose **Create**.
 
@@ -88,7 +87,9 @@ Choose the setup that matches your deployment strategy:
 
     Replace each placeholder with the corresponding value from BTP Cockpit. For `ingest-otlp-cert` and `ingest-otlp-key`, paste the full PEM content including the `-----BEGIN ...-----` and `-----END ...-----` lines.
 
-#### Option B: Create CLS via BTP Operator
+#### **BTP Operator**
+
+Create the CLS instance directly in your Kyma cluster using the BTP Operator.
 
 1. Create a namespace for CLS resources and a `ServiceInstance` for Cloud Logging:
 
@@ -142,13 +143,17 @@ Choose the setup that matches your deployment strategy:
     EOF
     ```
 
-4. Verify that the binding secret was created and contains the OTLP keys:
+4. Verify that the binding secret was created and contains the required keys:
 
     ```bash
     kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data}' | jq 'keys'
     ```
 
     The secret must contain `backend-endpoint`, `backend-username`, `backend-password`, `ingest-otlp-endpoint`, `ingest-otlp-cert`, and `ingest-otlp-key`.
+
+<!-- tabs:end -->
+
+
 
 ### Deploy the Demo Application
 
@@ -372,8 +377,8 @@ cls-metric-pipeline   True                      True              True          
 In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
 
 1. Get the Dashboards URL and credentials:
-   - **Option A:** Find the `dashboards-endpoint`, `dashboards-username`, and `dashboards-password` values in BTP Cockpit under **View Credentials** for your CLS instance.
-   - **Option B:** Extract them from the binding secret:
+   - **BTP Cockpit:** Find the `dashboards-endpoint`, `dashboards-username`, and `dashboards-password` values in BTP Cockpit under **View Credentials** for your CLS instance.
+   - **BTP Operator:** Extract them from the binding secret:
 
     ```bash
     echo "URL: https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
@@ -552,11 +557,11 @@ kubectl delete metricpipeline cls-metric-pipeline
 kubectl delete namespace cls
 ```
 
-If you used Option B, also delete the service binding and instance:
+If you used the BTP Operator tab, also delete the service binding and instance:
 
 ```bash
 kubectl delete servicebinding cloud-logging-binding -n cls
 kubectl delete serviceinstance cloud-logging -n cls
 ```
 
-If you used Option A, delete the CLS instance in BTP Cockpit under **Services** → **Instances and Subscriptions**.
+If you used the BTP Cockpit tab, delete the CLS instance in BTP Cockpit under **Services** → **Instances and Subscriptions**.
