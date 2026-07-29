@@ -31,7 +31,7 @@ Choose the setup that matches your deployment strategy:
    - **Runtime Environment**: Other
    - **Instance Name**: Enter a name, for example `cloud-logging`
 
-3. In the **Parameters** field, enter the following JSON and choose **Create**:
+3. In the **Parameters** field, add the following parameters to the default JSON and choose **Create**:
 
     ```json
     {
@@ -539,7 +539,7 @@ The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value an
     kubectl rollout restart deployment/fake-metrics -n keda-cls-demo
     ```
 
-    After the cooldown period, the replica count returns to the minimum of 1.
+    After the cooldown period, the replica count returns to the minimum of 1. This may take up to 5 minutes.
 
 ## Result
 
@@ -547,7 +547,7 @@ Your workload scales automatically in response to the `queue_depth` metric store
 
 ## Clean Up
 
-Remove all resources created during this tutorial:
+If you want to remove the resources created during this tutorial, run the following commands:
 
 ```bash
 kubectl delete namespace keda-cls-demo
