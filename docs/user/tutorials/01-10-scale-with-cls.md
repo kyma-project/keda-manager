@@ -18,8 +18,8 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 
 Choose the setup that matches your deployment strategy:
 
-- **Option A — BTP Cockpit:** Create the CLS instance in a separate subaccount using BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
-- **Option B — BTP Operator:** Create the CLS instance directly in your Kyma cluster using the BTP Operator. Contact your Cloud Provider to confirm that the CLS backend API is available in your region before using this option.
+- **Option A - BTP Cockpit:** Create the CLS instance in a separate subaccount using BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
+- **Option B - BTP Operator:** Create the CLS instance directly in your Kyma cluster using the BTP Operator.
 
 #### Option A: Create CLS via BTP Cockpit
 
@@ -152,7 +152,7 @@ Choose the setup that matches your deployment strategy:
 
 ### Deploy the Demo Application
 
-The demo application exposes a Prometheus-format `queue_depth` gauge metric at the `/metrics` endpoint. KEDA uses this value — as stored in CLS — to determine the desired replica count.
+The demo application exposes a Prometheus-format `queue_depth` gauge metric at the `/metrics` endpoint. KEDA uses this value (as stored in CLS) to determine the desired replica count.
 
 The `QUEUE_DEPTH` value is set by an init container at pod startup. To change the value, update the env var and restart the Pod.
 
@@ -383,7 +383,7 @@ In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriv
 
 2. Open the URL in your browser and log in with the credentials.
 
-3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1–2 minutes after the MetricPipeline becomes healthy.
+3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1-2 minutes after the MetricPipeline becomes healthy.
 
 ### Create a KEDA TriggerAuthentication for CLS
 
@@ -521,7 +521,7 @@ The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value an
     kubectl rollout restart deployment/fake-metrics -n keda-cls-demo
     ```
 
-    After the next Telemetry scrape and CLS ingestion cycle (typically within 1–2 minutes), KEDA queries CLS and adjusts the replica count.
+    After the next Telemetry scrape and CLS ingestion cycle (typically within 1-2 minutes), KEDA queries CLS and adjusts the replica count.
 
 3. Watch the Pods scale up:
 
