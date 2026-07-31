@@ -52,12 +52,12 @@ Create the CLS instance in a separate subaccount using the SAP BTP cockpit. The 
 
    | Key | Description |
    |---|---|
-   | `backend-endpoint` | OpenSearch REST API endpoint |
-   | `backend-username` | Username for OpenSearch REST API authentication |
-   | `backend-password` | Password for OpenSearch REST API authentication |
-   | `ingest-otlp-endpoint` | OTLP ingest endpoint for the Telemetry module |
-   | `ingest-otlp-cert` | Client certificate for mTLS |
-   | `ingest-otlp-key` | Client key for mTLS |
+   | **backend-endpoint** | OpenSearch REST API endpoint |
+   | **backend-username** | Username for OpenSearch REST API authentication |
+   | **backend-password** | Password for OpenSearch REST API authentication |
+   | **ingest-otlp-endpoint** | OTLP ingest endpoint for the Telemetry module |
+   | **ingest-otlp-cert** | Client certificate for mTLS |
+   | **ingest-otlp-key** | Client key for mTLS |
 
 7. Create a namespace and a Kubernetes Secret with the credentials:
 
@@ -149,7 +149,7 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
     kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data}' | jq 'keys'
     ```
 
-    The Secret must contain `backend-endpoint`, `backend-username`, `backend-password`, `ingest-otlp-endpoint`, `ingest-otlp-cert`, and `ingest-otlp-key`.
+    The Secret must contain **backend-endpoint**, **backend-username**, **backend-password**, **ingest-otlp-endpoint**, **ingest-otlp-cert**, and **ingest-otlp-key**.
 
 <!-- tabs:end -->
 
@@ -435,9 +435,9 @@ The credentials are available in the CLS service binding Secret. The following k
 
 | Key | Description |
 |---|---|
-| `backend-endpoint` | OpenSearch REST API endpoint |
-| `backend-username` | Username for OpenSearch REST API authentication |
-| `backend-password` | Password for OpenSearch REST API authentication |
+| **backend-endpoint** | OpenSearch REST API endpoint |
+| **backend-username** | Username for OpenSearch REST API authentication |
+| **backend-password** | Password for OpenSearch REST API authentication |
 
 1. Create a Secret with your CLS OpenSearch credentials:
 
