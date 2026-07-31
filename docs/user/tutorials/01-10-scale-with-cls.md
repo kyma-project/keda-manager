@@ -8,7 +8,7 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 
 ## Prerequisites
 
-- The Keda, Telemetry, and BTP Operator modules are enabled in your Kyma cluster. See [Quick Install](https://kyma-project.io/02-get-started/01-quick-install.html).
+- The Keda, Telemetry, and SAP BTP Operator modules are enabled in your Kyma cluster. See [Quick Install](https://kyma-project.io/02-get-started/01-quick-install.html).
 - Your subaccount has an entitlement for Cloud Logging Service with the `standard` plan. See [Configure Entitlements and Quotas for Subaccounts](https://help.sap.com/docs/btp/sap-business-technology-platform/configure-entitlements-and-quotas-for-subaccounts).
 - `kubectl` is installed and configured to access your Kyma cluster.
 
@@ -18,11 +18,11 @@ KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an 
 
 <!-- tabs:start -->
 
-#### **BTP Cockpit**
+#### **SAP BTP cockpit**
 
-Create the CLS instance in a separate subaccount using SAP BTP Cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
+Create the CLS instance in a separate subaccount using the SAP BTP cockpit. The instance and its credentials are independent of any Kyma cluster, so they survive cluster replacement or deletion.
 
-1. In SAP BTP Cockpit, go to **Services** → **Instances and Subscriptions** and choose **Create**.
+1. In the SAP BTP cockpit, go to **Services** → **Instances and Subscriptions** and choose **Create**.
 
 2. Configure the service instance and choose **Next**:
    - **Service**: Cloud Logging
@@ -85,13 +85,13 @@ Create the CLS instance in a separate subaccount using SAP BTP Cockpit. The inst
     EOF
     ```
 
-    Replace each placeholder with the corresponding value from the Cockpit. For `ingest-otlp-cert` and `ingest-otlp-key`, paste the full PEM content including the `-----BEGIN ...-----` and `-----END ...-----` lines.
+    Replace each placeholder with the corresponding value from the cockpit. For `ingest-otlp-cert` and `ingest-otlp-key`, paste the full PEM content including the `-----BEGIN ...-----` and `-----END ...-----` lines.
 
 #### **SAP BTP Operator module**
 
 Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator module.
 
-1. Create a namespace for CLS resources and a `ServiceInstance` for Cloud Logging:
+1. Create a namespace for CLS resources and a service instance for Cloud Logging:
 
     ```bash
     kubectl create namespace cls
@@ -129,7 +129,7 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
     cloud-logging    cloud-logging   standard   Created    2m
     ```
 
-3. Create a `ServiceBinding` to generate the credentials Secret:
+3. Create a service binding to generate the credentials Secret:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -157,13 +157,13 @@ Create the CLS instance directly in your Kyma cluster using the SAP BTP Operator
 
 If you want to reuse a single CLS instance across multiple Kyma clusters or subaccounts, you can use SAP Service Manager instance sharing. This lets you create a pointer instance in each cluster that references the shared instance, without affecting its lifecycle when the pointer is deleted.
 
-1. Mark your CLS instance as sharable. In SAP BTP Cockpit, choose **Share Instance** from the **...** menu for your CLS instance. Alternatively, use the btp CLI:
+1. Mark your CLS instance as sharable. In the SAP BTP cockpit, choose **Share Instance** from the **...** menu for your CLS instance. Alternatively, use the btp CLI:
 
     ```bash
     btp share services/instance <instance-id> --subaccount <subaccount-id>
     ```
 
-2. In each Kyma cluster that needs access, create a `ServiceInstance` with the `reference-instance` plan pointing to the shared instance:
+2. In each Kyma cluster that needs access, create a service instance with the `reference-instance` plan pointing to the shared instance:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -180,7 +180,7 @@ If you want to reuse a single CLS instance across multiple Kyma clusters or suba
     EOF
     ```
 
-3. Create a `ServiceBinding` on the pointer instance as described in the **SAP BTP Operator module** tab above.
+3. Create a service binding on the pointer instance as described in the **SAP BTP Operator module** tab.
 
 For cross-subaccount sharing, see [Working with Multiple Subaccounts](https://kyma-project.io/#/btp-manager/user/03-20-multitenancy).
 
@@ -409,7 +409,7 @@ In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriv
 
     <!-- tabs:start -->
 
-    #### **SAP BTP Cockpit**
+    #### **SAP BTP cockpit**
 
     Find the `dashboards-endpoint` value under **View Credentials** for your CLS binding.
 
@@ -439,7 +439,7 @@ The credentials are available in the CLS service binding Secret. The following k
 | `backend-username` | Username for OpenSearch REST API authentication |
 | `backend-password` | Password for OpenSearch REST API authentication |
 
-1. Create a `Secret` with your CLS OpenSearch credentials:
+1. Create a Secret with your CLS OpenSearch credentials:
 
     ```bash
     kubectl create secret generic cls-keda-auth \
@@ -594,11 +594,11 @@ kubectl delete metricpipeline cls-metric-pipeline
 kubectl delete namespace cls
 ```
 
-If you used the BTP Operator tab, also delete the service binding and instance:
+If you used the SAP BTP Operator tab, also delete the service binding and instance:
 
 ```bash
 kubectl delete servicebinding cloud-logging-binding -n cls
 kubectl delete serviceinstance cloud-logging -n cls
 ```
 
-If you used the BTP Cockpit tab, delete the CLS instance in BTP Cockpit under **Services** → **Instances and Subscriptions**.
+If you used the SAP BTP cockpit tab, delete the CLS instance in the cockpit under **Services** → **Instances and Subscriptions**.
