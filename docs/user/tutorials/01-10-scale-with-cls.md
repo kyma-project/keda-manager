@@ -4,7 +4,7 @@ This tutorial shows how to configure KEDA to autoscale a Kubernetes workload usi
 
 SAP BTP Cloud Logging Service is a managed observability backend built on OpenSearch. When your application metrics already flow into CLS through the [Kyma Telemetry module](https://kyma-project.io/external-content/telemetry-manager/docs/user/README.html), you can use those metrics as autoscaling signals without running a separate metrics store.
 
-KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial walks you from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a `ScaledObject` that scales the workload based on that metric.
+KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial walks you from a demo app that emits a `queue_depth` metric, through Telemetry scraping, to a ScaledObject that scales the workload based on that metric.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ Create the CLS instance in a separate subaccount using the SAP BTP cockpit. The 
 
 5. In the instance row, choose the **...** (Actions) menu and select **Create Service Binding**. Enter a name for the binding, for example `cloud-logging-binding`, and choose **Create**.
 
-6. Once the binding is created, choose **View Credentials** from the same **...** menu. Note the following values:
+6. Once the binding is created, choose **View Credentials**. Note the following values:
 
    | Key | Description |
    |---|---|
@@ -59,11 +59,13 @@ Create the CLS instance in a separate subaccount using the SAP BTP cockpit. The 
    | **ingest-otlp-cert** | Client certificate for mTLS |
    | **ingest-otlp-key** | Client key for mTLS |
 
-7. Create a namespace and a Kubernetes Secret with the credentials:
+7. Create a namespace:
 
     ```bash
     kubectl create namespace cls
     ```
+
+8. Create a Kubernetes Secret with the credentials:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -188,7 +190,7 @@ For cross-subaccount sharing, see [Working with Multiple Subaccounts](https://ky
 
 The demo application exposes a Prometheus-format `queue_depth` gauge metric at the `/metrics` endpoint. KEDA uses this value (as stored in CLS) to determine the desired replica count.
 
-The `QUEUE_DEPTH` value is set by an init container at Pod startup. To change the value, update the env var and restart the Pod.
+The `QUEUE_DEPTH` value is set by an init container at Pod startup. To change the value, update the environment variable and restart the Pod.
 
 1. Save the demo application manifest to a file and apply it:
 
@@ -343,93 +345,83 @@ The `QUEUE_DEPTH` value is set by an init container at Pod startup. To change th
 
 ### Configure the Telemetry Module to Forward Metrics to CLS
 
-The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The Prometheus scraping annotations are already included in the demo application manifest.
+The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and forwards them to your CLS instance. The demo application manifest already includes the Prometheus scraping annotations.
 
-Create a `MetricPipeline` resource that sends the scraped metrics to CLS using the OTLP credentials from the binding Secret:
-
-```bash
-kubectl apply -f - <<EOF
-apiVersion: telemetry.kyma-project.io/v1beta1
-kind: MetricPipeline
-metadata:
-  name: cls-metric-pipeline
-spec:
-  input:
-    prometheus:
-      enabled: true
-      namespaces:
-        include:
-          - keda-cls-demo
-    istio:
-      enabled: false
-    runtime:
-      enabled: false
-    otlp:
-      enabled: true
-  output:
-    otlp:
-      endpoint:
-        valueFrom:
-          secretKeyRef:
-            name: cloud-logging-binding
-            namespace: cls
-            key: ingest-otlp-endpoint
-      tls:
-        cert:
-          valueFrom:
-            secretKeyRef:
-              name: cloud-logging-binding
-              namespace: cls
-              key: ingest-otlp-cert
-        key:
-          valueFrom:
-            secretKeyRef:
-              name: cloud-logging-binding
-              namespace: cls
-              key: ingest-otlp-key
-EOF
-```
-
-Verify the pipeline is ready:
-
-```bash
-kubectl get metricpipeline cls-metric-pipeline
-```
-
-You should get a result similar to this example:
-
-```bash
-NAME                  CONFIGURATION GENERATED   GATEWAY HEALTHY   AGENT HEALTHY   FLOW HEALTHY   AGE
-cls-metric-pipeline   True                      True              True            True           2m
-```
-
-In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
-
-1. Get the Dashboards URL:
-
-    <!-- tabs:start -->
-
-    #### **SAP BTP cockpit**
-
-    Find the `dashboards-endpoint` value under **View Credentials** for your CLS binding.
-
-    #### **SAP BTP Operator module**
-
-    Run the following command:
+1. Create a MetricPipeline resource that sends the scraped metrics to CLS using the OTLP credentials from the binding Secret:
 
     ```bash
-    echo "https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
+    kubectl apply -f - <<EOF
+    apiVersion: telemetry.kyma-project.io/v1beta1
+    kind: MetricPipeline
+    metadata:
+      name: cls-metric-pipeline
+    spec:
+      input:
+        prometheus:
+          enabled: true
+          namespaces:
+            include:
+              - keda-cls-demo
+        istio:
+          enabled: false
+        runtime:
+          enabled: false
+        otlp:
+          enabled: true
+      output:
+        otlp:
+          endpoint:
+            valueFrom:
+              secretKeyRef:
+                name: cloud-logging-binding
+                namespace: cls
+                key: ingest-otlp-endpoint
+          tls:
+            cert:
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-logging-binding
+                  namespace: cls
+                  key: ingest-otlp-cert
+            key:
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-logging-binding
+                  namespace: cls
+                  key: ingest-otlp-key
+    EOF
     ```
 
-    <!-- tabs:end -->
+2. Verify that the pipeline is ready:
 
-2. Open the URL in your browser and log in with the Dashboards credentials from your CLS binding.
+    ```bash
+    kubectl get metricpipeline cls-metric-pipeline
+    ```
 
-3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1-2 minutes after the MetricPipeline becomes healthy.
+    You should get a result similar to this example:
+
+    ```bash
+    NAME                  CONFIGURATION GENERATED   GATEWAY HEALTHY   AGENT HEALTHY   FLOW HEALTHY   AGE
+    cls-metric-pipeline   True                      True              True            True           2m
+    ```
+
+3. In the CLS OpenSearch Dashboards, confirm that the `queue_depth` metric is arriving:
+
+    1. Get the Dashboards URL:
+       - **SAP BTP cockpit**: Find the `dashboards-endpoint` value under **View Credentials** for your CLS binding.
+       - **SAP BTP Operator module**: Run the following command:
+
+            ```bash
+            echo "https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.dashboards-endpoint}' | base64 -d)"
+            ```
+
+    2. Open the URL in your browser and log in with the Dashboards credentials from your CLS binding.
+
+    3. In the navigation menu, go to **Discover**, select the `metrics-otel-v1-*` index pattern, and filter for documents with `name: queue_depth`. The metric should appear within 1-2 minutes after the MetricPipeline becomes healthy.
 
 ### Create a KEDA TriggerAuthentication for CLS
 
-KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store the CLS credentials in a Kubernetes `Secret` and reference them from a `TriggerAuthentication`.
+KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store the CLS credentials in a Kubernetes Secret and reference them from a TriggerAuthentication.
 
 The credentials are available in the CLS service binding Secret. The following keys are used:
 
@@ -448,7 +440,7 @@ The credentials are available in the CLS service binding Secret. The following k
       -n keda-cls-demo
     ```
 
-2. Create a `TriggerAuthentication` that references the Secret:
+2. Create a TriggerAuthentication that references the Secret:
 
     ```bash
     kubectl apply -f - <<EOF
@@ -470,7 +462,7 @@ The credentials are available in the CLS service binding Secret. The following k
 
 ### Create the ScaledObject
 
-The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
+The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
 
 1. Export the OpenSearch endpoint from your CLS service binding Secret:
 
@@ -479,7 +471,7 @@ The `ScaledObject` tells KEDA to query CLS for the latest `queue_depth` value an
     export CLS_OPENSEARCH_USERNAME=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-username}' | base64 -d)
     ```
 
-2. Create the `ScaledObject`:
+2. Create the ScaledObject:
 
     ```bash
     cat > /tmp/scaled-object.yaml << EOF
@@ -594,11 +586,11 @@ kubectl delete metricpipeline cls-metric-pipeline
 kubectl delete namespace cls
 ```
 
-If you used the SAP BTP Operator tab, also delete the service binding and instance:
+If you used the **SAP BTP Operator module** tab, also delete the service binding and instance:
 
 ```bash
 kubectl delete servicebinding cloud-logging-binding -n cls
 kubectl delete serviceinstance cloud-logging -n cls
 ```
 
-If you used the SAP BTP cockpit tab, delete the CLS instance in the cockpit under **Services** → **Instances and Subscriptions**.
+If you used the **SAP BTP cockpit** tab, delete the CLS instance in the cockpit under **Services** → **Instances and Subscriptions**.
