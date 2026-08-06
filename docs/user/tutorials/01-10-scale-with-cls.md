@@ -431,10 +431,17 @@ KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store th
 1. Create a Secret with your CLS OpenSearch credentials:
 
     ```bash
-    kubectl create secret generic cls-keda-auth \
-      --from-literal=username=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-username}' | base64 -d) \
-      --from-literal=password=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-password}' | base64 -d) \
-      -n keda-cls-demo
+    kubectl apply -f - <<EOF
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: cls-keda-auth
+      namespace: keda-cls-demo
+    type: Opaque
+    stringData:
+      username: "$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-username}' | base64 -d)"
+      password: "$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-password}' | base64 -d)"
+    EOF
     ```
 
 2. Create a TriggerAuthentication that references the Secret:
@@ -465,13 +472,12 @@ The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and 
 
     ```bash
     export CLS_OPENSEARCH_ENDPOINT=https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-endpoint}' | base64 -d)
-    export CLS_OPENSEARCH_USERNAME=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-username}' | base64 -d)
     ```
 
 2. Create the ScaledObject:
 
     ```bash
-    cat > /tmp/scaled-object.yaml << EOF
+    cat <<EOF | kubectl apply -f -
     apiVersion: keda.sh/v1alpha1
     kind: ScaledObject
     metadata:
@@ -486,7 +492,6 @@ The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and 
         - type: opensearch
           metadata:
             addresses: "${CLS_OPENSEARCH_ENDPOINT}"
-            username: "${CLS_OPENSEARCH_USERNAME}"
             index: "metrics-otel-v1-*"
             query: |
               {
@@ -507,11 +512,10 @@ The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and 
               }
             valueLocation: "aggregations.latest_value.value"
             targetValue: "10"
+            skipTLSVerify: "false"
           authenticationRef:
             name: cls-trigger-auth
     EOF
-
-    kubectl apply -f /tmp/scaled-object.yaml
     ```
 
     > [!NOTE]
