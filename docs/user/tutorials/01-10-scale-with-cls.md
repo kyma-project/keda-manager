@@ -398,12 +398,8 @@ The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and
     kubectl get metricpipeline cls-metric-pipeline
     ```
 
-<<<<<<< Updated upstream
-    You should get a result similar to this example:
-
-=======
     The output looks similar to this example:
->>>>>>> Stashed changes
+
     ```bash
     NAME                  CONFIGURATION GENERATED   GATEWAY HEALTHY   AGENT HEALTHY   FLOW HEALTHY   AGE
     cls-metric-pipeline   True                      True              True            True           2m
