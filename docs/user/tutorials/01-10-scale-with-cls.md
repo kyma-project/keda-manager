@@ -4,7 +4,7 @@ This tutorial shows how to configure KEDA to autoscale a Kubernetes workload. Th
 
 SAP BTP Cloud Logging Service is a managed observability backend built on OpenSearch. If your application metrics already flow into CLS through the [Kyma Telemetry module](https://kyma-project.io/external-content/telemetry-manager/docs/user/README.html), you can use them as autoscaling signals. No separate metrics store is needed.
 
-KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. It covers deploying a demo app that emits a `queue_depth` metric, setting up Telemetry scraping, and creating a ScaledObject that uses that metric as the scaling signal.
+KEDA 2.20 ships a native `opensearch` scaler that queries CLS directly using an inline query. This tutorial covers deploying a demo app that emits a `queue_depth` metric, setting up Telemetry scraping, and creating a ScaledObject that uses that metric as the scaling signal.
 
 ## Prerequisites
 
@@ -427,14 +427,6 @@ The Kyma Telemetry module scrapes Prometheus metrics from annotated Services and
 ### Create a KEDA TriggerAuthentication for CLS
 
 KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store the CLS credentials in a Kubernetes Secret and reference them from a TriggerAuthentication.
-
-The credentials are available in the CLS service binding Secret. The scaler uses the following keys:
-
-| Key | Description |
-|---|---|
-| **backend-endpoint** | OpenSearch REST API endpoint |
-| **backend-username** | Username for OpenSearch REST API authentication |
-| **backend-password** | Password for OpenSearch REST API authentication |
 
 1. Create a Secret with your CLS OpenSearch credentials:
 
