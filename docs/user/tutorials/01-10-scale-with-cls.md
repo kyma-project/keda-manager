@@ -468,10 +468,11 @@ KEDA must authenticate with the CLS OpenSearch REST API to run queries. Store th
 
 The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and scale the demo application accordingly.
 
-1. Export the OpenSearch endpoint from your CLS service binding Secret:
+1. Export the OpenSearch endpoint and username from your CLS service binding Secret:
 
     ```bash
     export CLS_OPENSEARCH_ENDPOINT=https://$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-endpoint}' | base64 -d)
+    export CLS_OPENSEARCH_USERNAME=$(kubectl get secret cloud-logging-binding -n cls -o jsonpath='{.data.backend-username}' | base64 -d)
     ```
 
 2. Create the ScaledObject:
@@ -492,6 +493,7 @@ The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and 
         - type: opensearch
           metadata:
             addresses: "${CLS_OPENSEARCH_ENDPOINT}"
+            username: "${CLS_OPENSEARCH_USERNAME}"
             index: "metrics-otel-v1-*"
             query: |
               {
@@ -530,8 +532,8 @@ The ScaledObject tells KEDA to query CLS for the latest `queue_depth` value and 
     The output looks similar to this example:
 
     ```bash
-    NAME                     SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   TRIGGERS     READY   ACTIVE
-    cls-queue-depth-scaler   apps/v1.Deployment   fake-metrics      1     10    opensearch   True    True
+    NAME                     SCALETARGETKIND      SCALETARGETNAME   MIN   MAX   READY   ACTIVE   FALLBACK   PAUSED   TRIGGERS     AUTHENTICATIONS    AGE
+    cls-queue-depth-scaler   apps/v1.Deployment   fake-metrics      1     10    True    True     False      False    opensearch   cls-trigger-auth   2m
     ```
 
 ### Observe Autoscaling in Action
