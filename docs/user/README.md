@@ -38,8 +38,8 @@ To learn more about the KEDA CR, see [KEDA Custom Resources](https://keda.sh/doc
 
 To assign access permissions to the Keda module resources, use the following [aggregated ClusterRoles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles):
 
-- `kyma-keda-view`
-- `kyma-keda-edit`
+- `kyma-keda-view`: Grants read-only access to the Keda custom resource and resources from all API groups managed by KEDA.
+- `kyma-keda-edit`: Grants full access to the Keda custom resource and resources from all API groups managed by KEDA.
 
 ## Resource Consumption
 
