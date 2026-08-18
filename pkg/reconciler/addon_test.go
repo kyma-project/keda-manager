@@ -646,6 +646,15 @@ func TestDeletePeerAuthentication(t *testing.T) {
 		r := &fsm{K8s: K8s{Client: c}}
 		require.NoError(t, deletePeerAuthentication(context.Background(), r, "kyma-system"))
 	})
+	t.Run("ignores missing PeerAuthentication CRD", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			Delete: func(_ context.Context, _ client.WithWatch, _ client.Object, _ ...client.DeleteOption) error {
+				return &meta.NoKindMatchError{GroupKind: schema.GroupKind{Group: "security.istio.io", Kind: "PeerAuthentication"}}
+			},
+		}).Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		require.NoError(t, deletePeerAuthentication(context.Background(), r, "kyma-system"))
+	})
 }
 
 func hasPeerAuthentication(objs []unstructured.Unstructured) bool {

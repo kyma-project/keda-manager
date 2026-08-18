@@ -210,7 +210,11 @@ func attachIstioAddonResources(objs []unstructured.Unstructured, namespace strin
 
 func deletePeerAuthentication(ctx context.Context, r *fsm, namespace string) error {
 	obj := addon.PeerAuthentication(namespace)
-	return client.IgnoreNotFound(r.Delete(ctx, &obj))
+	err := r.Delete(ctx, &obj)
+	if client.IgnoreNotFound(err) == nil || meta.IsNoMatchError(err) {
+		return nil
+	}
+	return err
 }
 
 func applyObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured) error {
