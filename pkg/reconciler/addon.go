@@ -197,7 +197,20 @@ func fetchAddonObjs(r *fsm, version, namespace string, istioInjection bool) ([]u
 	}
 	overrideNamespace(objs, namespace, istioInjection)
 	objs = append(objs, addon.NetworkPolicies(namespace)...)
+	objs = attachIstioAddonResources(objs, namespace, istioInjection)
 	return objs, nil
+}
+
+func attachIstioAddonResources(objs []unstructured.Unstructured, namespace string, istioInjection bool) []unstructured.Unstructured {
+	if istioInjection {
+		objs = append(objs, addon.PeerAuthentication(namespace))
+	}
+	return objs
+}
+
+func deletePeerAuthentication(ctx context.Context, r *fsm, namespace string) error {
+	obj := addon.PeerAuthentication(namespace)
+	return client.IgnoreNotFound(r.Delete(ctx, &obj))
 }
 
 func applyObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured) error {
@@ -320,6 +333,14 @@ func sFnApplyAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 		return stopWithNoRequeue()
 	}
 
+	if !cfg.IstioInjection {
+		if err := deletePeerAuthentication(ctx, r, targetNS); err != nil {
+			r.log.With("err", err).Error("failed to delete addon PeerAuthentication after disabling Istio injection")
+			v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
+			return stopWithNoRequeue()
+		}
+	}
+
 	r.AddonObjs = objs
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, version)
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledNamespace, targetNS)
@@ -374,6 +395,10 @@ func sFnDeleteAddon(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl
 		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, delErr.Error())
 		return stopWithNoRequeue()
 	}
+	if err := deletePeerAuthentication(ctx, r, lastNS); err != nil {
+		v1alpha1.SetAddonCondition(&s.instance, metav1.ConditionFalse, v1alpha1.ConditionReasonAddonInstallErr, err.Error())
+		return stopWithNoRequeue()
+	}
 
 	r.AddonObjs = nil
 	v1alpha1.SetAnnotation(&s.instance, v1alpha1.AnnotationAddonInstalledVersion, "")
@@ -404,16 +429,26 @@ func cleanupOldAddon(ctx context.Context, r *fsm, version, namespace string) {
 		return
 	}
 	_ = deleteObjects(ctx, r, objs)
+	_ = deletePeerAuthentication(ctx, r, namespace)
 }
 
 func deleteAddonObjs(ctx context.Context, r *fsm) error {
 	var delErr error
+	namespaces := map[string]struct{}{v1alpha1.DefaultAddonNamespace: {}}
 	for _, obj := range r.AddonObjs {
 		o := unstructured.Unstructured{}
 		o.SetGroupVersionKind(obj.GroupVersionKind())
 		o.SetName(obj.GetName())
 		o.SetNamespace(obj.GetNamespace())
+		if ns := obj.GetNamespace(); ns != "" {
+			namespaces[ns] = struct{}{}
+		}
 		if err := r.Delete(ctx, &o); client.IgnoreNotFound(err) != nil {
+			delErr = errors.Join(delErr, err)
+		}
+	}
+	for ns := range namespaces {
+		if err := deletePeerAuthentication(ctx, r, ns); err != nil {
 			delErr = errors.Join(delErr, err)
 		}
 	}

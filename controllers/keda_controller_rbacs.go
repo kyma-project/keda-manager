@@ -60,3 +60,6 @@ package controllers
 
 // Network policies
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=create;delete;list;patch;update;watch
+
+// Istio PeerAuthentication for HTTP add-on sidecar metrics scrape
+//+kubebuilder:rbac:groups=security.istio.io,resources=peerauthentications,verbs=create;delete;list;patch;update;watch
