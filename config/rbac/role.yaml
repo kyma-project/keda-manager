@@ -263,3 +263,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - security.istio.io
+  resources:
+  - peerauthentications
+  verbs:
+  - create
+  - delete
+  - list
+  - patch
+  - update
+  - watch
