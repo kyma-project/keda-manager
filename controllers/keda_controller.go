@@ -20,6 +20,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/reconciler"
@@ -28,7 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -146,7 +147,7 @@ func (r *kedaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	var instance v1alpha1.Keda
 	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
 		return ctrl.Result{
-			Requeue: true,
+			RequeueAfter: time.Second,
 		}, client.IgnoreNotFound(err)
 	}
 
@@ -173,7 +174,7 @@ func (r *kedaReconciler) retriggerAllKedaCRs(ctx context.Context, e event.Delete
 	}
 }
 
-func NewKedaReconciler(c client.Client, r record.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured, httpClient *http.Client) KedaReconciler {
+func NewKedaReconciler(c client.Client, r events.EventRecorder, log *zap.SugaredLogger, o []unstructured.Unstructured, httpClient *http.Client) KedaReconciler {
 	return &kedaReconciler{
 		log: log,
 		Cfg: reconciler.Cfg{

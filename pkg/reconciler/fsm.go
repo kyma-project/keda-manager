@@ -305,9 +305,7 @@ loop:
 		return *result, err
 	}
 
-	return ctrl.Result{
-		Requeue: false,
-	}, err
+	return ctrl.Result{}, err
 }
 
 func (m *fsm) AddLeaseObjs() {

@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/onsi/gomega"
@@ -38,7 +39,7 @@ func Test_sFnServedFilter(t *testing.T) {
 		nextFn, result, err := sFnServedFilter(context.TODO(), r, s)
 
 		require.Nil(t, err)
-		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil), nextFn)
+		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil), nextFn)
 		require.Nil(t, result)
 
 		require.Equal(t, v1alpha1.ServedTrue, s.instance.Status.Served)
@@ -81,7 +82,7 @@ func Test_sFnServedFilter(t *testing.T) {
 		nextFn, result, err := sFnServedFilter(context.TODO(), r, s)
 
 		require.Nil(t, err)
-		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil), nextFn)
+		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil), nextFn)
 		require.Nil(t, result)
 
 		require.Equal(t, v1alpha1.ServedTrue, s.instance.Status.Served)
@@ -108,7 +109,7 @@ func Test_sFnServedFilter(t *testing.T) {
 		nextFn, result, err := sFnServedFilter(context.TODO(), r, s)
 
 		require.Nil(t, err)
-		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil), nextFn)
+		requireEqualFunc(t, sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil), nextFn)
 		require.Nil(t, result)
 
 		require.Equal(t, v1alpha1.StateError, s.instance.Status.State)
