@@ -3,6 +3,7 @@ package reconciler
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,7 +26,7 @@ func sFnServedFilter(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctr
 					servedKeda.GetNamespace(), servedKeda.GetName()))
 		}
 
-		return stopWithRequeue()
+		return stopWithRequeueAfter(time.Second)
 	}
 
 	return switchState(sFnTakeSnapshot)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -110,7 +111,7 @@ func Test_sFnDeleteResources(t *testing.T) {
 		require.NoError(t, err)
 		require.Nil(t, result)
 		requireEqualFunc(t,
-			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil),
 			stateFn,
 		)
 	})
@@ -177,7 +178,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		require.Nil(t, resp)
 		require.NoError(t, err)
 		requireEqualFunc(t,
-			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil),
 			fn,
 		)
 
@@ -228,7 +229,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		require.Nil(t, resp)
 		require.NoError(t, err)
 		requireEqualFunc(t,
-			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil),
 			fn,
 		)
 
@@ -280,7 +281,7 @@ func Test_sFnDeleteStrategy(t *testing.T) {
 		require.Nil(t, resp)
 		require.NoError(t, err)
 		requireEqualFunc(t,
-			sFnUpdateStatus(&ctrl.Result{Requeue: true}, nil),
+			sFnUpdateStatus(&ctrl.Result{RequeueAfter: time.Second}, nil),
 			fn,
 		)
 

@@ -21,9 +21,11 @@ func sFnEmitEventfunc(next stateFn, result *ctrl.Result, err error) stateFn {
 				memorizedCondition.Message == condition.Message {
 				continue
 			}
-			m.Event(
+			m.Eventf(
 				&s.instance,
+				nil,
 				eventType(condition),
+				condition.Reason,
 				condition.Reason,
 				condition.Message,
 			)
