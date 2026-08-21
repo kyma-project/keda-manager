@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -105,7 +105,7 @@ var _ = BeforeSuite(func() {
 		K8s: reconciler.K8s{
 			APIServerIP:   "0.0.0.0",
 			Client:        k8sManager.GetClient(),
-			EventRecorder: record.NewFakeRecorder(100),
+			EventRecorder: events.NewFakeRecorder(100),
 		},
 		Cfg: reconciler.Cfg{
 			Finalizer: "keda-manager.kyma-project.io/deletion-hook",

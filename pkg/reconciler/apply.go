@@ -10,7 +10,6 @@ import (
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	"github.com/kyma-project/keda-manager/pkg/annotation"
 	v1 "k8s.io/api/apps/v1"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -47,10 +46,7 @@ func sFnApply(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.Resul
 			}
 		}
 
-		err = r.Patch(ctx, &obj, client.Apply, &client.PatchOptions{
-			Force:        ptr.To[bool](true),
-			FieldManager: "keda-manager",
-		})
+		err = r.Apply(ctx, client.ApplyConfigurationFromUnstructured(&obj), client.ForceOwnership, client.FieldOwner("keda-manager"))
 
 		if err != nil {
 			r.log.With("err", err).Error("apply error")

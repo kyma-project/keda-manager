@@ -14,7 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -220,10 +219,7 @@ func deletePeerAuthentication(ctx context.Context, r *fsm, namespace string) err
 func applyObjects(ctx context.Context, r *fsm, objs []unstructured.Unstructured) error {
 	var applyErr error
 	for i := range objs {
-		if err := r.Patch(ctx, &objs[i], client.Apply, &client.PatchOptions{
-			Force:        ptr.To(true),
-			FieldManager: "keda-manager",
-		}); err != nil {
+		if err := r.Apply(ctx, client.ApplyConfigurationFromUnstructured(&objs[i]), client.ForceOwnership, client.FieldOwner("keda-manager")); err != nil {
 			r.log.With("err", err).With("name", objs[i].GetName()).Error("addon apply error")
 			applyErr = errors.Join(applyErr, err)
 		}
