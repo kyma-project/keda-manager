@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
+	"github.com/kyma-project/keda-manager/pkg/addon"
 	"github.com/stretchr/testify/require"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -616,4 +617,51 @@ func TestSFnGuardAddonInUse(t *testing.T) {
 		}
 		require.True(t, found)
 	})
+}
+
+func TestAttachIstioAddonResources(t *testing.T) {
+	t.Run("adds PeerAuthentication only when Istio injection is enabled", func(t *testing.T) {
+		objs := attachIstioAddonResources(nil, "kyma-system", true)
+		require.True(t, hasPeerAuthentication(objs))
+
+		objs = attachIstioAddonResources(nil, "kyma-system", false)
+		require.False(t, hasPeerAuthentication(objs))
+	})
+}
+
+func TestDeletePeerAuthentication(t *testing.T) {
+	t.Run("deletes existing PeerAuthentication", func(t *testing.T) {
+		pa := addon.PeerAuthentication("kyma-system")
+		c := fake.NewClientBuilder().WithObjects(&pa).Build()
+		r := &fsm{K8s: K8s{Client: c}}
+
+		require.NoError(t, deletePeerAuthentication(context.Background(), r, "kyma-system"))
+
+		got := addon.PeerAuthentication("kyma-system")
+		err := c.Get(context.Background(), client.ObjectKey{Name: got.GetName(), Namespace: got.GetNamespace()}, &got)
+		require.True(t, apierrors.IsNotFound(err))
+	})
+	t.Run("ignores missing PeerAuthentication", func(t *testing.T) {
+		c := fake.NewClientBuilder().Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		require.NoError(t, deletePeerAuthentication(context.Background(), r, "kyma-system"))
+	})
+	t.Run("ignores missing PeerAuthentication CRD", func(t *testing.T) {
+		c := fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+			Delete: func(_ context.Context, _ client.WithWatch, _ client.Object, _ ...client.DeleteOption) error {
+				return &meta.NoKindMatchError{GroupKind: schema.GroupKind{Group: "security.istio.io", Kind: "PeerAuthentication"}}
+			},
+		}).Build()
+		r := &fsm{K8s: K8s{Client: c}}
+		require.NoError(t, deletePeerAuthentication(context.Background(), r, "kyma-system"))
+	})
+}
+
+func hasPeerAuthentication(objs []unstructured.Unstructured) bool {
+	for i := range objs {
+		if objs[i].GetKind() == "PeerAuthentication" && objs[i].GetName() == "keda-add-ons-http-envoy-metrics" {
+			return true
+		}
+	}
+	return false
 }

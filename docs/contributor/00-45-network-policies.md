@@ -26,6 +26,16 @@ When a cluster-wide deny-all network policy is enforced, which blocks all ingres
 | `kyma-project.io--keda-operator-metrics-apiserver-allow-from-operator` | Allows ingress to the KEDA Metrics API Server Pod from the KEDA Operator Pod. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
 | `kyma-project.io--keda-operator-metrics-apiserver-ingress-all-from-apiserver` | Allows ingress to the KEDA Metrics API Server Pod on port 6443 \(TCP\) from any source. This allows the Kubernetes API server to aggregate custom metrics using the metrics API server. Applied to Pods labeled `app: keda-operator-metrics-apiserver`. |
 
+**Network Policies for the KEDA HTTP Add-on**
+
+These policies are installed with the HTTP Add-on. The following policies allow Kyma telemetry to scrape Istio sidecar stats when sidecar injection is enabled:
+
+| Policy Name | Description |
+|---|---|
+| `keda-add-ons-http-interceptor-allow-envoy-metrics` | Allows ingress to the Istio sidecar stats port on 15090 \(TCP\) from Pods labeled `networking.kyma-project.io/metrics-scraping: allowed` in the `kyma-system` namespace. Applied to interceptor Pods. |
+| `keda-add-ons-http-scaler-allow-envoy-metrics` | Allows ingress to the Istio sidecar stats port on 15090 \(TCP\) from Pods labeled `networking.kyma-project.io/metrics-scraping: allowed` in the `kyma-system` namespace. Applied to external-scaler Pods. |
+| `keda-add-ons-http-operator-allow-envoy-metrics` | Allows ingress to the Istio sidecar stats port on 15090 \(TCP\) from Pods labeled `networking.kyma-project.io/metrics-scraping: allowed` in the `kyma-system` namespace. Applied to HTTP add-on operator Pods. |
+
 ## Verify Status
 
 To check if the network policies are active, run the following command:
