@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -39,7 +40,7 @@ func sFnDeleteResources(_ context.Context, _ *fsm, s *systemState) (stateFn, *ct
 		s.instance.UpdateStateDeletion(
 			v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeletion, "deletion in progress")
 
-		return stopWithRequeue()
+		return stopWithRequeueAfter(time.Second)
 	}
 
 	// TODO: thinkg about deletion configuration
@@ -139,7 +140,7 @@ func deleteResourcesWithFilter(ctx context.Context, r *fsm, s *systemState, filt
 
 	s.instance.UpdateStateDeletionTrue(
 		v1alpha1.ConditionTypeDeleted, v1alpha1.ConditionReasonDeleted, "Keda module deleted")
-	return stopWithRequeue()
+	return stopWithRequeueAfter(time.Second)
 }
 
 func deleteResources(ctx context.Context, r *fsm, objs []unstructured.Unstructured, filterFunc []filterFunc) error {

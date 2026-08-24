@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"time"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -13,7 +14,7 @@ func sFnRemoveFinalizer(ctx context.Context, r *fsm, s *systemState) (stateFn, *
 
 	err := r.Update(ctx, &s.instance)
 	if client.IgnoreNotFound(err) != nil {
-		return nil, &ctrl.Result{Requeue: true}, err
+		return nil, &ctrl.Result{RequeueAfter: time.Second}, err
 	}
 
 	r.log.Debug("finalizer removed")

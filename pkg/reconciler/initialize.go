@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"time"
 
 	"github.com/kyma-project/keda-manager/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -27,7 +28,7 @@ func sFnInitialize(ctx context.Context, r *fsm, s *systemState) (stateFn, *ctrl.
 			v1alpha1.ConditionReasonInitialized,
 			"initialized",
 		)
-		return stopWithRequeue()
+		return stopWithRequeueAfter(time.Second)
 	}
 	// in case instance has no finalizer and instance is being deleted - end reconciliation
 	if instanceIsBeingDeleted && !controllerutil.ContainsFinalizer(&s.instance, r.Finalizer) {
