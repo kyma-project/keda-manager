@@ -42,7 +42,7 @@ kubectl annotate keda -n kyma-system default \
 |---|---|---|
 | `keda.kyma-project.io/addon-enabled` | Yes | Set to `true` to install, `false` to uninstall. |
 | `keda.kyma-project.io/addon-namespace` | No | Namespace where the add-on is installed. Defaults to `kyma-system`. |
-| `keda.kyma-project.io/addon-istio-injection` | No | Set to `true` to enable Istio sidecar injection on the add-on Deployments. Defaults to `false` — the add-on Deployments are annotated with `sidecar.istio.io/inject: "false"` unless this annotation is explicitly set to `true`. When enabled, the Interceptor Deployment also receives `traffic.sidecar.istio.io/excludeInboundPorts: "9090"` to prevent the sidecar from intercepting internal gRPC traffic. |
+| `keda.kyma-project.io/addon-istio-injection` | No | Set to `true` to enable Istio sidecar injection on the add-on Deployments. Defaults to `false` — the add-on Deployments are annotated with `sidecar.istio.io/inject: "false"` unless this annotation is explicitly set to `true`. When enabled, the Interceptor Deployment also receives `traffic.sidecar.istio.io/excludeInboundPorts: "9090"` to prevent the sidecar from intercepting internal gRPC traffic. Keda Manager also creates a port-level `PERMISSIVE` PeerAuthentication on port `15090` so Kyma telemetry can scrape Istio sidecar metrics over plain HTTP under mesh-wide STRICT mTLS. |
 
 ### Changing the Installation Namespace
 
