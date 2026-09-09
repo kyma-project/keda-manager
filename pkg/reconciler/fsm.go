@@ -18,7 +18,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apirt "k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -255,7 +255,7 @@ var (
 type K8s struct {
 	APIServerIP string
 	client.Client
-	record.EventRecorder
+	events.EventRecorder
 }
 
 type Fsm interface {
@@ -305,9 +305,7 @@ loop:
 		return *result, err
 	}
 
-	return ctrl.Result{
-		Requeue: false,
-	}, err
+	return ctrl.Result{}, err
 }
 
 func (m *fsm) AddLeaseObjs() {

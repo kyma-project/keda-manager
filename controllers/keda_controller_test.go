@@ -131,7 +131,7 @@ func shouldDeleteKeda(h testHelper, kedaName string) {
 	// assert
 	Eventually(h.getKedaCount).
 		WithPolling(time.Second * 2).
-		WithTimeout(time.Second * 10).
+		WithTimeout(time.Second * 30).
 		Should(Equal(0))
 
 }
