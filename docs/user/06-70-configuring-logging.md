@@ -1,3 +1,4 @@
+<!-- loio: 7f358d7f19bf48ed9918a715d1b166fb -->
 # Configuring Logging
 
 Learn how to configure logging for Keda Manager and the Keda module components.
