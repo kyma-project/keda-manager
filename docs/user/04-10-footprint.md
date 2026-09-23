@@ -1,3 +1,4 @@
+<!-- loio: 45cb806a9667487e95df843736828d96 -->
 # Keda Module Footprint
 
 The Keda module consists of four workloads.
