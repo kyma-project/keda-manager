@@ -6,11 +6,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator
     
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -23,11 +23,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-metrics-server
     
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-metrics-server
   namespace: kyma-system
@@ -40,11 +40,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-webhook
     
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-webhook
   namespace: kyma-system
@@ -58,11 +58,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: cloudeventsources.eventing.keda.sh
 spec:
   group: eventing.keda.sh
@@ -239,11 +239,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: clustercloudeventsources.eventing.keda.sh
 spec:
   group: eventing.keda.sh
@@ -418,11 +418,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: clustertriggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -1091,11 +1091,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: scaledjobs.keda.sh
 spec:
   group: keda.sh
@@ -1542,6 +1542,7 @@ spec:
                           namespace:
                             type: string
                         type: object
+                        x-kubernetes-preserve-unknown-fields: true
                       spec:
                         description: |-
                           Specification of the desired behavior of the pod.
@@ -3213,6 +3214,7 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
+                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -4825,6 +4827,7 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
+                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -6464,6 +6467,7 @@ spec:
                                         type: string
                                     required:
                                     - containerPort
+                                    - protocol
                                     type: object
                                   type: array
                                   x-kubernetes-list-map-keys:
@@ -10151,6 +10155,7 @@ spec:
                     type: array
                   strategy:
                     enum:
+                    - default
                     - custom
                     - accurate
                     - eager
@@ -10185,11 +10190,6 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
-                    metricType:
-                      description: |-
-                        MetricTargetType specifies the type of metric being targeted, and should be either
-                        "Value", "AverageValue", or "Utilization"
-                      type: string
                     name:
                       type: string
                     type:
@@ -10271,11 +10271,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: scaledobjects.keda.sh
 spec:
   group: keda.sh
@@ -10413,6 +10413,8 @@ spec:
                                   - For scale up: 0 (i.e. no stabilization is done).
                                   - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
                                 format: int32
+                                maximum: 3600
+                                minimum: 0
                                 type: integer
                               tolerance:
                                 anyOf:
@@ -10488,6 +10490,8 @@ spec:
                                   - For scale up: 0 (i.e. no stabilization is done).
                                   - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
                                 format: int32
+                                maximum: 3600
+                                minimum: 0
                                 type: integer
                               tolerance:
                                 anyOf:
@@ -10759,11 +10763,11 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.21.0
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
   name: triggerauthentications.keda.sh
 spec:
   group: keda.sh
@@ -11426,11 +11430,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator
 rules:
@@ -11449,6 +11453,7 @@ rules:
   - watch
 - apiGroups:
   - events.k8s.io
+  - ""
   resources:
   - events
   verbs:
@@ -11567,11 +11572,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal-cluster-role    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal-cluster-role
 rules:
@@ -11619,6 +11624,7 @@ rules:
   - patch
   - update
   - watch
+
 ---
 # Source: keda/templates/metrics-server/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11626,11 +11632,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-external-metrics-reader    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-external-metrics-reader
 rules:
@@ -11647,11 +11653,11 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 rules:
@@ -11684,6 +11690,13 @@ rules:
   - limitranges
   verbs:
   - list
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 ---
 # Source: keda/templates/manager/clusterrolebindings.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11691,11 +11704,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator
 roleRef:
@@ -11706,6 +11719,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-operator
   namespace: kyma-system
+
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11713,11 +11727,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-minimal    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-minimal
 roleRef:
@@ -11728,6 +11742,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-operator
   namespace: kyma-system
+
 ---
 # Source: keda/templates/metrics-server/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11735,11 +11750,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-system-auth-delegator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-system-auth-delegator
 roleRef:
@@ -11750,6 +11765,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-metrics-server
   namespace: kyma-system
+
 ---
 # Source: keda/templates/metrics-server/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11757,11 +11773,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-hpa-controller-external-metrics    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-hpa-controller-external-metrics
 roleRef:
@@ -11779,11 +11795,11 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-webhook    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-webhook
 roleRef:
@@ -11794,6 +11810,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-webhook
   namespace: kyma-system
+
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11801,11 +11818,11 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -11837,6 +11854,7 @@ rules:
   verbs:
   - create
   - update
+
 ---
 # Source: keda/templates/manager/minimal-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -11844,11 +11862,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-certs    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-certs
   namespace: kyma-system
@@ -11860,6 +11878,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-operator
   namespace: kyma-system
+
 ---
 # Source: keda/templates/metrics-server/clusterrolebinding.yaml
 # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/#extension-apiserver-authenticates-the-request
@@ -11868,11 +11887,11 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keda-operator-auth-reader    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-auth-reader
   namespace: kube-system
@@ -11884,6 +11903,7 @@ subjects:
 - kind: ServiceAccount
   name: keda-metrics-server
   namespace: kyma-system
+
 ---
 # Source: keda/templates/manager/service.yaml
 apiVersion: v1
@@ -11895,11 +11915,11 @@ metadata:
     prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator
   namespace: kyma-system
@@ -11913,6 +11933,7 @@ spec:
     targetPort: 8080
   selector:
     app: keda-operator
+
 ---
 # Source: keda/templates/metrics-server/service.yaml
 apiVersion: v1
@@ -11921,11 +11942,11 @@ metadata:
   labels:
     app.kubernetes.io/name: keda-operator-metrics-apiserver
     app: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-operator-metrics-apiserver
   namespace: kyma-system
@@ -11947,6 +11968,7 @@ spec:
     protocol: TCP
   selector:
     app: keda-operator-metrics-apiserver
+
 ---
 # Source: keda/templates/webhooks/service.yaml
 apiVersion: v1
@@ -11958,11 +11980,11 @@ metadata:
     prometheus.io/path: "/metrics"
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-admission-webhooks
   namespace: kyma-system
@@ -11978,6 +12000,7 @@ spec:
     targetPort: 8080
   selector:
     app: keda-admission-webhooks
+
 ---
 # Source: keda/templates/manager/deployment.yaml
 apiVersion: apps/v1
@@ -11989,11 +12012,11 @@ metadata:
     app: keda-operator
     name: keda-operator
     app.kubernetes.io/name: keda-operator    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -12007,11 +12030,11 @@ spec:
         app: keda-operator
         name: keda-operator
         app.kubernetes.io/name: keda-operator        
-        helm.sh/chart: keda-2.20.0
+        helm.sh/chart: keda-2.20.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.20.0
+        app.kubernetes.io/version: 2.20.2
         app.kubernetes.io/instance: keda
       annotations:
         rt-cfg.kyma-project.io/add-img-pull-secret: "true"
@@ -12032,7 +12055,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.20.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda:2.20.2"
           command:
           - "/keda"
           args:
@@ -12052,6 +12075,9 @@ spec:
           - "--k8s-cluster-domain=cluster.local"
           - "--enable-prometheus-metrics=true"
           - "--metrics-bind-address=:8080"
+          - "--http-max-idle-conns=0"
+          - "--http-max-idle-conns-per-host=1000"
+          - "--http-idle-conn-timeout=90s"
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -12122,6 +12148,7 @@ spec:
         kubernetes.io/os: linux
       dnsPolicy: ClusterFirst
       hostNetwork: false
+
 ---
 # Source: keda/templates/metrics-server/deployment.yaml
 apiVersion: apps/v1
@@ -12132,11 +12159,11 @@ metadata:
   labels:
     app: keda-operator-metrics-apiserver
     app.kubernetes.io/name: keda-operator-metrics-apiserver    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -12149,11 +12176,11 @@ spec:
       labels:
         app: keda-operator-metrics-apiserver
         app.kubernetes.io/name: keda-operator-metrics-apiserver        
-        helm.sh/chart: keda-2.20.0
+        helm.sh/chart: keda-2.20.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.20.0
+        app.kubernetes.io/version: 2.20.2
         app.kubernetes.io/instance: keda
       annotations:
         prometheus.io/scrape: "true"
@@ -12176,7 +12203,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.20.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-metrics-apiserver:2.20.2"
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
@@ -12259,6 +12286,7 @@ spec:
       hostNetwork: false
       nodeSelector:
         kubernetes.io/os: linux
+
 ---
 # Source: keda/templates/webhooks/deployment.yaml
 apiVersion: apps/v1
@@ -12270,11 +12298,11 @@ metadata:
     app: keda-admission-webhooks
     name: keda-admission-webhooks
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
 spec:
   revisionHistoryLimit: 10
@@ -12288,11 +12316,11 @@ spec:
         app: keda-admission-webhooks
         name: keda-admission-webhooks
         app.kubernetes.io/name: keda-admission-webhooks        
-        helm.sh/chart: keda-2.20.0
+        helm.sh/chart: keda-2.20.2
         app.kubernetes.io/component: operator
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: keda-operator
-        app.kubernetes.io/version: 2.20.0
+        app.kubernetes.io/version: 2.20.2
         app.kubernetes.io/instance: keda
       annotations:
         rt-cfg.kyma-project.io/add-img-pull-secret: "true"
@@ -12313,7 +12341,7 @@ spec:
             readOnlyRootFilesystem: true
             seccompProfile:
               type: RuntimeDefault
-          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.20.0"
+          image: "europe-docker.pkg.dev/kyma-project/prod/external/ghcr.io/kedacore/keda-admission-webhooks:2.20.2"
           command:
           - /keda-admission-webhooks
           args:
@@ -12379,6 +12407,7 @@ spec:
       hostNetwork: false
       nodeSelector:
         kubernetes.io/os: linux
+
 ---
 # Source: keda/templates/metrics-server/apiservice.yaml
 apiVersion: apiregistration.k8s.io/v1
@@ -12386,11 +12415,11 @@ kind: APIService
 metadata:
   labels:
     app.kubernetes.io/name: v1beta1.external.metrics.k8s.io    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: v1beta1.external.metrics.k8s.io
 spec:
@@ -12402,6 +12431,7 @@ spec:
   version: v1beta1
   groupPriorityMinimum: 100
   versionPriority: 100
+
 ---
 # Source: keda/templates/webhooks/validatingconfiguration.yaml
 apiVersion: admissionregistration.k8s.io/v1
@@ -12409,11 +12439,11 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app.kubernetes.io/name: keda-admission-webhooks    
-    helm.sh/chart: keda-2.20.0
+    helm.sh/chart: keda-2.20.2
     app.kubernetes.io/component: operator
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: keda-operator
-    app.kubernetes.io/version: 2.20.0
+    app.kubernetes.io/version: 2.20.2
     app.kubernetes.io/instance: keda
   name: keda-admission
 webhooks:
