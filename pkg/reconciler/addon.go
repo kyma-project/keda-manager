@@ -152,6 +152,10 @@ func patchDeploymentEnvNamespace(obj *unstructured.Unstructured, namespace strin
 			name, _ := envVar["name"].(string)
 			if _, match := namespaceEnvVars[name]; match && envVar["value"] != namespace {
 				envVar["value"] = namespace
+				// value and valueFrom are mutually exclusive; the add-on 0.16.0
+				// manifest sources these namespace vars via valueFrom (downward
+				// API), so clear it when we override with a literal namespace.
+				delete(envVar, "valueFrom")
 				envList[ei] = envVar
 				changed = true
 			}
