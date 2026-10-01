@@ -2,7 +2,11 @@ package controllers
 
 // Core API group permissions
 //+kubebuilder:rbac:groups="",resources=configmaps;configmaps/status,verbs=create;delete;list;patch;update;watch
+// keda-operator ClusterRole grants events create;patch on both events.k8s.io
+// and the core ("") group (KEDA chart 2.20.2+); the manager must hold the same
+// to apply it (RBAC escalation prevention).
 //+kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups="",resources=services,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=external;pods;secrets;serviceaccounts,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=namespaces,verbs=create;delete;get;list;patch;update;watch
