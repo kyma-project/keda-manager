@@ -193,6 +193,9 @@ rules:
   - httpscaledobjects
   - httpscaledobjects/finalizers
   - httpscaledobjects/status
+  - interceptorroutes
+  - interceptorroutes/finalizers
+  - interceptorroutes/status
   verbs:
   - create
   - delete
