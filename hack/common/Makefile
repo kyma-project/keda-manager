@@ -49,22 +49,10 @@ verify-keda: ## Wait for Keda CR to be in Ready state.
 		(make print-keda-details && false)
 
 .PHONY: print-keda-details
-print-keda-details: ## Print pods, deploys, CRs and KEDA component logs/RBAC in the kyma-system namespace.
+print-keda-details: ## Print all pods, deploys and serverless CRs in the kyma-system namespace.
 	kubectl get keda -n kyma-system -oyaml
 	kubectl get deploy -n kyma-system -oyaml
 	kubectl get pods -n kyma-system -oyaml
-	# Component stdout: the actual exit reason (e.g. empty /certs, cache sync, forbidden)
-	# that the -oyaml dumps above never show. Current and previous (crash) logs.
-	-kubectl logs -n kyma-system -l app=keda-operator --tail=200 --all-containers --prefix
-	-kubectl logs -n kyma-system -l app=keda-operator --previous --tail=200 --all-containers --prefix
-	-kubectl logs -n kyma-system -l app=keda-admission-webhooks --tail=100 --all-containers --prefix
-	-kubectl logs -n kyma-system -l app=keda-admission-webhooks --previous --tail=100 --all-containers --prefix
-	-kubectl logs -n kyma-system -l app=keda-operator-metrics-apiserver --tail=100 --all-containers --prefix
-	-kubectl logs -n kyma-system -l app=keda-operator-metrics-apiserver --previous --tail=100 --all-containers --prefix
-	# Cert rotation needs the operator SA to list secrets; verify the effective RBAC.
-	-kubectl auth can-i list secrets -n kyma-system --as=system:serviceaccount:kyma-system:keda-operator
-	-kubectl get clusterrole keda-operator keda-operator-minimal-cluster-role -oyaml
-	-kubectl get secret kedaorg-certs -n kyma-system -o jsonpath='{range $$k,$$v := .data}{$$k}{"\n"}{end}'
 
 .PHONY: apply-keda
 apply-keda: ## Apply the k3d serverless CR
