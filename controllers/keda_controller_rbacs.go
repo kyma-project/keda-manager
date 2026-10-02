@@ -2,7 +2,11 @@ package controllers
 
 // Core API group permissions
 //+kubebuilder:rbac:groups="",resources=configmaps;configmaps/status,verbs=create;delete;list;patch;update;watch
+// keda-operator ClusterRole grants events create;patch on both events.k8s.io
+// and the core ("") group (KEDA chart 2.20.2+); the manager must hold the same
+// to apply it (RBAC escalation prevention).
 //+kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups="",resources=services,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=external;pods;secrets;serviceaccounts,verbs=create;delete;list;patch;update;watch
 //+kubebuilder:rbac:groups="",resources=namespaces,verbs=create;delete;get;list;patch;update;watch
@@ -41,8 +45,10 @@ package controllers
 
 // HTTP add-on resources – the keda-manager must hold at least the same
 // permissions it delegates to the add-on service-accounts via ClusterRoles
-// shipped in the upstream manifest (RBAC escalation prevention).
-//+kubebuilder:rbac:groups="http.keda.sh",resources=httpscaledobjects;httpscaledobjects/status;httpscaledobjects/finalizers,verbs=create;delete;list;patch;update;watch
+// shipped in the upstream manifest (RBAC escalation prevention). Add-on 0.16.0
+// introduced the interceptorroutes resource into those ClusterRoles, so the
+// manager must hold it too or it cannot create them.
+//+kubebuilder:rbac:groups="http.keda.sh",resources=httpscaledobjects;httpscaledobjects/status;httpscaledobjects/finalizers;interceptorroutes;interceptorroutes/status;interceptorroutes/finalizers,verbs=create;delete;list;patch;update;watch
 
 // External metrics API
 //+kubebuilder:rbac:groups=external.metrics.k8s.io,resources=externalmetrics,verbs=list;watch

@@ -41,6 +41,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - ""
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - '*'
   resources:
   - '*'
@@ -173,13 +181,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - events.k8s.io
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
   - external.metrics.k8s.io
   resources:
   - externalmetrics
@@ -192,6 +193,9 @@ rules:
   - httpscaledobjects
   - httpscaledobjects/finalizers
   - httpscaledobjects/status
+  - interceptorroutes
+  - interceptorroutes/finalizers
+  - interceptorroutes/status
   verbs:
   - create
   - delete

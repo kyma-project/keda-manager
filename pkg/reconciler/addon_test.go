@@ -469,6 +469,41 @@ func TestPatchDeploymentEnvNamespace(t *testing.T) {
 		require.Equal(t, "new-ns", envList[1].(map[string]interface{})["value"])
 		require.Equal(t, "keep", envList[2].(map[string]interface{})["value"])
 	})
+	t.Run("overrides valueFrom env vars and drops valueFrom", func(t *testing.T) {
+		// Add-on 0.16.0 sources these namespace vars via downward-API valueFrom
+		// (no "value" key). Overriding must set the literal value AND drop
+		// valueFrom, else the Deployment is rejected: env[N].valueFrom may not
+		// be specified when value is not empty.
+		fieldRef := func(name string) map[string]interface{} {
+			return map[string]interface{}{
+				"name": name,
+				"valueFrom": map[string]interface{}{
+					"fieldRef": map[string]interface{}{"fieldPath": "metadata.namespace"},
+				},
+			}
+		}
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "dep"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"spec": map[string]interface{}{
+				"containers": []interface{}{map[string]interface{}{
+					"name": "c1", "env": []interface{}{
+						fieldRef("KEDA_HTTP_SCALER_TARGET_ADMIN_NAMESPACE"),
+						fieldRef("KEDA_HTTP_OPERATOR_NAMESPACE"),
+					},
+				}},
+			}}},
+		}}
+		patchDeploymentEnvNamespace(obj, "new-ns")
+		containers, _, _ := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+		envList := containers[0].(map[string]interface{})["env"].([]interface{})
+		for _, raw := range envList {
+			e := raw.(map[string]interface{})
+			require.Equal(t, "new-ns", e["value"], "env %s must get literal namespace value", e["name"])
+			_, hasValueFrom := e["valueFrom"]
+			require.False(t, hasValueFrom, "env %s must not keep valueFrom alongside value", e["name"])
+		}
+	})
 	t.Run("no-op when no containers", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{
 			"apiVersion": "apps/v1", "kind": "Deployment",
