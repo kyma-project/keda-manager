@@ -78,8 +78,29 @@ send_request_btp() {
     echo "HTTP status: ${HTTP_STATUS}"
     if [ "${HTTP_STATUS}" != "200" ]; then
         echo "Expected HTTP 200, got ${HTTP_STATUS}"
+        dump_btp_diagnostics
         exit 1
     fi
+}
+
+# dump_btp_diagnostics prints the data-path state needed to tell a routing/mTLS
+# 503 apart from a cold-start/app error: the interceptor app log, the
+# interceptor istio-proxy access log (response_flags like UC/NR,
+# upstream_cluster PassthroughCluster, upstream_host), and the EnvoyFilter
+# retry/vhost config. See the add-on 0.16.0 KEDA_HTTP_DIRECT_POD_ROUTING
+# incompatibility with STRICT mTLS.
+dump_btp_diagnostics() {
+    echo "=== interceptor app log (last 40) ==="
+    kubectl logs -n kyma-system -l app.kubernetes.io/instance=interceptor -c interceptor --tail=40 2>/dev/null || true
+    echo "=== interceptor istio-proxy access log (last 40) ==="
+    kubectl logs -n kyma-system -l app.kubernetes.io/instance=interceptor -c istio-proxy --tail=40 2>/dev/null || true
+    echo "=== interceptor Deployment KEDA_HTTP_DIRECT_POD_ROUTING env ==="
+    kubectl get deployment keda-add-ons-http-interceptor -n kyma-system \
+        -o jsonpath='{range .spec.template.spec.containers[?(@.name=="interceptor")].env[?(@.name=="KEDA_HTTP_DIRECT_POD_ROUTING")]}{.name}={.value}{"\n"}{end}' 2>/dev/null || true
+    echo "=== EnvoyFilter (retry/vhost) in demo-app ==="
+    kubectl get envoyfilter -n demo-app -o yaml 2>/dev/null || true
+    echo "=== HTTPScaledObject status ==="
+    kubectl get httpscaledobjects -n demo-app -o yaml 2>/dev/null || true
 }
 
 # Setup
