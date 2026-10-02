@@ -295,6 +295,136 @@ func TestPatchDeploymentIstioSidecarAnnotation(t *testing.T) {
 	})
 }
 
+// interceptorEnv returns the KEDA_HTTP_DIRECT_POD_ROUTING env var on the
+// interceptor container of a Deployment unstructured object, or nil if absent.
+func interceptorEnv(t *testing.T, obj *unstructured.Unstructured) map[string]interface{} {
+	t.Helper()
+	containers, _, _ := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	for _, rawC := range containers {
+		c, ok := rawC.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if name, _ := c["name"].(string); name != interceptorContainerName {
+			continue
+		}
+		envList, _ := c["env"].([]interface{})
+		for _, rawE := range envList {
+			e, ok := rawE.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if n, _ := e["name"].(string); n == directPodRoutingEnvName {
+				return e
+			}
+		}
+	}
+	return nil
+}
+
+func interceptorDeployment(containerEnv []interface{}) *unstructured.Unstructured {
+	return &unstructured.Unstructured{Object: map[string]interface{}{
+		"apiVersion": "apps/v1", "kind": "Deployment",
+		"metadata": map[string]interface{}{"name": interceptorDeploymentName},
+		"spec": map[string]interface{}{"template": map[string]interface{}{"spec": map[string]interface{}{
+			"containers": []interface{}{
+				map[string]interface{}{
+					"name": interceptorContainerName,
+					"env":  containerEnv,
+				},
+			},
+		}}},
+	}}
+}
+
+func TestPatchInterceptorDirectPodRouting(t *testing.T) {
+	t.Run("adds env false when absent (0.16.0 shape: no explicit env)", func(t *testing.T) {
+		obj := interceptorDeployment([]interface{}{
+			map[string]interface{}{"name": "KEDA_HTTP_PROXY_PORT", "value": "8080"},
+		})
+		patchInterceptorDirectPodRouting(obj)
+		e := interceptorEnv(t, obj)
+		require.NotNil(t, e, "env must be injected")
+		require.Equal(t, "false", e["value"])
+		require.NotContains(t, e, "valueFrom")
+	})
+	t.Run("adds env false when container has no env list at all", func(t *testing.T) {
+		obj := interceptorDeployment(nil)
+		patchInterceptorDirectPodRouting(obj)
+		e := interceptorEnv(t, obj)
+		require.NotNil(t, e)
+		require.Equal(t, "false", e["value"])
+	})
+	t.Run("preserves explicit user value (true) — default false but overridable", func(t *testing.T) {
+		obj := interceptorDeployment([]interface{}{
+			map[string]interface{}{"name": directPodRoutingEnvName, "value": "true"},
+		})
+		patchInterceptorDirectPodRouting(obj)
+		e := interceptorEnv(t, obj)
+		require.NotNil(t, e)
+		require.Equal(t, "true", e["value"], "an explicit user value must win over the default false")
+	})
+	t.Run("preserves explicit valueFrom — leaves operator override untouched", func(t *testing.T) {
+		obj := interceptorDeployment([]interface{}{
+			map[string]interface{}{
+				"name":      directPodRoutingEnvName,
+				"valueFrom": map[string]interface{}{"configMapKeyRef": map[string]interface{}{"name": "x", "key": "y"}},
+			},
+		})
+		patchInterceptorDirectPodRouting(obj)
+		e := interceptorEnv(t, obj)
+		require.NotNil(t, e)
+		require.Contains(t, e, "valueFrom", "explicit valueFrom override must be left in place")
+		require.NotContains(t, e, "value", "we must not inject a literal value over an explicit valueFrom")
+	})
+	t.Run("no-op on non-interceptor Deployment", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]interface{}{
+			"apiVersion": "apps/v1", "kind": "Deployment",
+			"metadata": map[string]interface{}{"name": "keda-add-ons-http-operator"},
+			"spec": map[string]interface{}{"template": map[string]interface{}{"spec": map[string]interface{}{
+				"containers": []interface{}{
+					map[string]interface{}{"name": "operator", "env": []interface{}{}},
+				},
+			}}},
+		}}
+		patchInterceptorDirectPodRouting(obj)
+		containers, _, _ := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+		c := containers[0].(map[string]interface{})
+		envList, _ := c["env"].([]interface{})
+		require.Empty(t, envList, "operator Deployment must not be patched")
+	})
+	t.Run("only injected in istio mode via overrideNamespace", func(t *testing.T) {
+		// Real 0.16.0 interceptor shape: no explicit KEDA_HTTP_DIRECT_POD_ROUTING
+		// env (the add-on default comes from envDefault:"true" in-process).
+		mk := func() []unstructured.Unstructured {
+			return []unstructured.Unstructured{*interceptorDeployment([]interface{}{
+				map[string]interface{}{"name": "KEDA_HTTP_PROXY_PORT", "value": "8080"},
+			})}
+		}
+		// istioInjection=false: env left absent (add-on keeps its own default)
+		off := mk()
+		overrideNamespace(off, "ns", false)
+		require.Nil(t, interceptorEnv(t, &off[0]),
+			"must NOT inject the env outside istio mode")
+		// istioInjection=true: env injected false
+		on := mk()
+		overrideNamespace(on, "ns", true)
+		eon := interceptorEnv(t, &on[0])
+		require.NotNil(t, eon, "must inject the env in istio mode")
+		require.Equal(t, "false", eon["value"], "must default false in istio mode")
+	})
+	t.Run("explicit value survives istio mode via overrideNamespace", func(t *testing.T) {
+		// If an operator pins the env to true, istio mode must respect it.
+		objs := []unstructured.Unstructured{*interceptorDeployment([]interface{}{
+			map[string]interface{}{"name": directPodRoutingEnvName, "value": "true"},
+		})}
+		overrideNamespace(objs, "ns", true)
+		e := interceptorEnv(t, &objs[0])
+		require.NotNil(t, e)
+		require.Equal(t, "true", e["value"], "explicit override must survive istio mode")
+	})
+}
+
 func TestPatchDeploymentPodTemplateLabels(t *testing.T) {
 	t.Run("adds kyma module label when missing", func(t *testing.T) {
 		obj := &unstructured.Unstructured{Object: map[string]interface{}{

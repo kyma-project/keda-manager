@@ -42,6 +42,21 @@ const (
 	kymaModuleLabel                    = "kyma-project.io/module"
 	kymaModuleLabelValue               = "keda"
 
+	// interceptorDeploymentName / interceptorContainerName identify the HTTP
+	// add-on interceptor-proxy within the fetched upstream manifest.
+	interceptorDeploymentName = "keda-add-ons-http-interceptor"
+	interceptorContainerName  = "interceptor"
+	// directPodRoutingEnvName controls whether the interceptor dials the
+	// backend Pod IP directly (add-on 0.16.0 default "true") instead of the
+	// ClusterIP Service. Direct Pod routing is incompatible with a STRICT
+	// mTLS mesh: dialing a bare Pod IP falls through the interceptor's Istio
+	// sidecar to the plaintext PassthroughCluster, which the backend's STRICT
+	// sidecar rejects (filter_chain_not_found), returning HTTP 503. When Istio
+	// injection is enabled we default it to "false" so traffic goes via the
+	// Service and keeps mTLS, but we leave any explicit value in the manifest
+	// untouched so an operator can override.
+	directPodRoutingEnvName = "KEDA_HTTP_DIRECT_POD_ROUTING"
+
 	httpScaledObjectGroup   = "http.keda.sh"
 	httpScaledObjectVersion = "v1alpha1"
 	httpScaledObjectKind    = "HTTPScaledObject"
@@ -70,6 +85,7 @@ func overrideNamespace(objs []unstructured.Unstructured, namespace string, istio
 			if istioInjection {
 				patchDeploymentIstioExcludePortsAnnotation(obj)
 				patchDeploymentIstioSidecarAnnotation(obj, "true")
+				patchInterceptorDirectPodRouting(obj)
 			} else {
 				patchDeploymentIstioSidecarAnnotation(obj, "false")
 			}
@@ -112,6 +128,63 @@ func patchDeploymentIstioSidecarAnnotation(obj *unstructured.Unstructured, value
 	}
 	annotations[istioSidecarInjectAnnotation] = value
 	_ = unstructured.SetNestedStringMap(obj.Object, annotations, "spec", "template", "metadata", "annotations")
+}
+
+// patchInterceptorDirectPodRouting defaults KEDA_HTTP_DIRECT_POD_ROUTING to
+// false on the interceptor-proxy container when the add-on runs in an Istio
+// mesh, while leaving any explicit setting untouched so operators can override.
+// The add-on 0.16.0 interceptor defaults this to true (dial the backend Pod IP
+// directly). In a STRICT mTLS mesh that bare-Pod-IP dial bypasses the sidecar's
+// mTLS cluster via PassthroughCluster plaintext, which the backend's STRICT
+// sidecar rejects (filter_chain_not_found) -> upstream reset -> HTTP 503.
+// Routing via the ClusterIP Service keeps the connection on the mTLS path.
+// We only inject the env when it is absent; if the fetched manifest already
+// carries it (an operator added it), the explicit value wins. No-op for every
+// Deployment except the interceptor.
+func patchInterceptorDirectPodRouting(obj *unstructured.Unstructured) {
+	if obj.GetName() != interceptorDeploymentName {
+		return
+	}
+	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	if err != nil || !found {
+		return
+	}
+	changed := false
+	for ci, rawC := range containers {
+		container, ok := rawC.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if name, _ := container["name"].(string); name != interceptorContainerName {
+			continue
+		}
+		envList, _ := container["env"].([]interface{})
+		// Respect an explicit value: if the env is already present (set by the
+		// operator / manifest), leave it as-is.
+		alreadySet := false
+		for _, rawE := range envList {
+			envVar, ok := rawE.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if n, _ := envVar["name"].(string); n == directPodRoutingEnvName {
+				alreadySet = true
+				break
+			}
+		}
+		if !alreadySet {
+			envList = append(envList, map[string]interface{}{
+				"name":  directPodRoutingEnvName,
+				"value": "false",
+			})
+			container["env"] = envList
+			containers[ci] = container
+			changed = true
+		}
+	}
+	if changed {
+		_ = unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers")
+	}
 }
 
 // patchDeploymentPodTemplateLabels stamps `kyma-project.io/module=keda` on
