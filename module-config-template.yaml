@@ -3,7 +3,7 @@ version:
 defaultCR: keda-default-cr.yaml
 manifest: keda-manager.yaml
 documentation: "https://help.sap.com/docs/btp/sap-business-technology-platform/keda-module"
-repository: https://github.com/kyma-project/keda-manager.git
+repository: https://github.com/kyma-project/keda-manager
 security: sec-scanners-config.yaml
 manager:
   name: keda-manager
