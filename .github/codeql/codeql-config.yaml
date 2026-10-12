@@ -1,0 +1,8 @@
+name: "CodeQL configuration"
+
+paths-ignore:
+  - "**/zz_generated*.go"
+  - "testdata/"
+
+queries:
+  - uses: security-extended
