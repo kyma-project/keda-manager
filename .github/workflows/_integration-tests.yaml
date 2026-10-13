@@ -26,9 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
       - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
       - name: run test
@@ -117,9 +114,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
       - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
       - name: deploy keda
@@ -138,9 +132,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: kyma-project/manager-toolkit/.github/actions/setup-go@main
       - uses: kyma-project/manager-toolkit/.github/actions/create-k3d-cluster@main
       - name: deploy keda
