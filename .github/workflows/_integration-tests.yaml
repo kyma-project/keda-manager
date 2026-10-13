@@ -1,8 +1,20 @@
 name: integration tests
 
 on:
+  workflow_dispatch:
+    inputs:
+      trigger_btp:
+        description: 'Trigger BTP integration test'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
+      trigger_btp:
+        description: 'Trigger BTP integration test'
+        required: false
+        type: boolean
+        default: false
       image:
         description: "The image to test"
         required: true
@@ -10,7 +22,6 @@ on:
 
 jobs:
   integration-test:
-    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
     environment: secrets
     runs-on: ubuntu-latest
     steps:
@@ -26,7 +37,7 @@ jobs:
           IMG: ${{ inputs.image }}
 
   btp-integration-tests:
-    if: ${{ !startsWith(github.event_name, 'pull_request') }}
+    if: ${{ inputs.trigger_btp }}
     environment: secrets
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +75,7 @@ jobs:
           btp_idp_tenant: ${{ vars.BTP_CUSTOM_IAS_TENANT }}
 
   btp-scale-to-zero-integration-tests:
-    if: ${{ !startsWith(github.event_name, 'pull_request') }}
+    if: ${{ inputs.trigger_btp }}
     environment: secrets
     runs-on: ubuntu-latest
     steps:
@@ -102,7 +113,6 @@ jobs:
           btp_idp_tenant: ${{ vars.BTP_CUSTOM_IAS_TENANT }}
 
   rbac-integration-test:
-    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
     environment: secrets
     runs-on: ubuntu-latest
     steps:
@@ -124,7 +134,6 @@ jobs:
           config: ${{ github.workspace }}/test/rbac/config.yaml
 
   http-add-on-integration-test:
-    if: ${{ !startsWith(github.event_name, 'pull_request') || github.event.pull_request.draft == false }}
     environment: secrets
     runs-on: ubuntu-latest
     steps:

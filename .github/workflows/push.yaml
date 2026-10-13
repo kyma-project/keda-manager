@@ -15,3 +15,9 @@ jobs:
   upgrades:
     needs: builds
     uses: ./.github/workflows/_upgrade-tests.yaml
+
+  integrations:
+    needs: builds
+    uses: ./.github/workflows/_integration-tests.yaml
+    with:
+      image: europe-docker.pkg.dev/kyma-project/prod/keda-manager:${{ github.sha }}
