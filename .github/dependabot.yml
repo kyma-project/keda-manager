@@ -9,6 +9,10 @@ updates:
     commit-message:
       prefix: "actions"
       include: "scope"
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
   - package-ecosystem: "gomod"
     directory: "/"
     labels:
