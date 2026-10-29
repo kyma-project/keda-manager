@@ -443,10 +443,6 @@ type KedaList struct {
 	Items           []Keda `json:"items"`
 }
 
-func init() {
-	SchemeBuilder.Register(&Keda{}, &KedaList{})
-}
-
 // SetAddonCondition sets an addon-specific condition on the Keda CR status.
 func SetAddonCondition(instance *Keda, status metav1.ConditionStatus, reason, msg string) {
 	condition := metav1.Condition{
